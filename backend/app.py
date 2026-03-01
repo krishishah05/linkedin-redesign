@@ -9,7 +9,7 @@ Run:
 API base: http://localhost:5000/api
 """
 
-from flask import Flask, jsonify, request, abort
+from flask import Flask, jsonify, request, abort, send_from_directory
 from flask_cors import CORS
 import sys
 import os
@@ -20,8 +20,16 @@ import copy
 sys.path.insert(0, os.path.dirname(__file__))
 import data as db
 
-app = Flask(__name__)
+# Serve the project root (one level up from backend/) as static files
+ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+
+app = Flask(__name__, static_folder=ROOT_DIR, static_url_path='')
 CORS(app, resources={r"/api/*": {"origins": "*"}})
+
+
+@app.route('/')
+def index():
+    return send_from_directory(ROOT_DIR, 'app.html')
 
 # ── In-memory mutable stores ──────────────────────────────────
 # These are initialized lazily on first request so timestamps
@@ -386,5 +394,6 @@ def get_profile_readiness():
 
 if __name__ == "__main__":
     print("Starting LinkedIn Mock Backend on http://localhost:5000")
-    print("API endpoints: http://localhost:5000/api/")
+    print("App: http://localhost:5000/")
+    print("API: http://localhost:5000/api/")
     app.run(debug=True, port=5000)
