@@ -33,7 +33,7 @@ function Router() {
     'feed':          <FeedPage />,
     'profile':       <ProfilePage userId={params.id} />,
     'network':       <NetworkPage />,
-    'jobs':          <JobsPage jobId={params.id} />,
+    'jobs':          <JobsPage selectedJobId={params.id} />,
     'messaging':     <MessagingPage />,
     'notifications': <NotificationsPage />,
     'search':        <SearchPage query={params.q || ''} />,

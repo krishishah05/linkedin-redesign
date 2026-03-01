@@ -86,10 +86,42 @@ def get_user(user_id):
 
 
 # ── Feed Endpoints ────────────────────────────────────────────
+def _flatten_post(post):
+    """Normalize a post object to the shape the React frontend expects."""
+    author = post.get("author") or {}
+    reactions = post.get("reactions") or {}
+    comments_list = post.get("commentsList") or []
+    # Flatten each comment's nested author to just a name string
+    flat_comments = [
+        {"author": c["author"]["name"] if isinstance(c.get("author"), dict) else str(c.get("author", "")),
+         "text": c.get("text", "")}
+        for c in comments_list
+    ]
+    return {
+        "id": post.get("id"),
+        "author": author.get("name", "Unknown"),
+        "authorId": author.get("id"),
+        "authorTitle": author.get("headline", ""),
+        "content": post.get("content", ""),
+        "image": post.get("image"),
+        "createdAt": post.get("timestamp"),
+        "likeCount": reactions.get("like", 0),
+        "commentCount": post.get("comments", 0) if isinstance(post.get("comments"), int) else len(comments_list),
+        "comments": flat_comments,
+        "totalReactions": post.get("totalReactions", 0),
+        "reposts": post.get("reposts", 0),
+        "isLiked": post.get("isLiked", False),
+        "isSaved": post.get("isSaved", False),
+        "reactionType": post.get("reactionType"),
+        "type": post.get("type", "text"),
+        "tags": post.get("tags", []),
+    }
+
+
 @app.route("/api/feed")
 def get_feed():
     """GET /api/feed — paginated posts feed."""
-    return jsonify(get_posts_store())
+    return jsonify([_flatten_post(p) for p in get_posts_store()])
 
 
 @app.route("/api/feed", methods=["POST"])
@@ -116,7 +148,7 @@ def create_post():
         "tags": [],
     }
     get_posts_store().insert(0, new_post)
-    return jsonify(new_post), 201
+    return jsonify(_flatten_post(new_post)), 201
 
 
 # ── Job Endpoints ─────────────────────────────────────────────
@@ -150,11 +182,19 @@ def get_company(company_id):
 def get_conversations_list():
     """GET /api/conversations — all message threads (without full message history)."""
     convs = get_conversations_store()
-    # Return lightweight list (omit full messages array for the list view)
-    summaries = [
-        {k: v for k, v in c.items() if k != "messages"}
-        for c in convs
-    ]
+    summaries = []
+    for c in convs:
+        p = c.get("participant") or {}
+        summaries.append({
+            "id": c["id"],
+            "participantId": p.get("id"),
+            "participantName": p.get("name", "Unknown"),
+            "participantTitle": p.get("headline", ""),
+            "isOnline": p.get("isOnline", False),
+            "unreadCount": c.get("unreadCount", 0),
+            "lastMessage": c.get("lastMessage", ""),
+            "lastMessageTime": c.get("lastTimestamp"),
+        })
     return jsonify(summaries)
 
 
@@ -164,7 +204,18 @@ def get_conversation(conv_id):
     conv = db.get_conversation_by_id(conv_id, get_conversations_store())
     if not conv:
         abort(404, description=f"Conversation {conv_id} not found")
-    return jsonify(conv)
+    p = conv.get("participant") or {}
+    messages = []
+    for m in (conv.get("messages") or []):
+        messages.append({**m, "isMe": m.get("senderId") == 1})
+    return jsonify({
+        "id": conv["id"],
+        "participantId": p.get("id"),
+        "participantName": p.get("name", "Unknown"),
+        "participantTitle": p.get("headline", ""),
+        "isOnline": p.get("isOnline", False),
+        "messages": messages,
+    })
 
 
 @app.route("/api/conversations/<int:conv_id>/messages", methods=["POST"])
@@ -182,6 +233,7 @@ def send_message(conv_id):
     msg = {
         "id": int(time.time() * 1000),
         "senderId": 1,
+        "isMe": True,
         "text": body["text"].strip(),
         "timestamp": int(time.time() * 1000),
         "isRead": True,
@@ -281,7 +333,7 @@ def search():
     ]
     jobs = [
         j for j in db.JOBS
-        if q in j["title"].lower() or q in j["company"].lower() or q in j.get("industry", "").lower()
+        if q in j.get("title", "").lower() or q in j.get("company", "").lower() or q in j.get("industry", "").lower()
     ]
     posts = [
         p for p in get_posts_store()

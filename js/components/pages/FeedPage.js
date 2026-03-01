@@ -3,7 +3,7 @@
    ============================================================ */
 function FeedPage() {
   const { currentUser, likedPosts, toggleLike, openModal, showToast } = React.useContext(AppContext);
-  const { data: posts, loading, error, refetch } = useFetch(API.getFeed, []);
+  const { data: posts, loading, error } = useFetch(API.getFeed, []);
   const { data: news } = useFetch(API.getNews, []);
   const { data: hashtags } = useFetch(API.getHashtags, []);
   const { data: readiness } = useFetch(API.getProfileReadiness, []);

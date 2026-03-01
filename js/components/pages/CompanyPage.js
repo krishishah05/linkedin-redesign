@@ -96,7 +96,7 @@ function CompanyPage({ companyId }) {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                   {companyJobs.map(job => (
                     <div key={job.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}
-                      onClick={() => navigate(`job/${job.id}`)}>
+                      onClick={() => navigate(`jobs?id=${job.id}`)}>
                       <div>
                         <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--blue)' }}>{job.title}</div>
                         <div style={{ fontSize: 13, color: 'var(--text-2)' }}>{job.location} · {job.type}</div>
@@ -162,7 +162,7 @@ function CompanyPage({ companyId }) {
               {companyJobs.map(job => (
                 <div key={job.id} style={{ borderBottom: '1px solid var(--border)', paddingBottom: 16 }}>
                   <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--blue)', cursor: 'pointer', marginBottom: 4 }}
-                    onClick={() => navigate(`job/${job.id}`)}>
+                    onClick={() => navigate(`jobs?id=${job.id}`)}>
                     {job.title}
                   </div>
                   <div style={{ fontSize: 13, color: 'var(--text-2)', marginBottom: 4 }}>{job.location} · {job.type}</div>

@@ -19,7 +19,7 @@ function SearchPage({ query }) {
 
   function doSearch(q) {
     if (!q.trim()) return;
-    navigate(`search/${encodeURIComponent(q.trim())}`);
+    navigate(`search?q=${encodeURIComponent(q.trim())}`);
   }
 
   const people = results?.users || [];
@@ -102,7 +102,7 @@ function SearchPage({ query }) {
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div
                           style={{ fontSize: 14, fontWeight: 700, cursor: 'pointer', color: 'var(--text)' }}
-                          onClick={() => navigate(`profile/${user.id}`)}
+                          onClick={() => navigate(`profile?id=${user.id}`)}
                         >
                           {user.name}
                         </div>
@@ -134,7 +134,7 @@ function SearchPage({ query }) {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 {(filter === 'all' ? jobs.slice(0, 3) : jobs).map(job => (
                   <div key={job.id} style={{ display: 'flex', gap: 12, cursor: 'pointer' }}
-                    onClick={() => navigate(`job/${job.id}`)}>
+                    onClick={() => navigate(`jobs?id=${job.id}`)}>
                     <div style={{
                       width: 40, height: 40, borderRadius: 4, background: 'var(--bg-2)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -158,7 +158,7 @@ function SearchPage({ query }) {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 {(filter === 'all' ? companies.slice(0, 3) : companies).map(co => (
                   <div key={co.id} style={{ display: 'flex', gap: 12, cursor: 'pointer' }}
-                    onClick={() => navigate(`company/${co.id}`)}>
+                    onClick={() => navigate(`company?id=${co.id}`)}>
                     <div style={{
                       width: 40, height: 40, borderRadius: 4, background: 'var(--bg-2)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',

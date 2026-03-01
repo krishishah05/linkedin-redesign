@@ -29,7 +29,7 @@ function EventsPage() {
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
         <h1 style={{ fontSize: 22, fontWeight: 700 }}>Events</h1>
-        <button className="li-btn li-btn--primary li-btn--sm" onClick={() => openModal('createEvent')}>
+        <button className="li-btn li-btn--primary li-btn--sm" onClick={() => openModal('create-event')}>
           + Create event
         </button>
       </div>

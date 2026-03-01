@@ -89,7 +89,7 @@ function GroupsPage() {
                 <button
                   className="li-btn li-btn--outline li-btn--sm"
                   style={{ flex: 1 }}
-                  onClick={() => navigate(`group/${group.id}`)}
+                  onClick={() => navigate(`group-detail?id=${group.id}`)}
                 >
                   View
                 </button>

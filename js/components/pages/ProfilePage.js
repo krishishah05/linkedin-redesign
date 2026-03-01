@@ -65,7 +65,7 @@ function ProfilePage({ userId }) {
                 <div style={{ display: 'flex', gap: 8 }}>
                   {isOwnProfile ? (
                     <>
-                      <button className="li-btn li-btn--outline li-btn--sm" onClick={() => openModal('editProfile')}>Edit profile</button>
+                      <button className="li-btn li-btn--outline li-btn--sm" onClick={() => openModal('edit-profile')}>Edit profile</button>
                       <button className="li-btn li-btn--ghost li-btn--sm" onClick={() => showToast('Share profile link copied!')}>Share</button>
                     </>
                   ) : (
@@ -160,7 +160,7 @@ function ProfilePage({ userId }) {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                 <h2 style={{ fontSize: 18, fontWeight: 700 }}>Experience</h2>
                 {isOwnProfile && (
-                  <button className="li-btn li-btn--ghost li-btn--sm" onClick={() => openModal('addExperience')}>+ Add</button>
+                  <button className="li-btn li-btn--ghost li-btn--sm" onClick={() => openModal('add-exp')}>+ Add</button>
                 )}
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
