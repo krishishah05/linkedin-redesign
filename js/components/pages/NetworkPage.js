@@ -56,20 +56,25 @@ function NetworkPage() {
                 </button>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                {allInvitations.slice(0, 3).map((inv, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <Avatar name={inv.name || inv.senderName} size={48} />
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 14, fontWeight: 600 }}>{inv.name || inv.senderName}</div>
-                      <div style={{ fontSize: 13, color: 'var(--text-2)' }}>{inv.headline || inv.title}</div>
-                      <div style={{ fontSize: 12, color: 'var(--text-3)' }}>{inv.mutualConnections || 0} mutual connections</div>
+                {allInvitations.slice(0, 3).map((inv, i) => {
+                  const invUser = inv.user || inv;
+                  const invName = invUser.name || inv.senderName || 'Unknown';
+                  const invHeadline = invUser.headline || inv.headline || inv.title || '';
+                  return (
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                      <Avatar name={invName} size={48} colorOverride={invUser.avatarColor} />
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 14, fontWeight: 600 }}>{invName}</div>
+                        <div style={{ fontSize: 13, color: 'var(--text-2)' }}>{invHeadline}</div>
+                        <div style={{ fontSize: 12, color: 'var(--text-3)' }}>{inv.mutualCount || inv.mutualConnections || 0} mutual connections</div>
+                      </div>
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        <button className="li-btn li-btn--ghost li-btn--sm" onClick={() => showToast('Invitation ignored')}>Ignore</button>
+                        <button className="li-btn li-btn--outline li-btn--sm" onClick={() => showToast(`Connected with ${invName}!`)}>Accept</button>
+                      </div>
                     </div>
-                    <div style={{ display: 'flex', gap: 8 }}>
-                      <button className="li-btn li-btn--ghost li-btn--sm" onClick={() => showToast('Invitation ignored')}>Ignore</button>
-                      <button className="li-btn li-btn--outline li-btn--sm" onClick={() => showToast(`Connected with ${inv.name || inv.senderName}!`)}>Accept</button>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}

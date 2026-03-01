@@ -27,7 +27,11 @@ function NavBar() {
     if (!val.trim()) { setSuggestions([]); setShowSuggestions(false); return; }
     API.search(val)
       .then(results => {
-        setSuggestions(results.slice(0, 6));
+        // API returns {users:[], jobs:[], posts:[], query:''}
+        const users = (results.users || []).slice(0, 4);
+        const jobs = (results.jobs || []).slice(0, 2);
+        const combined = [...users, ...jobs];
+        setSuggestions(combined.slice(0, 6));
         setShowSuggestions(true);
       })
       .catch(() => setSuggestions([]));
@@ -94,7 +98,7 @@ function NavBar() {
           {showSuggestions && suggestions.length > 0 && (
             <div className="search-suggestions" style={{ display: 'block', position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 9999 }}>
               {suggestions.map((s, i) => (
-                <div key={i} className="search-suggestion-item"
+                <div key={i} className="sugg-item"
                   onMouseDown={() => {
                     navigate(`search?q=${encodeURIComponent(s.name || s.title || s.query || '')}`);
                     setShowSuggestions(false);

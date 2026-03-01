@@ -87,7 +87,7 @@ function NotificationsPage() {
             >
               {/* Icon/avatar */}
               <div style={{ position: 'relative', flexShrink: 0 }}>
-                <Avatar name={n.actorName || 'LinkedIn'} size={48} />
+                <Avatar name={(n.actor && n.actor.name) || n.actorName || 'LinkedIn'} size={48} colorOverride={n.actor && n.actor.avatarColor} />
                 <div style={{
                   position: 'absolute', bottom: -2, right: -2,
                   width: 20, height: 20, borderRadius: '50%',
@@ -102,10 +102,10 @@ function NotificationsPage() {
               {/* Content */}
               <div style={{ flex: 1, minWidth: 0 }}>
                 <p style={{ fontSize: 14, margin: '0 0 4px', lineHeight: 1.4 }}>
-                  {n.message || n.text || ''}
+                  {n.content || n.message || n.text || ''}
                 </p>
                 <span style={{ fontSize: 12, color: n.isRead ? 'var(--text-3)' : 'var(--blue)', fontWeight: n.isRead ? 400 : 600 }}>
-                  {formatTime(n.timestamp || n.createdAt)}
+                  {typeof n.timestamp === 'string' ? n.timestamp : formatTime(n.timestamp || n.createdAt)}
                 </span>
               </div>
 

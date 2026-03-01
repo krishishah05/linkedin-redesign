@@ -8,10 +8,21 @@ function EventsPage() {
   const [attending, setAttending] = React.useState(() => new Set());
   const [interested, setInterested] = React.useState(() => new Set());
 
+  // Seed from API on first load
+  React.useEffect(() => {
+    if (events && events.length > 0) {
+      const att = new Set(events.filter(e => e.isAttending).map(e => e.id));
+      const int_ = new Set(events.filter(e => e.isInterested).map(e => e.id));
+      if (att.size > 0) setAttending(att);
+      if (int_.size > 0) setInterested(int_);
+    }
+  }, [events]);
+
   if (loading) return <LoadingSpinner text="Loading events..." />;
   if (error) return <ErrorMessage message={error} />;
 
   const allEvents = events || [];
+
   const shown = tab === 'attending'
     ? allEvents.filter(e => attending.has(e.id))
     : tab === 'interested'
@@ -88,7 +99,7 @@ function EventsPage() {
               <div style={{ flex: 1, minWidth: 0 }}>
                 <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>{event.title}</h3>
                 <div style={{ fontSize: 13, color: 'var(--text-2)', marginBottom: 4 }}>
-                  {formatDate(event.date)} · {event.format || 'Online'}
+                  {formatDate(event.date)}{event.time ? ' · ' + event.time : ''} · {event.isVirtual ? 'Online' : (event.location || event.type || 'In-person')}
                 </div>
                 {event.organizer && (
                   <div style={{ fontSize: 13, color: 'var(--text-2)', marginBottom: 8 }}>

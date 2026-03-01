@@ -5,12 +5,21 @@ function GroupsPage() {
   const { showToast } = React.useContext(AppContext);
   const { data: groups, loading, error } = useFetch(API.getGroups, []);
   const [tab, setTab] = React.useState('my-groups');
-  const [joined, setJoined] = React.useState(() => new Set([1, 2]));
+  const [joined, setJoined] = React.useState(() => new Set([1, 2, 4]));
+
+  // Seed joined from API data on first load
+  React.useEffect(() => {
+    if (groups && groups.length > 0) {
+      const fromApi = new Set(groups.filter(g => g.isJoined).map(g => g.id));
+      if (fromApi.size > 0) setJoined(fromApi);
+    }
+  }, [groups]);
 
   if (loading) return <LoadingSpinner text="Loading groups..." />;
   if (error) return <ErrorMessage message={error} />;
 
   const allGroups = groups || [];
+
   const shown = tab === 'my-groups'
     ? allGroups.filter(g => joined.has(g.id))
     : allGroups.filter(g => !joined.has(g.id));
@@ -65,11 +74,11 @@ function GroupsPage() {
               <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
                 <div style={{
                   width: 48, height: 48, borderRadius: 8, flexShrink: 0,
-                  background: group.color || '#0A66C2',
+                  background: group.coverGradient || group.color || '#0A66C2',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontSize: 22, color: '#fff',
                 }}>
-                  {group.emoji || '👥'}
+                  {group.logo || group.emoji || '👥'}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 2 }}>{group.name}</h3>

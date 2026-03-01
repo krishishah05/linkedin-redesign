@@ -7,6 +7,11 @@ function GroupDetailPage({ groupId }) {
   const [tab, setTab] = React.useState('posts');
   const [joined, setJoined] = React.useState(false);
 
+  // Seed joined state from API once data loads
+  React.useEffect(() => {
+    if (group && group.isJoined) setJoined(true);
+  }, [group]);
+
   if (loading) return <LoadingSpinner text="Loading group..." />;
   if (error) return <ErrorMessage message={error} onRetry={() => window.location.reload()} />;
   if (!group) return <ErrorMessage message="Group not found" />;
@@ -22,10 +27,10 @@ function GroupDetailPage({ groupId }) {
       <div className="li-card" style={{ padding: 0, marginBottom: 16, overflow: 'hidden' }}>
         <div style={{
           height: 140,
-          background: group.color ? `linear-gradient(135deg, ${group.color}, #004182)` : 'linear-gradient(135deg, #0a66c2, #004182)',
+          background: group.coverGradient || (group.color ? `linear-gradient(135deg, ${group.color}, #004182)` : 'linear-gradient(135deg, #0a66c2, #004182)'),
           display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 56,
         }}>
-          {group.emoji || '👥'}
+          {group.logo || group.emoji || '👥'}
         </div>
         <div style={{ padding: '16px 24px 20px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
           <div>

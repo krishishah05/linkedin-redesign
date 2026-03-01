@@ -156,7 +156,7 @@ function JobDetailPanel({ job, savedJobs, toggleSaveJob, openModal, showToast })
           <div style={{ fontSize: 14, color: 'var(--text-2)', marginBottom: 2 }}>
             <span
               style={{ color: 'var(--blue)', cursor: 'pointer', fontWeight: 600 }}
-              onClick={() => navigate(`company/${job.companyId || 1}`)}
+              onClick={() => navigate(`company?id=${job.companyId || 1}`)}
             >
               {job.company}
             </span>

@@ -12,6 +12,17 @@ function LearningPage() {
   if (error) return <ErrorMessage message={error} />;
 
   const allCourses = courses || [];
+  const inProgress = allCourses.filter(c => c.isInProgress);
+  const completed = allCourses.filter(c => c.isCompleted);
+  const saved = allCourses.filter(c => c.isSaved);
+
+  const tabCourses = {
+    'my-learning': inProgress,
+    'completed': completed,
+    'saved': saved,
+    'explore': allCourses,
+  };
+  const shownCourses = tabCourses[tab] || allCourses;
 
   return (
     <div className="li-page-inner" style={{ maxWidth: 900 }}>
@@ -49,24 +60,9 @@ function LearningPage() {
       </div>
 
       {/* Content */}
-      {tab !== 'explore' ? (
-        <div className="li-card" style={{ padding: 40, textAlign: 'center' }}>
-          <div style={{ fontSize: 40, marginBottom: 12 }}>📚</div>
-          <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>
-            {tab === 'my-learning' && 'No courses in progress'}
-            {tab === 'completed' && 'No completed courses yet'}
-            {tab === 'saved' && 'No saved courses'}
-          </h3>
-          <p style={{ color: 'var(--text-2)', fontSize: 14, marginBottom: 16 }}>
-            Explore our library and start learning today.
-          </p>
-          <button className="li-btn li-btn--primary li-btn--sm" onClick={() => setTab('explore')}>
-            Browse courses
-          </button>
-        </div>
-      ) : (
-        <div>
-          {/* Search */}
+      <div>
+        {/* Search bar (only on explore) */}
+        {tab === 'explore' && (
           <div style={{ marginBottom: 16, position: 'relative' }}>
             <input
               type="text"
@@ -83,16 +79,32 @@ function LearningPage() {
               <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
             </svg>
           </div>
+        )}
 
-          {/* Courses grid */}
+        {shownCourses.length === 0 ? (
+          <div className="li-card" style={{ padding: 40, textAlign: 'center' }}>
+            <div style={{ fontSize: 40, marginBottom: 12 }}>📚</div>
+            <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>
+              {tab === 'my-learning' && 'No courses in progress'}
+              {tab === 'completed' && 'No completed courses yet'}
+              {tab === 'saved' && 'No saved courses'}
+            </h3>
+            <p style={{ color: 'var(--text-2)', fontSize: 14, marginBottom: 16 }}>
+              Explore our library and start learning today.
+            </p>
+            <button className="li-btn li-btn--primary li-btn--sm" onClick={() => setTab('explore')}>
+              Browse courses
+            </button>
+          </div>
+        ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 16 }}>
-            {allCourses.map(course => (
+            {shownCourses.map(course => (
               <div key={course.id} className="li-card" style={{ padding: 0, overflow: 'hidden', cursor: 'pointer' }}
                 onClick={() => showToast(`"${course.title}" — starting course...`)}>
                 {/* Thumbnail */}
                 <div style={{
                   height: 140,
-                  background: course.thumbnail || `linear-gradient(135deg, #0a66c2, #004182)`,
+                  background: course.thumbnail || course.coverGradient || `linear-gradient(135deg, #0a66c2, #004182)`,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontSize: 40,
                 }}>
@@ -108,7 +120,7 @@ function LearningPage() {
                     <span style={{ fontSize: 12, color: '#b45309', fontWeight: 600 }}>
                       {'★'.repeat(Math.floor(course.rating || 4))} {course.rating}
                     </span>
-                    <span style={{ fontSize: 12, color: 'var(--text-2)' }}>({formatNumber(course.students || 0)})</span>
+                    <span style={{ fontSize: 12, color: 'var(--text-2)' }}>({formatNumber(course.reviews || course.students || 0)})</span>
                     <span style={{ fontSize: 12, color: 'var(--text-2)' }}>{course.duration}</span>
                   </div>
                   {course.level && (
@@ -123,8 +135,8 @@ function LearningPage() {
               </div>
             ))}
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
