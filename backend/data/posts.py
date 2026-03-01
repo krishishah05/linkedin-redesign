@@ -22,7 +22,7 @@ def get_posts():
             "tags": ["ProductManagement", "CareerGrowth", "Meta"],
             "commentsList": [
                 {"id": 1, "author": {"id": 3, "name": "Sarah Chen", "headline": "VP of Engineering at Stripe", "avatarColor": "#E67E22"}, "text": "Huge congrats Priya!! So well deserved! 🎊", "timestamp": "1h", "likes": 23},
-                {"id": 2, "author": {"id": 1, "name": "Alex Johnson", "headline": "Senior Software Engineer at Google", "avatarColor": "#0A66C2"}, "text": "Amazing news! Meta is lucky to have you as a Senior PM 🚀", "timestamp": "2h", "likes": 15},
+                {"id": 2, "author": {"id": 1, "name": "Alex Johnson", "headline": "Senior Software Engineer at Google", "avatarColor": "#0F5DBD"}, "text": "Amazing news! Meta is lucky to have you as a Senior PM 🚀", "timestamp": "2h", "likes": 15},
                 {"id": 3, "author": {"id": 7, "name": "Marcus Williams", "headline": "Senior Software Engineer at Meta | React Core Team", "avatarColor": "#2C3E50"}, "text": "The point about data telling you WHAT but users telling you WHY is gold. Sharing this with my team!", "timestamp": "3h", "likes": 45}
             ]
         },
@@ -89,7 +89,7 @@ def get_posts():
             "type": "text",
             "tags": ["EngineeringLeadership", "CareerAdvice"],
             "commentsList": [
-                {"id": 1, "author": {"id": 1, "name": "Alex Johnson", "headline": "Senior Software Engineer at Google", "avatarColor": "#0A66C2"}, "text": "Point #2 is underrated. So many engineers dive into HOW without understanding WHY. This has changed how I approach design docs.", "timestamp": "2h", "likes": 67},
+                {"id": 1, "author": {"id": 1, "name": "Alex Johnson", "headline": "Senior Software Engineer at Google", "avatarColor": "#0F5DBD"}, "text": "Point #2 is underrated. So many engineers dive into HOW without understanding WHY. This has changed how I approach design docs.", "timestamp": "2h", "likes": 67},
                 {"id": 2, "author": {"id": 6, "name": "James Thompson", "headline": "Engineering Manager at Amazon | AWS | 3x Founder | Investor", "avatarColor": "#2C3E50"}, "text": "The 'failed spectacularly' point resonates. I now specifically ask candidates about their biggest failure before their biggest success.", "timestamp": "4h", "likes": 34}
             ]
         },
@@ -111,7 +111,7 @@ def get_posts():
         },
         {
             "id": 7,
-            "author": {"id": 1, "name": "Alex Johnson", "headline": "Senior Software Engineer at Google | Full Stack Developer | Open Source Enthusiast", "avatarColor": "#0A66C2"},
+            "author": {"id": 1, "name": "Alex Johnson", "headline": "Senior Software Engineer at Google | Full Stack Developer | Open Source Enthusiast", "avatarColor": "#0F5DBD"},
             "content": "Just published my deep dive on building scalable React applications in 2024.\n\nKey architecture decisions that made our team 40% faster:\n\n🏗️ Feature-based folder structure > layer-based\n⚛️ React Query for server state, Zustand for client state\n🧪 Testing pyramid: 70% unit, 20% integration, 10% e2e\n🚀 Module Federation for micro-frontend architecture\n📊 Performance budget enforced in CI/CD pipeline\n\nWhat patterns have worked for your team?\n\n#React #JavaScript #SoftwareEngineering #WebDev",
             "timestamp": _ts(24 * 3600000),
             "reactions": {"like": 892, "insightful": 456, "love": 123, "celebrate": 67, "support": 34, "funny": 12},
@@ -144,7 +144,7 @@ def get_posts():
         {
             "id": 9,
             "author": {"id": 11, "name": "Carlos Mendez", "headline": "Head of Growth at Notion | Previously HubSpot | Growth Hacker", "avatarColor": "#E67E22"},
-            "content": "I asked 50 marketing leaders what growth channel they regret ignoring. The answer was unanimous: LinkedIn organic.\n\nHere's why most B2B companies are leaving 70% of their pipeline on the table:\n\n❌ They treat LinkedIn like Twitter (broadcast, not conversation)\n❌ They post company updates instead of insights\n❌ They're afraid to have opinions\n❌ They chase viral instead of valuable\n\nWhat actually works:\n✅ Founder-led content on personal profiles\n✅ Controversial but researched takes\n✅ Behind-the-scenes of building the company\n✅ Specific, actionable frameworks\n✅ Consistency over 90 days minimum\n\nLinkedIn's algorithm rewards dwell time, not clicks. Write things people read, not just like.\n\n#B2BMarketing #GrowthHacking #ContentMarketing #LinkedIn",
+            "content": "I asked 50 marketing leaders what growth channel they regret ignoring. The answer was unanimous: Nexus organic.\n\nHere's why most B2B companies are leaving 70% of their pipeline on the table:\n\n❌ They treat Nexus like Twitter (broadcast, not conversation)\n❌ They post company updates instead of insights\n❌ They're afraid to have opinions\n❌ They chase viral instead of valuable\n\nWhat actually works:\n✅ Founder-led content on personal profiles\n✅ Controversial but researched takes\n✅ Behind-the-scenes of building the company\n✅ Specific, actionable frameworks\n✅ Consistency over 90 days minimum\n\nNexus's algorithm rewards dwell time, not clicks. Write things people read, not just like.\n\n#B2BMarketing #GrowthHacking #ContentMarketing #Nexus",
             "timestamp": _ts(3 * 24 * 3600000),
             "reactions": {"like": 2341, "insightful": 1456, "love": 234, "celebrate": 89, "support": 67, "funny": 34},
             "totalReactions": 4221,
@@ -154,7 +154,7 @@ def get_posts():
             "isSaved": False,
             "reactionType": None,
             "type": "text",
-            "tags": ["B2BMarketing", "GrowthHacking", "LinkedIn"],
+            "tags": ["B2BMarketing", "GrowthHacking", "Nexus"],
             "commentsList": []
         },
         {

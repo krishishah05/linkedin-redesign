@@ -36,7 +36,7 @@ function ReportModal() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {reasons.map(r => (
               <label key={r} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: 10, border: `1px solid ${reason === r ? 'var(--blue)' : 'var(--border)'}`, borderRadius: 4, cursor: 'pointer', fontSize: 14, background: reason === r ? 'var(--blue-light)' : '' }}>
-                <input type="radio" name="report" style={{ accentColor: '#0A66C2' }} checked={reason === r} onChange={() => setReason(r)} />
+                <input type="radio" name="report" style={{ accentColor: '#0F5DBD' }} checked={reason === r} onChange={() => setReason(r)} />
                 {r}
               </label>
             ))}

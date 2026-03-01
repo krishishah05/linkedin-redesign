@@ -44,7 +44,7 @@ function SearchPage({ query }) {
           value={localQuery}
           onChange={e => setLocalQuery(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && doSearch(localQuery)}
-          placeholder="Search LinkedIn"
+          placeholder="Search Nexus"
           style={{
             flex: 1, padding: '10px 16px',
             border: '1px solid var(--border-2)', borderRadius: 4,
@@ -81,7 +81,9 @@ function SearchPage({ query }) {
 
       {!loading && !query && (
         <div className="li-card" style={{ padding: 40, textAlign: 'center' }}>
-          <div style={{ fontSize: 40, marginBottom: 12 }}>🔍</div>
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: 12 }}>
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
           <p style={{ color: 'var(--text-2)', fontSize: 14 }}>Search for people, jobs, companies, and posts.</p>
         </div>
       )}
@@ -138,8 +140,12 @@ function SearchPage({ query }) {
                     <div style={{
                       width: 40, height: 40, borderRadius: 4, background: 'var(--bg-2)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: 18, flexShrink: 0,
-                    }}>💼</div>
+                      flexShrink: 0,
+                    }}>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="var(--text-3)">
+                        <path d="M20 6h-2.18c.07-.44.18-.86.18-1a3 3 0 0 0-6 0c0 .14.11.56.18 1H10C8.9 6 8 6.9 8 8v12c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-7-1a1 1 0 0 1 2 0c0 .14-.05.27-.08.41a.75.75 0 0 1 0 .18c-.03.14-.08.27-.13.41H13.21c-.05-.14-.1-.27-.13-.41a.75.75 0 0 1 0-.18C13.05 5.27 13 5.14 13 5zm7 15H10V8h2v1h6V8h2v12z"/>
+                      </svg>
+                    </div>
                     <div>
                       <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--blue)' }}>{job.title}</div>
                       <div style={{ fontSize: 13, color: 'var(--text-2)' }}>{job.company}</div>
@@ -162,8 +168,12 @@ function SearchPage({ query }) {
                     <div style={{
                       width: 40, height: 40, borderRadius: 4, background: 'var(--bg-2)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: 18, flexShrink: 0,
-                    }}>🏢</div>
+                      flexShrink: 0,
+                    }}>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="var(--text-3)">
+                        <path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z"/>
+                      </svg>
+                    </div>
                     <div>
                       <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--blue)' }}>{co.name}</div>
                       <div style={{ fontSize: 13, color: 'var(--text-2)' }}>{co.industry}</div>
@@ -178,7 +188,9 @@ function SearchPage({ query }) {
           {/* No results */}
           {people.length === 0 && jobs.length === 0 && companies.length === 0 && posts.length === 0 && (
             <div className="li-card" style={{ padding: 40, textAlign: 'center' }}>
-              <div style={{ fontSize: 40, marginBottom: 12 }}>🔍</div>
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: 12 }}>
+                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
               <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>No results for "{query}"</h3>
               <p style={{ color: 'var(--text-2)', fontSize: 14 }}>Try different keywords or check your spelling.</p>
             </div>

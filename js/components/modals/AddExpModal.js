@@ -56,7 +56,7 @@ function AddExpModal() {
             <input className="li-settings-input" placeholder="Ex: London, United Kingdom" value={form.location} onChange={e => update('location', e.target.value)} style={{ width: '100%' }} />
           </div>
           <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, cursor: 'pointer', marginBottom: 12 }}>
-            <input type="checkbox" style={{ accentColor: '#0A66C2' }} checked={currentRole} onChange={e => setCurrentRole(e.target.checked)} />
+            <input type="checkbox" style={{ accentColor: '#0F5DBD' }} checked={currentRole} onChange={e => setCurrentRole(e.target.checked)} />
             I am currently working in this role
           </label>
           <div className="li-settings-form-row">

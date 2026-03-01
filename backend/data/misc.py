@@ -4,7 +4,7 @@ NEWS = [
     {"id": 3, "headline": "Apple Vision Pro sales exceed analyst expectations in first quarter", "readers": "45,123 readers", "timeAgo": "5h ago", "category": "Technology"},
     {"id": 4, "headline": "Remote work policies: Companies split on return-to-office mandates", "readers": "123,432 readers", "timeAgo": "7h ago", "category": "Work Trends"},
     {"id": 5, "headline": "Google's DeepMind AlphaFold 3 predicts drug interactions", "readers": "28,912 readers", "timeAgo": "9h ago", "category": "Science"},
-    {"id": 6, "headline": "LinkedIn adds AI-powered career coaching to premium plans", "readers": "67,234 readers", "timeAgo": "11h ago", "category": "Technology"},
+    {"id": 6, "headline": "Nexus launches AI-powered career coaching for all members", "readers": "67,234 readers", "timeAgo": "11h ago", "category": "Technology"},
     {"id": 7, "headline": "Tech layoffs slow as companies stabilize headcount for 2024", "readers": "91,234 readers", "timeAgo": "1d ago", "category": "Work Trends"}
 ]
 

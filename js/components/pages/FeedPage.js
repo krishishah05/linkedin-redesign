@@ -17,8 +17,8 @@ function FeedPage() {
   if (error) return (
     <div className="li-page-inner" style={{ textAlign: 'center', padding: 60 }}>
       <svg width="48" height="48" viewBox="0 0 48 48" style={{ marginBottom: 12 }}>
-        <rect width="48" height="48" rx="8" fill="#0A66C2"/>
-        <text x="8" y="36" fontFamily="Georgia,serif" fontSize="30" fontWeight="bold" fill="#fff">in</text>
+        <rect width="48" height="48" rx="8" fill="#0F5DBD"/>
+        <text x="11" y="36" fontFamily="-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" fontSize="28" fontWeight="800" fill="#fff">N</text>
       </svg>
       <p style={{ color: 'var(--text-2)', marginBottom: 8 }}>Could not load feed. Make sure the backend is running.</p>
       <code style={{ fontSize: 12, color: 'var(--text-3)' }}>{error}</code>
@@ -79,9 +79,7 @@ function FeedPage() {
               <div className="li-profile-card__info">
                 <div className="li-profile-card__name" onClick={() => navigate('profile')}>
                   {u.name}
-                  {u.isPremium && (
-                    <span style={{ background: '#e7a500', color: '#fff', fontSize: 9, fontWeight: 700, padding: '1px 4px', borderRadius: 2, marginLeft: 4, verticalAlign: 'middle' }}>IN</span>
-                  )}
+
                 </div>
                 <div className="li-profile-card__headline">{(u.headline || '').split('|')[0].trim()}</div>
                 {u.location && <div style={{ fontSize: 12, color: 'var(--text-2)', marginTop: 2 }}>{u.location}</div>}
@@ -96,18 +94,15 @@ function FeedPage() {
                   <span className="li-profile-card__stat-value">{formatNumber(u.postImpressions || 0)}</span>
                 </div>
               </div>
-              <div className="li-profile-card__premium" onClick={() => navigate('premium')}>
-                <span className="li-profile-card__premium-icon">⭐</span>
-                <span>Try <strong>Premium</strong> for free</span>
-              </div>
+
               <div className="li-profile-card__links">
                 {[
-                  { icon: '🔖', label: 'Saved items', action: () => showToast('Saved items — coming soon') },
-                  { icon: '👥', label: 'Groups', action: () => navigate('groups') },
-                  { icon: '📅', label: 'Events', action: () => navigate('events') },
+                  { label: 'Groups', action: () => navigate('groups') },
+                  { label: 'Events', action: () => navigate('events') },
+                  { label: 'Learning', action: () => navigate('learning') },
                 ].map(item => (
                   <div key={item.label} className="li-profile-card__link" onClick={item.action}>
-                    <span>{item.icon}</span>{item.label}
+                    {item.label}
                   </div>
                 ))}
               </div>
@@ -166,19 +161,19 @@ function FeedPage() {
 
         {allPosts.length === 0 && (
           <div className="li-card" style={{ textAlign: 'center', padding: 40, color: 'var(--text-2)' }}>
-            <div style={{ fontSize: 40, marginBottom: 12 }}>📰</div>
-            No posts yet. Be the first to share something!
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ marginBottom: 12, color: 'var(--text-3)' }}><path d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10l4 4v10a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            <div>Your feed is empty. Follow people and companies to see posts here.</div>
           </div>
         )}
       </div>
 
       {/* ── RIGHT SIDEBAR ── */}
       <aside className="li-sidebar-right">
-        {/* LinkedIn News */}
+        {/* Nexus Today */}
         {allNews.length > 0 && (
           <div className="li-card" style={{ padding: '12px 0' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px 8px', fontWeight: 700, fontSize: 15 }}>
-              LinkedIn News
+              Nexus Today
               <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" style={{ cursor: 'pointer', color: 'var(--text-2)' }}
                 onClick={() => showToast('News details — coming soon')}>
                 <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
@@ -251,7 +246,7 @@ function FeedPage() {
         {allTags.length > 0 && (
           <div className="li-card" style={{ padding: 16 }}>
             <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span>🔥</span> Trending for you
+              Trending for you
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
               {allTags.slice(0, 10).map(tag => {
@@ -271,7 +266,7 @@ function FeedPage() {
 
         {/* Footer */}
         <div style={{ padding: '4px 0 20px', fontSize: 11, color: 'var(--text-2)', lineHeight: 2.2 }}>
-          {['About', 'Accessibility', 'Help Center', 'Privacy & Terms', 'Ad Choices', 'Business Services'].map(l => (
+          {['About', 'Accessibility', 'Help Center', 'Privacy & Terms', 'Blog', 'Careers'].map(l => (
             <a key={l} href="#" style={{ color: 'var(--text-2)', textDecoration: 'none', marginRight: 8 }}
               onMouseOver={e => e.target.style.textDecoration = 'underline'}
               onMouseOut={e => e.target.style.textDecoration = 'none'}
@@ -279,7 +274,7 @@ function FeedPage() {
               {l}
             </a>
           ))}
-          <div style={{ marginTop: 8, color: 'var(--text-3)' }}>LinkedIn Corporation © 2026</div>
+          <div style={{ marginTop: 8, color: 'var(--text-3)' }}>Nexus Corp © 2026</div>
         </div>
       </aside>
     </div>
@@ -439,7 +434,7 @@ function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, followi
   const isFollowingAuthor = following && following.has(String(authorId));
 
   const reactions = [
-    { emoji: '👍', name: 'Like', color: '#0A66C2' },
+    { emoji: '👍', name: 'Like', color: '#0F5DBD' },
     { emoji: '❤️', name: 'Love', color: '#CC1016' },
     { emoji: '🎉', name: 'Celebrate', color: '#E7A500' },
     { emoji: '💡', name: 'Insightful', color: '#5F9B41' },

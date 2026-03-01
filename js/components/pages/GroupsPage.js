@@ -74,7 +74,7 @@ function GroupsPage() {
               <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
                 <div style={{
                   width: 48, height: 48, borderRadius: 8, flexShrink: 0,
-                  background: group.coverGradient || group.color || '#0A66C2',
+                  background: group.coverGradient || group.color || '#0F5DBD',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontSize: 22, color: '#fff',
                 }}>

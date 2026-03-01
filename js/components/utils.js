@@ -35,7 +35,7 @@ function getInitials(name) {
 
 function getAvatarColor(name) {
   const colors = [
-    '#0A66C2', '#057642', '#8F5849', '#915907', '#6B46C1',
+    '#0F5DBD', '#057642', '#8F5849', '#915907', '#6B46C1',
     '#DD2590', '#E67E22', '#16A085', '#2C3E50', '#7F8C8D'
   ];
   if (!name) return colors[0];

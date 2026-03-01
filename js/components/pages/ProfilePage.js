@@ -1,6 +1,34 @@
 /* ============================================================
    PROFILEPAGE.JS — User profile
    ============================================================ */
+
+/* Sub-component: pulls real users from API for "People also viewed" */
+function PeopleAlsoViewed({ currentUserId }) {
+  const { data: users } = useFetch(API.getUsers, []);
+  const { showToast } = React.useContext(AppContext);
+  const shown = (users || []).filter(u => String(u.id) !== String(currentUserId)).slice(0, 3);
+  if (!shown.length) return null;
+  return (
+    <div className="li-card" style={{ padding: 20 }}>
+      <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 12 }}>People also viewed</h3>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        {shown.map(u => (
+          <div key={u.id} style={{ display: 'flex', gap: 10, alignItems: 'center', cursor: 'pointer' }}
+            onClick={() => navigate(`profile?id=${u.id}`)}>
+            <Avatar name={u.name} size={40} colorOverride={u.avatarColor} />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 14, fontWeight: 600 }}>{u.name}</div>
+              <div style={{ fontSize: 12, color: 'var(--text-2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {(u.headline || '').split('|')[0].trim()}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function ProfilePage({ userId }) {
   const { currentUser, connections, connect, pendingConnections, following, follow, openModal, showToast } = React.useContext(AppContext);
   const isOwnProfile = !userId || (currentUser && String(userId) === String(currentUser.id));
@@ -38,7 +66,7 @@ function ProfilePage({ userId }) {
           {/* Hero card */}
           <div className="li-card" style={{ padding: 0, overflow: 'hidden' }}>
             {/* Cover photo */}
-            <div style={{ height: 200, background: 'linear-gradient(135deg, #0a66c2 0%, #004182 100%)', position: 'relative' }}>
+            <div style={{ height: 200, background: 'linear-gradient(135deg, #0F5DBD 0%, #0A4A9E 100%)', position: 'relative' }}>
               {isOwnProfile && (
                 <button
                   style={{ position: 'absolute', top: 12, right: 12, background: 'rgba(0,0,0,0.3)', border: 'none', borderRadius: 4, padding: '6px 10px', color: '#fff', cursor: 'pointer', fontSize: 12 }}
@@ -55,7 +83,7 @@ function ProfilePage({ userId }) {
                 <div style={{ marginTop: -50 }}>
                   <div style={{
                     width: 120, height: 120, borderRadius: '50%', border: '4px solid var(--white)',
-                    background: user.avatarColor || '#0A66C2',
+                    background: user.avatarColor || '#0F5DBD',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontSize: 44, fontWeight: 700, color: '#fff',
                   }}>
@@ -128,7 +156,7 @@ function ProfilePage({ userId }) {
               {/* Open to Work badge */}
               {user.openToWork && (
                 <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#E6F4EA', color: '#1e7e34', padding: '6px 12px', borderRadius: 16, fontSize: 13, fontWeight: 600 }}>
-                  <span>💼</span> Open to work
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="#1e7e34"><path d="M20 6h-2.18c.07-.44.18-.86.18-1a3 3 0 0 0-6 0c0 .14.11.56.18 1H10C8.9 6 8 6.9 8 8v12c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-7-1a1 1 0 0 1 2 0c0 .14-.05.27-.08.41a.75.75 0 0 1 0 .18c-.03.14-.08.27-.13.41H13.21c-.05-.14-.1-.27-.13-.41a.75.75 0 0 1 0-.18C13.05 5.27 13 5.14 13 5zm7 15H10V8h2v1h6V8h2v12z"/></svg> Open to work
                 </div>
               )}
             </div>
@@ -169,8 +197,12 @@ function ProfilePage({ userId }) {
                     <div style={{
                       width: 48, height: 48, borderRadius: 4, background: 'var(--bg-2)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: 22, flexShrink: 0,
-                    }}>🏢</div>
+                      flexShrink: 0,
+                    }}>
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="var(--text-3)">
+                        <path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z"/>
+                      </svg>
+                    </div>
                     <div style={{ flex: 1 }}>
                       <div style={{ fontSize: 15, fontWeight: 700 }}>{exp.title}</div>
                       <div style={{ fontSize: 14, color: 'var(--text-2)' }}>
@@ -216,8 +248,12 @@ function ProfilePage({ userId }) {
                   <div key={i} style={{ display: 'flex', gap: 12 }}>
                     <div style={{
                       width: 48, height: 48, borderRadius: 4, background: 'var(--bg-2)',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0,
-                    }}>🎓</div>
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                    }}>
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="var(--text-3)">
+                        <path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3zM5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z"/>
+                      </svg>
+                    </div>
                     <div>
                       <div style={{ fontSize: 15, fontWeight: 700 }}>{edu.school}</div>
                       <div style={{ fontSize: 14, color: 'var(--text-2)' }}>{edu.degree}{edu.field && ` · ${edu.field}`}</div>
@@ -264,8 +300,12 @@ function ProfilePage({ userId }) {
                   <div key={i} style={{ display: 'flex', gap: 12 }}>
                     <div style={{
                       width: 48, height: 48, borderRadius: 4, background: 'var(--bg-2)',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0,
-                    }}>📜</div>
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                    }}>
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="var(--text-3)">
+                        <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14l-5-5 1.41-1.41L12 14.17l7.59-7.59L21 8l-9 9z"/>
+                      </svg>
+                    </div>
                     <div>
                       <div style={{ fontSize: 15, fontWeight: 700 }}>{cert.name}</div>
                       <div style={{ fontSize: 14, color: 'var(--text-2)' }}>{cert.issuer}</div>
@@ -290,21 +330,7 @@ function ProfilePage({ userId }) {
             </div>
           )}
 
-          <div className="li-card" style={{ padding: 20 }}>
-            <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 12 }}>People also viewed</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {['Sarah Chen', 'Marcus Rodriguez', 'Emily Chang'].map(name => (
-                <div key={name} style={{ display: 'flex', gap: 10, alignItems: 'center', cursor: 'pointer' }}
-                  onClick={() => showToast(`Viewing ${name}'s profile`)}>
-                  <Avatar name={name} size={40} />
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 14, fontWeight: 600 }}>{name}</div>
-                    <div style={{ fontSize: 12, color: 'var(--text-2)' }}>Software Engineer</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+          <PeopleAlsoViewed currentUserId={userId} />
         </div>
       </div>
     </div>

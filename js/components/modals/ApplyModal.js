@@ -85,19 +85,21 @@ function ApplyModal() {
               <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 16 }}>Resume</h3>
               <div style={{ border: '2px dashed var(--border)', borderRadius: 8, padding: 32, textAlign: 'center', marginBottom: 16, cursor: 'pointer' }}
                 onClick={() => showToast('File selector — coming soon')}>
-                <div style={{ fontSize: 32, marginBottom: 8 }}>📄</div>
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="var(--text-3)" style={{ marginBottom: 8 }}>
+                  <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
+                </svg>
                 <div style={{ fontSize: 14, fontWeight: 600 }}>Upload resume</div>
                 <div style={{ fontSize: 12, color: 'var(--text-2)', marginTop: 4 }}>PDF, DOC, DOCX (Max 5MB)</div>
               </div>
-              <div style={{ textAlign: 'center', color: 'var(--text-2)', fontSize: 14, marginBottom: 16 }}>— or use your LinkedIn profile —</div>
-              <div style={{ border: '1px solid var(--border)', borderRadius: 8, padding: 16, display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer', background: '#EAF4FF' }}
-                onClick={() => showToast('Using LinkedIn profile as resume')}>
-                <div style={{ width: 40, height: 40, borderRadius: 4, background: '#0A66C2', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 14, fontWeight: 700 }}>in</div>
+              <div style={{ textAlign: 'center', color: 'var(--text-2)', fontSize: 14, marginBottom: 16 }}>— or use your Nexus profile —</div>
+              <div style={{ border: '1px solid var(--border)', borderRadius: 8, padding: 16, display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer', background: 'var(--blue-light, #EAF4FF)' }}
+                onClick={() => showToast('Nexus profile imported as resume')}>
+                <div style={{ width: 40, height: 40, borderRadius: 6, background: '#0F5DBD', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 18, fontWeight: 800, fontFamily: '-apple-system,BlinkMacSystemFont,sans-serif' }}>N</div>
                 <div>
                   <div style={{ fontSize: 14, fontWeight: 700 }}>{currentUser ? currentUser.name : 'You'}</div>
-                  <div style={{ fontSize: 12, color: 'var(--text-2)' }}>Use LinkedIn profile</div>
+                  <div style={{ fontSize: 12, color: 'var(--text-2)' }}>Use Nexus profile</div>
                 </div>
-                <svg style={{ marginLeft: 'auto' }} width="20" height="20" viewBox="0 0 24 24" fill="#0A66C2">
+                <svg style={{ marginLeft: 'auto' }} width="20" height="20" viewBox="0 0 24 24" fill="#0F5DBD">
                   <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/>
                 </svg>
               </div>
@@ -112,10 +114,10 @@ function ApplyModal() {
                 <label style={{ fontSize: 14, fontWeight: 600, display: 'block', marginBottom: 8 }}>Are you authorized to work in the United States? *</label>
                 <div style={{ display: 'flex', gap: 12 }}>
                   <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
-                    <input type="radio" name="work-auth" value="yes" checked={form.workAuth === 'yes'} onChange={() => update('workAuth', 'yes')} style={{ accentColor: '#0A66C2' }} /> Yes
+                    <input type="radio" name="work-auth" value="yes" checked={form.workAuth === 'yes'} onChange={() => update('workAuth', 'yes')} style={{ accentColor: '#0F5DBD' }} /> Yes
                   </label>
                   <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
-                    <input type="radio" name="work-auth" value="no" checked={form.workAuth === 'no'} onChange={() => update('workAuth', 'no')} style={{ accentColor: '#0A66C2' }} /> No
+                    <input type="radio" name="work-auth" value="no" checked={form.workAuth === 'no'} onChange={() => update('workAuth', 'no')} style={{ accentColor: '#0F5DBD' }} /> No
                   </label>
                 </div>
               </div>

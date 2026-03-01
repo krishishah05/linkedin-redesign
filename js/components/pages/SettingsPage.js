@@ -2,7 +2,7 @@
    SETTINGSPAGE.JS — Account settings
    ============================================================ */
 function SettingsPage() {
-  const { settings, setSettings, darkMode, setDarkMode, showToast } = React.useContext(AppContext);
+  const { settings, setSettings, darkMode, setDarkMode, showToast, currentUser } = React.useContext(AppContext);
   const [tab, setTab] = React.useState('notifications');
   const [passwordData, setPasswordData] = React.useState({ current: '', newPw: '', confirm: '' });
 
@@ -138,7 +138,11 @@ function SettingsPage() {
                 <div style={{ marginBottom: 24 }}>
                   <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 12 }}>Name & URL</h3>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                    {[['First name', 'Alex'], ['Last name', 'Johnson'], ['LinkedIn URL', 'linkedin.com/in/alexjohnson']].map(([label, val]) => (
+                    {[
+                      ['First name', currentUser ? currentUser.name.split(' ')[0] : ''],
+                      ['Last name', currentUser ? currentUser.name.split(' ').slice(1).join(' ') : ''],
+                      ['Nexus URL', `nexus.io/in/${currentUser ? currentUser.name.toLowerCase().replace(/\s+/g, '') : ''}`],
+                    ].map(([label, val]) => (
                       <div key={label}>
                         <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 4 }}>{label}</label>
                         <input
@@ -152,7 +156,7 @@ function SettingsPage() {
                 </div>
                 <div style={{ borderTop: '1px solid var(--border)', paddingTop: 20 }}>
                   <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 12 }}>Contact info</h3>
-                  {[['Email', 'alex.johnson@gmail.com'], ['Phone', '+1 (415) 234-5678']].map(([label, val]) => (
+                  {[['Email', currentUser ? currentUser.email || 'alex.johnson@gmail.com' : ''], ['Phone', currentUser ? currentUser.phone || '+1 (415) 234-5678' : '']].map(([label, val]) => (
                     <div key={label} style={{ marginBottom: 12 }}>
                       <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 4 }}>{label}</label>
                       <input className="li-settings-input" defaultValue={val} style={{ width: '100%', boxSizing: 'border-box' }} />
@@ -228,20 +232,20 @@ function SettingsPage() {
                 <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 16 }}>Data privacy</h2>
                 <Toggle
                   label="Allow personalized ads"
-                  desc="LinkedIn uses your data to show relevant ads"
+                  desc="Nexus uses your data to show relevant content"
                   value={false}
                   onChange={() => showToast('Ad preference updated')}
                 />
                 <Toggle
                   label="Share data with third parties"
-                  desc="Allow LinkedIn partners to use your data"
+                  desc="Allow Nexus partners to use your data"
                   value={false}
                   onChange={() => showToast('Data sharing preference updated')}
                 />
                 <div style={{ marginTop: 24, padding: 16, background: 'var(--bg-2)', borderRadius: 8 }}>
                   <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 8 }}>Download your data</h3>
                   <p style={{ fontSize: 13, color: 'var(--text-2)', marginBottom: 12 }}>
-                    Get a copy of your LinkedIn data including your connections, messages, and posts.
+                    Get a copy of your Nexus data including your connections, messages, and posts.
                   </p>
                   <button className="li-btn li-btn--outline li-btn--sm" onClick={() => showToast('Data export requested — check your email')}>
                     Request data export

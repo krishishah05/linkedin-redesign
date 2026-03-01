@@ -1,5 +1,5 @@
 /* ============================================================
-   LEARNINGPAGE.JS — LinkedIn Learning courses
+   LEARNINGPAGE.JS — Nexus Learning courses
    ============================================================ */
 function LearningPage() {
   const { showToast } = React.useContext(AppContext);
@@ -28,9 +28,9 @@ function LearningPage() {
     <div className="li-page-inner" style={{ maxWidth: 900 }}>
       {/* Header */}
       <div className="li-card" style={{ padding: '20px 24px', marginBottom: 16 }}>
-        <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 4 }}>LinkedIn Learning</h1>
+        <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 4 }}>Nexus Learning</h1>
         <p style={{ color: 'var(--text-2)', fontSize: 14, margin: 0 }}>
-          Develop skills for today, tomorrow, and beyond.
+          Build the skills that matter for your career.
         </p>
       </div>
 

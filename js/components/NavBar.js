@@ -53,15 +53,10 @@ function NavBar() {
   ];
 
   const appItems = [
-    { label: 'Learning',  icon: '📚', color: '#0A66C2', page: 'learning' },
-    { label: 'Insights',  icon: '📊', color: '#057642', page: null },
-    { label: 'Post a Job',icon: '💼', color: '#915907', page: 'jobs' },
-    { label: 'Advertise', icon: '📣', color: '#CC1016', page: null },
-    { label: 'Groups',    icon: '👥', color: '#6B46C1', page: 'groups' },
-    { label: 'Events',    icon: '📅', color: '#E67E22', page: 'events' },
-    { label: 'Salary',    icon: '💰', color: '#16A085', page: null },
-    { label: 'Premium',   icon: '⭐', color: '#F5A623', page: 'premium' },
-    { label: 'Services',  icon: '🔧', color: '#2C3E50', page: null },
+    { label: 'Learning',  icon: <path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3zM5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z"/>, color: '#0F5DBD', page: 'learning' },
+    { label: 'Jobs',      icon: <path d="M20 6h-2.18c.07-.44.18-.88.18-1.36C18 2.51 15.49 0 12.36 0c-1.4 0-2.72.56-3.71 1.56L12 4.91l3.35-3.35C15.69 2.65 16 3.32 16 4.07c0 .9-.66 1.65-1.5 1.8L14.18 6H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2z"/>, color: '#915907', page: 'jobs' },
+    { label: 'Groups',    icon: <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>, color: '#6B46C1', page: 'groups' },
+    { label: 'Events',    icon: <path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/>, color: '#E67E22', page: 'events' },
   ];
 
   return (
@@ -69,10 +64,10 @@ function NavBar() {
       <div className="li-nav__inner">
 
         {/* Logo */}
-        <a className="li-nav__logo" href="#" onClick={e => { e.preventDefault(); navigate('feed'); }} aria-label="LinkedIn Home">
+        <a className="li-nav__logo" href="#" onClick={e => { e.preventDefault(); navigate('feed'); }} aria-label="Nexus Home">
           <svg width="34" height="34" viewBox="0 0 34 34" fill="none">
-            <rect width="34" height="34" rx="4" fill="#0A66C2"/>
-            <text x="6" y="25" fontFamily="Georgia,serif" fontSize="22" fontWeight="bold" fill="#fff">in</text>
+            <rect width="34" height="34" rx="6" fill="#0F5DBD"/>
+            <text x="8" y="25" fontFamily="-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" fontSize="20" fontWeight="800" fill="#fff">N</text>
           </svg>
         </a>
 
@@ -189,7 +184,7 @@ function NavBar() {
             {workOpen && (
               <div className="li-dropdown li-apps-dropdown" style={{ display: 'block' }}>
                 <div style={{ padding: '12px 16px', fontSize: 14, fontWeight: 700, borderBottom: '1px solid var(--border)' }}>
-                  Explore LinkedIn
+                  Explore Nexus
                 </div>
                 <div className="li-apps-grid">
                   {appItems.map(item => (
@@ -199,8 +194,8 @@ function NavBar() {
                         if (item.page) navigate(item.page);
                         else showToast(`${item.label} — coming soon`);
                       }}>
-                      <div className="li-app-icon" style={{ background: item.color, color: '#fff', fontSize: 18 }}>
-                        {item.icon}
+                      <div className="li-app-icon" style={{ background: item.color, color: '#fff' }}>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="#fff">{item.icon}</svg>
                       </div>
                       <span>{item.label}</span>
                     </div>
@@ -210,13 +205,6 @@ function NavBar() {
             )}
           </div>
 
-          {/* Try Premium */}
-          <button className="li-nav__premium-btn" onClick={() => navigate('premium')}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="#F5A623">
-              <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
-            </svg>
-            Try Premium
-          </button>
         </div>
       </div>
     </nav>

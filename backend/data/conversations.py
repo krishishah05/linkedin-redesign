@@ -41,13 +41,13 @@ def get_conversations():
         },
         {
             "id": 3,
-            "participant": {"id": 17, "name": "Kevin O'Brien", "headline": "Recruiter at LinkedIn | Connecting Top Tech Talent | ex-Google Recruiter", "avatarColor": "#915907", "isOnline": True},
+            "participant": {"id": 17, "name": "Kevin O'Brien", "headline": "Recruiter at Nexus | Connecting Top Tech Talent | ex-Google Recruiter", "avatarColor": "#915907", "isOnline": True},
             "unreadCount": 1,
             "lastMessage": "The package is $280K base + $150K RSU/year. Open to discussion!",
             "lastTimestamp": _ts(4 * 3600000),
             "isOnline": True,
             "messages": [
-                {"id": 1, "senderId": 17, "text": "Hi Alex! I'm a recruiter at LinkedIn and I came across your profile. We're hiring a Staff Engineer for our Feed Ranking team and you'd be a perfect fit.", "timestamp": _ts(6 * 3600000), "isRead": True},
+                {"id": 1, "senderId": 17, "text": "Hi Alex! I'm a recruiter at Nexus and I came across your profile. We're hiring a Staff Engineer for our Feed Ranking team and you'd be a perfect fit.", "timestamp": _ts(6 * 3600000), "isRead": True},
                 {"id": 2, "senderId": 1, "text": "Thanks Kevin! What's the role focused on?", "timestamp": _ts(int(5.5 * 3600000)), "isRead": True},
                 {"id": 3, "senderId": 17, "text": "Great question! The Feed Ranking team owns the algorithm that determines what 900M members see in their feed. You'd be working on ML-driven ranking, A/B experimentation at massive scale, and real-time personalization.", "timestamp": _ts(5 * 3600000), "isRead": True},
                 {"id": 4, "senderId": 17, "text": "The package is $280K base + $150K RSU/year. Open to discussion!", "timestamp": _ts(4 * 3600000), "isRead": False}

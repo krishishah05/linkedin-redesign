@@ -1,5 +1,5 @@
 """
-LinkedIn Redesign — Mock Flask Backend
+Nexus — Mock Flask Backend
 CS485 Project
 
 Run:
@@ -393,7 +393,7 @@ def get_profile_readiness():
 
 
 if __name__ == "__main__":
-    print("Starting LinkedIn Mock Backend on http://localhost:5000")
+    print("Starting Nexus Backend on http://localhost:5000")
     print("App: http://localhost:5000/")
     print("API: http://localhost:5000/api/")
     app.run(debug=True, port=5000)

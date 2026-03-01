@@ -43,7 +43,6 @@ function Router() {
     'events':        <EventsPage />,
     'learning':      <LearningPage />,
     'settings':      <SettingsPage />,
-    'premium':       <PremiumPage />,
   };
 
   return pageMap[route] || pageMap['feed'];
@@ -58,10 +57,10 @@ function AppShell() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
         <div style={{ textAlign: 'center' }}>
           <svg width="48" height="48" viewBox="0 0 48 48">
-            <rect width="48" height="48" rx="8" fill="#0A66C2"/>
-            <text x="8" y="36" fontFamily="Georgia,serif" fontSize="30" fontWeight="bold" fill="#fff">in</text>
+            <rect width="48" height="48" rx="8" fill="#0F5DBD"/>
+            <text x="11" y="36" fontFamily="-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" fontSize="28" fontWeight="800" fill="#fff">N</text>
           </svg>
-          <p style={{ color: 'var(--text-2)', fontFamily: 'sans-serif', marginTop: 12 }}>Loading LinkedIn...</p>
+          <p style={{ color: 'var(--text-2)', fontFamily: 'sans-serif', marginTop: 12 }}>Loading Nexus...</p>
         </div>
       </div>
     );
@@ -71,8 +70,8 @@ function AppShell() {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', flexDirection: 'column', gap: 12 }}>
         <svg width="48" height="48" viewBox="0 0 48 48">
-          <rect width="48" height="48" rx="8" fill="#0A66C2"/>
-          <text x="8" y="36" fontFamily="Georgia,serif" fontSize="30" fontWeight="bold" fill="#fff">in</text>
+          <rect width="48" height="48" rx="8" fill="#0F5DBD"/>
+          <text x="11" y="36" fontFamily="-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" fontSize="28" fontWeight="800" fill="#fff">N</text>
         </svg>
         <p style={{ color: 'var(--text-2)', maxWidth: 400, textAlign: 'center' }}>
           Could not connect to the backend. Make sure <code>python backend/app.py</code> is running.
