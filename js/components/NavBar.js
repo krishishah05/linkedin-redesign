@@ -1,0 +1,220 @@
+/* ============================================================
+   NAVBAR.JS — Top navigation bar (replaces static HTML nav)
+   ============================================================ */
+function NavBar() {
+  const { currentUser, unreadMessages, unreadNotifications, openModal, showToast, darkMode, setDarkMode } =
+    React.useContext(AppContext);
+  const currentHash = useHash();
+
+  const [meOpen, setMeOpen] = React.useState(false);
+  const [workOpen, setWorkOpen] = React.useState(false);
+  const [searchVal, setSearchVal] = React.useState('');
+  const [suggestions, setSuggestions] = React.useState([]);
+  const [showSuggestions, setShowSuggestions] = React.useState(false);
+
+  // Close dropdowns on outside click
+  React.useEffect(() => {
+    function handleClick(e) {
+      if (!e.target.closest('#nav-me-btn')) setMeOpen(false);
+      if (!e.target.closest('#nav-work-btn')) setWorkOpen(false);
+    }
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
+
+  function handleSearchInput(val) {
+    setSearchVal(val);
+    if (!val.trim()) { setSuggestions([]); setShowSuggestions(false); return; }
+    API.search(val)
+      .then(results => {
+        setSuggestions(results.slice(0, 6));
+        setShowSuggestions(true);
+      })
+      .catch(() => setSuggestions([]));
+  }
+
+  function handleSearchSubmit(e) {
+    if (e.key === 'Enter' && searchVal.trim()) {
+      navigate(`search?q=${encodeURIComponent(searchVal)}`);
+      setShowSuggestions(false);
+    }
+  }
+
+  const navItems = [
+    { id: 'feed',          label: 'Home',          badge: 0,                    icon: <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/> },
+    { id: 'network',       label: 'My Network',    badge: 3,                    icon: <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/> },
+    { id: 'jobs',          label: 'Jobs',          badge: 0,                    icon: <path d="M20 6h-2.18c.07-.44.18-.88.18-1.36C18 2.51 15.49 0 12.36 0c-1.4 0-2.72.56-3.71 1.56L12 4.91l3.35-3.35C15.69 2.65 16 3.32 16 4.07c0 .9-.66 1.65-1.5 1.8L14.18 6H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2z"/> },
+    { id: 'messaging',     label: 'Messaging',     badge: unreadMessages,       icon: <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/> },
+    { id: 'notifications', label: 'Notifications', badge: unreadNotifications,  icon: <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/> },
+  ];
+
+  const appItems = [
+    { label: 'Learning',  icon: '📚', color: '#0A66C2', page: 'learning' },
+    { label: 'Insights',  icon: '📊', color: '#057642', page: null },
+    { label: 'Post a Job',icon: '💼', color: '#915907', page: 'jobs' },
+    { label: 'Advertise', icon: '📣', color: '#CC1016', page: null },
+    { label: 'Groups',    icon: '👥', color: '#6B46C1', page: 'groups' },
+    { label: 'Events',    icon: '📅', color: '#E67E22', page: 'events' },
+    { label: 'Salary',    icon: '💰', color: '#16A085', page: null },
+    { label: 'Premium',   icon: '⭐', color: '#F5A623', page: 'premium' },
+    { label: 'Services',  icon: '🔧', color: '#2C3E50', page: null },
+  ];
+
+  return (
+    <nav className="li-nav" id="main-nav">
+      <div className="li-nav__inner">
+
+        {/* Logo */}
+        <a className="li-nav__logo" href="#" onClick={e => { e.preventDefault(); navigate('feed'); }} aria-label="LinkedIn Home">
+          <svg width="34" height="34" viewBox="0 0 34 34" fill="none">
+            <rect width="34" height="34" rx="4" fill="#0A66C2"/>
+            <text x="6" y="25" fontFamily="Georgia,serif" fontSize="22" fontWeight="bold" fill="#fff">in</text>
+          </svg>
+        </a>
+
+        {/* Search */}
+        <div className="li-nav__search" style={{ position: 'relative' }}>
+          <span className="li-nav__search-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+            </svg>
+          </span>
+          <input
+            type="text"
+            className="li-nav__search-input"
+            id="nav-search"
+            placeholder="Search"
+            autoComplete="off"
+            value={searchVal}
+            onChange={e => handleSearchInput(e.target.value)}
+            onKeyDown={handleSearchSubmit}
+            onFocus={() => { if (searchVal.trim()) setShowSuggestions(true); }}
+            onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+          />
+          {showSuggestions && suggestions.length > 0 && (
+            <div className="search-suggestions" style={{ display: 'block', position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 9999 }}>
+              {suggestions.map((s, i) => (
+                <div key={i} className="search-suggestion-item"
+                  onMouseDown={() => {
+                    navigate(`search?q=${encodeURIComponent(s.name || s.title || s.query || '')}`);
+                    setShowSuggestions(false);
+                  }}>
+                  <Avatar name={s.name || s.title} size={28} />
+                  <div style={{ fontSize: 13 }}>
+                    <div style={{ fontWeight: 600 }}>{s.name || s.title}</div>
+                    {s.headline && <div style={{ color: 'var(--text-2)' }}>{s.headline}</div>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Nav Items */}
+        <div className="li-nav__items">
+          {navItems.map(item => (
+            <button
+              key={item.id}
+              className={`li-nav__item${currentHash === item.id ? ' active' : ''}`}
+              id={`nav-${item.id}`}
+              onClick={() => navigate(item.id)}
+              title={item.label}
+            >
+              <svg className="nav-icon" viewBox="0 0 24 24" fill="currentColor">{item.icon}</svg>
+              <span className="li-nav__item-label">{item.label}</span>
+              {item.badge > 0 && (
+                <span className="li-nav__item-badge">{item.badge}</span>
+              )}
+            </button>
+          ))}
+
+          <div className="li-nav__divider" />
+
+          {/* Me dropdown */}
+          <div className="li-nav__item li-nav__me" id="nav-me-btn" onClick={() => setMeOpen(v => !v)}>
+            <div className="li-nav__me-avatar" id="nav-avatar">
+              {currentUser ? getInitials(currentUser.name) : '?'}
+            </div>
+            <span className="li-nav__item-label">Me ▾</span>
+            {meOpen && (
+              <div className="li-dropdown" style={{ display: 'block' }}>
+                <div className="li-dropdown__header">
+                  <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                    {currentUser && <Avatar name={currentUser.name} size={56} />}
+                    <div>
+                      <div className="li-dropdown__header-name">{currentUser ? currentUser.name : ''}</div>
+                      <div style={{ fontSize: 12, color: 'var(--text-2)', maxWidth: 220, lineHeight: 1.3 }}>
+                        {currentUser ? currentUser.headline : ''}
+                      </div>
+                    </div>
+                  </div>
+                  <a href="#" className="li-dropdown__header-link"
+                    onClick={e => { e.preventDefault(); navigate('profile'); setMeOpen(false); }}>
+                    View Profile
+                  </a>
+                </div>
+                <div style={{ padding: '8px 0' }}>
+                  <div style={{ padding: '6px 16px', fontSize: 12, fontWeight: 700, color: 'var(--text-2)' }}>Account</div>
+                  <div className="li-dropdown__item" onClick={() => { navigate('settings'); setMeOpen(false); }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>
+                    Settings &amp; Privacy
+                  </div>
+                  <div className="li-dropdown__item" onClick={() => { showToast('Help center — coming soon'); setMeOpen(false); }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/></svg>
+                    Help
+                  </div>
+                  <div className="li-dropdown__item" onClick={() => { setDarkMode(v => !v); setMeOpen(false); }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20 15.31L23.31 12 20 8.69V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69zM12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6z"/></svg>
+                    {darkMode ? 'Light Mode' : 'Dark Mode'}
+                  </div>
+                </div>
+                <div className="li-dropdown__divider" />
+                <div className="li-dropdown__item" onClick={() => { window.location.href = 'index.html'; }}>
+                  Sign out
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Work / Apps dropdown */}
+          <div className="li-nav__item" id="nav-work-btn" onClick={() => setWorkOpen(v => !v)}>
+            <svg className="nav-icon" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M4 8h4V4H4v4zm6 12h4v-4h-4v4zm-6 0h4v-4H4v4zm0-6h4v-4H4v4zm6 0h4v-4h-4v4zm6-10v4h4V4h-4zm-6 4h4V4h-4v4zm6 6h4v-4h-4v4zm0 6h4v-4h-4v4z"/>
+            </svg>
+            <span className="li-nav__item-label">For Business ▾</span>
+            {workOpen && (
+              <div className="li-dropdown li-apps-dropdown" style={{ display: 'block' }}>
+                <div style={{ padding: '12px 16px', fontSize: 14, fontWeight: 700, borderBottom: '1px solid var(--border)' }}>
+                  Explore LinkedIn
+                </div>
+                <div className="li-apps-grid">
+                  {appItems.map(item => (
+                    <div key={item.label} className="li-app-item"
+                      onClick={() => {
+                        setWorkOpen(false);
+                        if (item.page) navigate(item.page);
+                        else showToast(`${item.label} — coming soon`);
+                      }}>
+                      <div className="li-app-icon" style={{ background: item.color, color: '#fff', fontSize: 18 }}>
+                        {item.icon}
+                      </div>
+                      <span>{item.label}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Try Premium */}
+          <button className="li-nav__premium-btn" onClick={() => navigate('premium')}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="#F5A623">
+              <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+            </svg>
+            Try Premium
+          </button>
+        </div>
+      </div>
+    </nav>
+  );
+}
