@@ -4,7 +4,7 @@
 
 /* Sub-component: pulls real users from API for "People also viewed" */
 function PeopleAlsoViewed({ currentUserId }) {
-  const { data: users } = useFetch(API.getUsers, []);
+  const { data: users } = useFetch(() => API.getUsers(), []);
   const { showToast } = React.useContext(AppContext);
   const shown = (users || []).filter(u => String(u.id) !== String(currentUserId)).slice(0, 3);
   if (!shown.length) return null;
