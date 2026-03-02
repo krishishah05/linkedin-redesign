@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>LinkedIn</title>
+  <title>Nexus</title>
   <link rel="stylesheet" href="css/style.css" />
   <style>
     /* Extra inline styles for icons & quick overrides */
@@ -11,8 +11,6 @@
     .li-post-modal__image-preview { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
     .li-post-modal__image-preview img { width:80px; height:80px; object-fit:cover; border-radius:4px; }
     .li-post-char-count { font-size:12px; color:var(--text-3); text-align:right; margin-top:4px; }
-    .li-apply-step { display:none; }
-    .li-apply-step.active { display:block; }
     .li-apply-progress { display:flex; gap:4px; margin-bottom:16px; }
     .li-apply-dot { height:4px; flex:1; border-radius:2px; background:var(--border); }
     .li-apply-dot.done { background:var(--blue); }
@@ -27,519 +25,67 @@
 </head>
 <body>
 
-<!-- ═══════════════════════════════════════════════
-     TOP NAVIGATION
-═══════════════════════════════════════════════ -->
-<nav class="li-nav" id="main-nav">
-  <div class="li-nav__inner">
-
-    <!-- Logo -->
-    <a class="li-nav__logo" href="#" onclick="App.navigate('feed');return false;" aria-label="LinkedIn Home">
-      <svg width="34" height="34" viewBox="0 0 34 34" fill="none">
-        <rect width="34" height="34" rx="4" fill="#0A66C2"/>
-        <text x="6" y="25" font-family="Georgia,serif" font-size="22" font-weight="bold" fill="#fff">in</text>
-      </svg>
-    </a>
-
-    <!-- Search -->
-    <div class="li-nav__search" style="position:relative;">
-      <span class="li-nav__search-icon">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
-      </span>
-      <input type="text" class="li-nav__search-input" id="nav-search" placeholder="Search" autocomplete="off"
-        oninput="App.onSearchInput(this.value)"
-        onkeydown="if(event.key==='Enter'){App.navigate('search',{q:this.value});document.getElementById('nav-suggestions').style.display='none'}"
-        onfocus="if(this.value.trim())document.getElementById('nav-suggestions').style.display='block'"
-        onblur="setTimeout(()=>{const s=document.getElementById('nav-suggestions');if(s)s.style.display='none'},200)" />
-      <div id="nav-suggestions" class="search-suggestions" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:9999;"></div>
-    </div>
-
-    <!-- Nav Items -->
-    <div class="li-nav__items">
-
-      <!-- Home -->
-      <button class="li-nav__item active" id="nav-feed" onclick="App.navigate('feed')" title="Home">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
-        <span class="li-nav__item-label">Home</span>
-      </button>
-
-      <!-- My Network -->
-      <button class="li-nav__item" id="nav-network" onclick="App.navigate('network')" title="My Network">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
-        <span class="li-nav__item-label">My Network</span>
-        <span class="li-nav__item-badge" id="network-badge">3</span>
-      </button>
-
-      <!-- Jobs -->
-      <button class="li-nav__item" id="nav-jobs" onclick="App.navigate('jobs')" title="Jobs">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M20 6h-2.18c.07-.44.18-.88.18-1.36C18 2.51 15.49 0 12.36 0c-1.4 0-2.72.56-3.71 1.56L12 4.91l3.35-3.35C15.69 2.65 16 3.32 16 4.07c0 .9-.66 1.65-1.5 1.8L14.18 6H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-8 9l-4-4 1.41-1.41L12 12.17l6.59-6.58L20 7l-8 8z"/></svg>
-        <span class="li-nav__item-label">Jobs</span>
-      </button>
-
-      <!-- Messaging -->
-      <button class="li-nav__item" id="nav-messaging" onclick="App.navigate('messaging')" title="Messaging">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg>
-        <span class="li-nav__item-label">Messaging</span>
-        <span class="li-nav__item-badge" id="msg-badge">4</span>
-      </button>
-
-      <!-- Notifications -->
-      <button class="li-nav__item" id="nav-notifications" onclick="App.navigate('notifications')" title="Notifications">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
-        <span class="li-nav__item-label">Notifications</span>
-        <span class="li-nav__item-badge" id="notif-badge">5</span>
-      </button>
-
-      <div class="li-nav__divider"></div>
-
-      <!-- Me Dropdown -->
-      <div class="li-nav__item li-nav__me" id="nav-me-btn" onclick="App.toggleDropdown('me-dropdown')">
-        <div class="li-nav__me-avatar" id="nav-avatar">AJ</div>
-        <span class="li-nav__item-label">Me ▾</span>
-        <div class="li-dropdown" id="me-dropdown">
-          <div class="li-dropdown__header">
-            <div style="display:flex;gap:12px;align-items:center;">
-              <div class="li-avatar li-avatar--56" id="me-dd-avatar" style="background:#0A66C2;flex-shrink:0;font-size:20px;font-weight:700;color:#fff;">AJ</div>
-              <div>
-                <div class="li-dropdown__header-name" id="me-dd-name">Alex Johnson</div>
-                <div class="li-dropdown__header-headline" id="me-dd-headline" style="font-size:12px;color:var(--text-2);max-width:220px;line-height:1.3;">Senior Software Engineer at Google</div>
-              </div>
-            </div>
-            <a href="#" class="li-dropdown__header-link" onclick="App.navigate('profile');App.closeAllDropdowns();return false;">View Profile</a>
-          </div>
-          <div style="padding:8px 0;">
-            <div style="padding:6px 16px;font-size:12px;font-weight:700;color:var(--text-2);">Account</div>
-            <div class="li-dropdown__item" onclick="App.navigate('settings');App.closeAllDropdowns()">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>
-              Settings &amp; Privacy
-            </div>
-            <div class="li-dropdown__item" onclick="App.showToast('Help center coming soon');App.closeAllDropdowns()">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/></svg>
-              Help
-            </div>
-          </div>
-          <div class="li-dropdown__divider"></div>
-          <div class="li-dropdown__item" onclick="window.location.href='index.html'">
-            Sign out
-          </div>
-        </div>
-      </div>
-
-      <!-- Work / Apps -->
-      <div class="li-nav__item" id="nav-work-btn" onclick="App.toggleDropdown('work-dropdown')">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M4 8h4V4H4v4zm6 12h4v-4h-4v4zm-6 0h4v-4H4v4zm0-6h4v-4H4v4zm6 0h4v-4h-4v4zm6-10v4h4V4h-4zm-6 4h4V4h-4v4zm6 6h4v-4h-4v4zm0 6h4v-4h-4v4z"/></svg>
-        <span class="li-nav__item-label">For Business ▾</span>
-        <div class="li-dropdown li-apps-dropdown" id="work-dropdown">
-          <div style="padding:12px 16px;font-size:14px;font-weight:700;border-bottom:1px solid var(--border);">Explore LinkedIn</div>
-          <div class="li-apps-grid">
-            <div class="li-app-item" onclick="App.navigate('learning');App.closeAllDropdowns()">
-              <div class="li-app-icon" style="background:#0A66C2;color:#fff;font-size:18px;">📚</div>
-              <span>Learning</span>
-            </div>
-            <div class="li-app-item" onclick="App.showToast('LinkedIn Insights — coming soon');App.closeAllDropdowns()">
-              <div class="li-app-icon" style="background:#057642;color:#fff;font-size:18px;">📊</div>
-              <span>Insights</span>
-            </div>
-            <div class="li-app-item" onclick="App.navigate('jobs');App.closeAllDropdowns()">
-              <div class="li-app-icon" style="background:#915907;color:#fff;font-size:18px;">💼</div>
-              <span>Post a Job</span>
-            </div>
-            <div class="li-app-item" onclick="App.showToast('LinkedIn Ads — coming soon');App.closeAllDropdowns()">
-              <div class="li-app-icon" style="background:#CC1016;color:#fff;font-size:18px;">📣</div>
-              <span>Advertise</span>
-            </div>
-            <div class="li-app-item" onclick="App.navigate('groups');App.closeAllDropdowns()">
-              <div class="li-app-icon" style="background:#6B46C1;color:#fff;font-size:18px;">👥</div>
-              <span>Groups</span>
-            </div>
-            <div class="li-app-item" onclick="App.navigate('events');App.closeAllDropdowns()">
-              <div class="li-app-icon" style="background:#E67E22;color:#fff;font-size:18px;">📅</div>
-              <span>Events</span>
-            </div>
-            <div class="li-app-item" onclick="App.showToast('LinkedIn Salary — coming soon');App.closeAllDropdowns()">
-              <div class="li-app-icon" style="background:#16A085;color:#fff;font-size:18px;">💰</div>
-              <span>Salary</span>
-            </div>
-            <div class="li-app-item" onclick="App.navigate('premium');App.closeAllDropdowns()">
-              <div class="li-app-icon" style="background:#F5A623;color:#fff;font-size:18px;">⭐</div>
-              <span>Premium</span>
-            </div>
-            <div class="li-app-item" onclick="App.showToast('Service Marketplace — coming soon');App.closeAllDropdowns()">
-              <div class="li-app-icon" style="background:#2C3E50;color:#fff;font-size:18px;">🔧</div>
-              <span>Services</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Try Premium -->
-      <button class="li-nav__premium-btn" onclick="App.navigate('premium')">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="#F5A623"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-        Try Premium
-      </button>
-
-    </div>
-  </div>
-</nav>
-
-<!-- MOBILE BOTTOM NAV -->
-<nav class="li-mobile-nav">
-  <div class="li-mobile-nav-item active" onclick="App.navigate('feed')">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
-    <span>Home</span>
-  </div>
-  <div class="li-mobile-nav-item" onclick="App.navigate('network')">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
-    <span>Network</span>
-  </div>
-  <div class="li-mobile-nav-item" onclick="App.openModal('post-modal')">
-    <div class="li-mobile-nav-post">+</div>
-  </div>
-  <div class="li-mobile-nav-item" onclick="App.navigate('notifications')">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
-    <span>Notifs</span>
-  </div>
-  <div class="li-mobile-nav-item" onclick="App.navigate('profile')">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-    <span>Me</span>
-  </div>
-</nav>
-
-<!-- MAIN CONTENT AREA -->
-<main class="li-page" id="app-root">
-  <!-- Pages rendered here by JavaScript -->
-  <div style="display:flex;align-items:center;justify-content:center;height:60vh;">
-    <div style="text-align:center;">
-      <svg width="48" height="48" viewBox="0 0 48 48" style="margin-bottom:12px;"><rect width="48" height="48" rx="8" fill="#0A66C2"/><text x="8" y="36" font-family="Georgia,serif" font-size="30" font-weight="bold" fill="#fff">in</text></svg>
-      <p style="color:var(--text-2);font-family:sans-serif;">Loading LinkedIn...</p>
-    </div>
-  </div>
-</main>
+<!-- React mounts the entire app here -->
+<div id="react-root"></div>
 
 <!-- ═══════════════════════════════════════════════
-     MODALS
+     SCRIPTS
+     Load order: CDN libs → plain JS → Babel components
 ═══════════════════════════════════════════════ -->
 
-<!-- Post Creator Modal -->
-<div class="li-modal-overlay" id="post-modal-overlay" onclick="if(event.target===this)App.closeModal('post-modal')">
-  <div class="li-modal" id="post-modal">
-    <div class="li-modal__header">
-      <span class="li-modal__title">Create a post</span>
-      <button class="li-modal__close" onclick="App.closeModal('post-modal')">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
-      </button>
-    </div>
-    <div class="li-modal__body">
-      <div class="li-post-modal__author">
-        <div class="li-avatar li-avatar--48" id="post-modal-avatar" style="background:#0A66C2;font-weight:700;color:#fff;font-size:18px;">AJ</div>
-        <div>
-          <div style="font-size:14px;font-weight:700;" id="post-modal-name">Alex Johnson</div>
-          <button class="li-post-modal__audience">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
-            Anyone ▾
-          </button>
-        </div>
-      </div>
-      <textarea class="li-post-textarea" id="post-textarea" placeholder="What do you want to talk about?" oninput="App.updatePostCharCount()" maxlength="3000"></textarea>
-      <div class="li-post-char-count" id="post-char-count">0 / 3000</div>
-      <div class="li-post-modal__image-preview" id="post-image-preview"></div>
-    </div>
-    <div class="li-modal__footer" style="border-top:1px solid var(--border);flex-direction:column;align-items:stretch;gap:8px;">
-      <div class="li-post-modal__toolbar">
-        <button class="li-post-tool-btn" onclick="App.showToast('Photo upload — select a file')">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="#70B5F9"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
-          Photo
-        </button>
-        <button class="li-post-tool-btn" onclick="App.showToast('Video upload — coming soon')">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="#F5CA8A"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/></svg>
-          Video
-        </button>
-        <button class="li-post-tool-btn" onclick="App.navigate('events');App.closeModal('post-modal')">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="#F5B273"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>
-          Event
-        </button>
-        <button class="li-post-tool-btn" onclick="App.showToast('Article editor — coming soon')">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="#7FC15E"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
-          Write article
-        </button>
-        <button class="li-post-tool-btn" onclick="App.showToast('Celebrate an occasion — coming soon')">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="#FF9900">🎉</svg>
-          Celebrate
-        </button>
-      </div>
-      <div style="display:flex;justify-content:flex-end;">
-        <button class="li-btn li-btn--primary" onclick="App.submitPost()" id="post-submit-btn" style="padding:8px 20px;font-size:14px;">Post</button>
-      </div>
-    </div>
-  </div>
-</div>
+<!-- React 18 + ReactDOM 18 (UMD builds, no build step needed) -->
+<script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
 
-<!-- Image Viewer Modal -->
-<div class="li-modal-overlay" id="image-viewer-overlay" onclick="if(event.target===this)App.closeModal('image-viewer')" style="background:rgba(0,0,0,0.9);">
-  <div style="max-width:90vw;max-height:90vh;position:relative;">
-    <button style="position:absolute;top:-40px;right:0;background:none;border:none;color:#fff;cursor:pointer;font-size:28px;" onclick="App.closeModal('image-viewer')">×</button>
-    <img id="image-viewer-img" src="" alt="" style="max-width:90vw;max-height:85vh;object-fit:contain;display:block;border-radius:4px;" />
-  </div>
-</div>
+<!-- Babel standalone — transforms type="text/babel" scripts in-browser -->
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-<!-- Connect Modal -->
-<div class="li-modal-overlay" id="connect-modal-overlay" onclick="if(event.target===this)App.closeModal('connect-modal')">
-  <div class="li-modal">
-    <div class="li-modal__header">
-      <span class="li-modal__title">Add a note</span>
-      <button class="li-modal__close" onclick="App.closeModal('connect-modal')">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
-      </button>
-    </div>
-    <div class="li-modal__body">
-      <p style="font-size:14px;color:var(--text-2);margin-bottom:12px;">People are more likely to accept invitations with a personalized note.</p>
-      <div id="connect-modal-user" style="display:flex;gap:12px;align-items:center;margin-bottom:16px;"></div>
-      <textarea id="connect-note" style="width:100%;height:120px;border:1px solid var(--border-2);border-radius:4px;padding:12px;font-size:14px;resize:none;outline:none;font-family:inherit;" placeholder="E.g. We know each other from..." maxlength="300"></textarea>
-      <div style="font-size:12px;color:var(--text-3);text-align:right;margin-top:4px;" id="connect-note-count">0/300</div>
-    </div>
-    <div class="li-modal__footer">
-      <button class="li-btn li-btn--ghost li-btn--sm" onclick="App.closeModal('connect-modal')">Cancel</button>
-      <button class="li-btn li-btn--primary li-btn--sm" onclick="App.sendConnectionRequest()">Connect</button>
-    </div>
-  </div>
-</div>
+<!-- API utility (plain JS, no JSX) -->
+<script src="js/api.js"></script>
 
-<!-- Share Modal -->
-<div class="li-modal-overlay" id="share-modal-overlay" onclick="if(event.target===this)App.closeModal('share-modal')">
-  <div class="li-modal">
-    <div class="li-modal__header">
-      <span class="li-modal__title">Share</span>
-      <button class="li-modal__close" onclick="App.closeModal('share-modal')">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
-      </button>
-    </div>
-    <div class="li-modal__body" style="padding:0;">
-      <div class="li-dropdown__item" onclick="App.repostNow()">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg>
-        <div><div style="font-weight:600;">Repost</div><div style="font-size:12px;color:var(--text-2);">Instantly share to feed</div></div>
-      </div>
-      <div class="li-dropdown__item" onclick="App.repostWithThoughts()">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg>
-        <div><div style="font-weight:600;">Repost with your thoughts</div><div style="font-size:12px;color:var(--text-2);">Add your perspective first</div></div>
-      </div>
-      <div class="li-dropdown__divider"></div>
-      <div class="li-dropdown__item" onclick="App.copyLink()">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
-        Copy link to post
-      </div>
-    </div>
-  </div>
-</div>
+<!-- ── Shared utilities & context ──────────────────────────── -->
+<script type="text/babel" src="js/components/utils.js"></script>
+<script type="text/babel" src="js/components/AppContext.js"></script>
 
-<!-- Job Apply Modal -->
-<div class="li-modal-overlay" id="apply-modal-overlay" onclick="if(event.target===this)App.closeModal('apply-modal')">
-  <div class="li-modal">
-    <div class="li-modal__header">
-      <span class="li-modal__title">Apply to <span id="apply-job-title">this job</span></span>
-      <button class="li-modal__close" onclick="App.closeModal('apply-modal')">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
-      </button>
-    </div>
-    <div class="li-modal__body">
-      <div class="li-apply-progress" id="apply-progress">
-        <div class="li-apply-dot done"></div>
-        <div class="li-apply-dot"></div>
-        <div class="li-apply-dot"></div>
-      </div>
-      <!-- Step 1: Contact Info -->
-      <div class="li-apply-step active" id="apply-step-1">
-        <h3 style="font-size:18px;font-weight:700;margin-bottom:16px;">Contact info</h3>
-        <div class="li-settings-form-row">
-          <div style="flex:1;">
-            <label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px;">First name *</label>
-            <input class="li-settings-input" value="Alex" style="width:100%;" />
-          </div>
-          <div style="flex:1;">
-            <label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px;">Last name *</label>
-            <input class="li-settings-input" value="Johnson" style="width:100%;" />
-          </div>
-        </div>
-        <div style="margin-bottom:12px;">
-          <label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px;">Email address *</label>
-          <input class="li-settings-input" value="alex.johnson@gmail.com" style="width:100%;" />
-        </div>
-        <div style="margin-bottom:12px;">
-          <label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px;">Phone number</label>
-          <input class="li-settings-input" value="+1 (415) 234-5678" style="width:100%;" />
-        </div>
-        <div>
-          <label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px;">City, State</label>
-          <input class="li-settings-input" value="San Francisco, CA" style="width:100%;" />
-        </div>
-      </div>
-      <!-- Step 2: Resume -->
-      <div class="li-apply-step" id="apply-step-2">
-        <h3 style="font-size:18px;font-weight:700;margin-bottom:16px;">Resume</h3>
-        <div style="border:2px dashed var(--border);border-radius:8px;padding:32px;text-align:center;margin-bottom:16px;cursor:pointer;" onclick="App.showToast('File selector opened')">
-          <div style="font-size:32px;margin-bottom:8px;">📄</div>
-          <div style="font-size:14px;font-weight:600;">Upload resume</div>
-          <div style="font-size:12px;color:var(--text-2);margin-top:4px;">PDF, DOC, DOCX (Max 5MB)</div>
-        </div>
-        <div style="text-align:center;color:var(--text-2);font-size:14px;margin-bottom:16px;">— or use your LinkedIn profile —</div>
-        <div style="border:1px solid var(--border);border-radius:8px;padding:16px;display:flex;align-items:center;gap:12px;cursor:pointer;background:#EAF4FF;" onclick="App.showToast('Using LinkedIn profile as resume')">
-          <div style="width:40px;height:40px;border-radius:4px;background:#0A66C2;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;font-weight:700;">in</div>
-          <div><div style="font-size:14px;font-weight:700;">Alex Johnson</div><div style="font-size:12px;color:var(--text-2);">Use LinkedIn profile</div></div>
-          <svg style="margin-left:auto;" width="20" height="20" viewBox="0 0 24 24" fill="#0A66C2"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg>
-        </div>
-      </div>
-      <!-- Step 3: Screening -->
-      <div class="li-apply-step" id="apply-step-3">
-        <h3 style="font-size:18px;font-weight:700;margin-bottom:16px;">Additional questions</h3>
-        <div style="margin-bottom:16px;">
-          <label style="font-size:14px;font-weight:600;display:block;margin-bottom:8px;">Are you authorized to work in the United States? *</label>
-          <div style="display:flex;gap:12px;">
-            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="radio" name="work-auth" value="yes" checked style="accent-color:#0A66C2;"> Yes</label>
-            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="radio" name="work-auth" value="no" style="accent-color:#0A66C2;"> No</label>
-          </div>
-        </div>
-        <div style="margin-bottom:16px;">
-          <label style="font-size:14px;font-weight:600;display:block;margin-bottom:8px;">Years of relevant experience *</label>
-          <select class="li-settings-input" style="width:100%;">
-            <option>7+ years</option><option>5-7 years</option><option>3-5 years</option><option>1-3 years</option><option>Less than 1 year</option>
-          </select>
-        </div>
-        <div>
-          <label style="font-size:14px;font-weight:600;display:block;margin-bottom:8px;">Why are you interested in this role? (optional)</label>
-          <textarea style="width:100%;height:80px;border:1px solid var(--border-2);border-radius:4px;padding:10px;font-size:14px;resize:none;outline:none;font-family:inherit;" placeholder="Share your motivation..."></textarea>
-        </div>
-      </div>
-    </div>
-    <div class="li-modal__footer">
-      <button class="li-btn li-btn--ghost li-btn--sm" id="apply-back-btn" onclick="App.applyStepBack()" style="display:none;">Back</button>
-      <button class="li-btn li-btn--primary li-btn--sm" id="apply-next-btn" onclick="App.applyStepNext()">Next</button>
-    </div>
-  </div>
-</div>
+<!-- ── Shared UI components ────────────────────────────────── -->
+<script type="text/babel" src="js/components/shared/Avatar.js"></script>
+<script type="text/babel" src="js/components/shared/LoadingSpinner.js"></script>
+<script type="text/babel" src="js/components/ToastContainer.js"></script>
 
-<!-- Edit Profile Modal -->
-<div class="li-modal-overlay" id="edit-profile-modal-overlay" onclick="if(event.target===this)App.closeModal('edit-profile-modal')">
-  <div class="li-modal li-modal--lg">
-    <div class="li-modal__header">
-      <span class="li-modal__title">Edit intro</span>
-      <button class="li-modal__close" onclick="App.closeModal('edit-profile-modal')">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
-      </button>
-    </div>
-    <div class="li-modal__body">
-      <p style="font-size:13px;color:var(--text-2);margin-bottom:16px;">* indicates required fields</p>
-      <div class="li-settings-form-row">
-        <div style="flex:1;"><label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px;">First name *</label><input class="li-settings-input" id="edit-firstname" value="Alex" style="width:100%;"/></div>
-        <div style="flex:1;"><label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px;">Last name *</label><input class="li-settings-input" id="edit-lastname" value="Johnson" style="width:100%;"/></div>
-      </div>
-      <div style="margin-bottom:12px;"><label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px;">Pronouns</label><select class="li-settings-input" style="width:100%;"><option>he/him</option><option>she/her</option><option>they/them</option><option>other</option></select></div>
-      <div style="margin-bottom:12px;"><label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px;">Headline *</label><input class="li-settings-input" id="edit-headline" value="Senior Software Engineer at Google | Full Stack Developer | Open Source Enthusiast" style="width:100%;"/><div style="font-size:11px;color:var(--text-3);text-align:right;margin-top:4px;">220 character max</div></div>
-      <div style="margin-bottom:12px;"><label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px;">Current position</label><input class="li-settings-input" value="Senior Software Engineer at Google" style="width:100%;"/></div>
-      <div class="li-settings-form-row">
-        <div style="flex:1;"><label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px;">Industry *</label><select class="li-settings-input" style="width:100%;"><option selected>Technology</option><option>Finance</option><option>Healthcare</option><option>Education</option></select></div>
-      </div>
-      <div style="margin-bottom:12px;"><label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px;">Location *</label><input class="li-settings-input" value="San Francisco Bay Area" style="width:100%;"/></div>
-    </div>
-    <div class="li-modal__footer">
-      <button class="li-btn li-btn--ghost li-btn--sm" onclick="App.closeModal('edit-profile-modal')">Cancel</button>
-      <button class="li-btn li-btn--primary li-btn--sm" onclick="App.saveProfileEdit()">Save</button>
-    </div>
-  </div>
-</div>
+<!-- ── Page components ─────────────────────────────────────── -->
+<script type="text/babel" src="js/components/pages/FeedPage.js"></script>
+<script type="text/babel" src="js/components/pages/ProfilePage.js"></script>
+<script type="text/babel" src="js/components/pages/NetworkPage.js"></script>
+<script type="text/babel" src="js/components/pages/JobsPage.js"></script>
+<script type="text/babel" src="js/components/pages/MessagingPage.js"></script>
+<script type="text/babel" src="js/components/pages/NotificationsPage.js"></script>
+<script type="text/babel" src="js/components/pages/SearchPage.js"></script>
+<script type="text/babel" src="js/components/pages/CompanyPage.js"></script>
+<script type="text/babel" src="js/components/pages/GroupsPage.js"></script>
+<script type="text/babel" src="js/components/pages/GroupDetailPage.js"></script>
+<script type="text/babel" src="js/components/pages/EventsPage.js"></script>
+<script type="text/babel" src="js/components/pages/LearningPage.js"></script>
+<script type="text/babel" src="js/components/pages/SettingsPage.js"></script>
+<script type="text/babel" src="js/components/pages/PremiumPage.js"></script>
 
-<!-- Add Experience Modal -->
-<div class="li-modal-overlay" id="add-exp-modal-overlay" onclick="if(event.target===this)App.closeModal('add-exp-modal')">
-  <div class="li-modal li-modal--lg">
-    <div class="li-modal__header">
-      <span class="li-modal__title">Add experience</span>
-      <button class="li-modal__close" onclick="App.closeModal('add-exp-modal')">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
-      </button>
-    </div>
-    <div class="li-modal__body">
-      <p style="font-size:13px;color:var(--text-2);margin-bottom:16px;">* indicates required fields</p>
-      <div style="margin-bottom:12px;"><label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px;">Title *</label><input class="li-settings-input" placeholder="Ex: Retail Sales Manager" style="width:100%;"/></div>
-      <div style="margin-bottom:12px;"><label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px;">Employment type</label><select class="li-settings-input" style="width:100%;"><option value="">Please select</option><option>Full-time</option><option>Part-time</option><option>Self-employed</option><option>Freelance</option><option>Contract</option><option>Internship</option></select></div>
-      <div style="margin-bottom:12px;"><label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px;">Company name *</label><input class="li-settings-input" placeholder="Ex: Microsoft" style="width:100%;"/></div>
-      <div style="margin-bottom:12px;"><label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px;">Location</label><input class="li-settings-input" placeholder="Ex: London, United Kingdom" style="width:100%;"/></div>
-      <label style="display:flex;align-items:center;gap:8px;font-size:14px;cursor:pointer;margin-bottom:12px;"><input type="checkbox" style="accent-color:#0A66C2;" checked> I am currently working in this role</label>
-      <div class="li-settings-form-row">
-        <div style="flex:1;"><label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px;">Start date *</label><select class="li-settings-input" style="width:100%;"><option>January</option><option>February</option><option>March</option></select></div>
-        <div style="flex:1;"><label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px;">&nbsp;</label><select class="li-settings-input" style="width:100%;"><option>2024</option><option>2023</option><option>2022</option><option>2021</option></select></div>
-      </div>
-      <div style="margin-bottom:12px;"><label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px;">Description</label><textarea style="width:100%;height:100px;border:1px solid var(--border-2);border-radius:4px;padding:10px;font-size:14px;resize:none;outline:none;font-family:inherit;" placeholder="Describe your role and achievements..."></textarea></div>
-      <div style="margin-bottom:12px;"><label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px;">Skills</label><input class="li-settings-input" placeholder="Add skills (Ex: Leadership, Python, React)" style="width:100%;"/></div>
-    </div>
-    <div class="li-modal__footer">
-      <button class="li-btn li-btn--ghost li-btn--sm" onclick="App.closeModal('add-exp-modal')">Cancel</button>
-      <button class="li-btn li-btn--primary li-btn--sm" onclick="App.showToast('Experience added!');App.closeModal('add-exp-modal')">Save</button>
-    </div>
-  </div>
-</div>
+<!-- ── Modal components ────────────────────────────────────── -->
+<script type="text/babel" src="js/components/modals/PostModal.js"></script>
+<script type="text/babel" src="js/components/modals/ImageViewerModal.js"></script>
+<script type="text/babel" src="js/components/modals/ConnectModal.js"></script>
+<script type="text/babel" src="js/components/modals/ShareModal.js"></script>
+<script type="text/babel" src="js/components/modals/ApplyModal.js"></script>
+<script type="text/babel" src="js/components/modals/EditProfileModal.js"></script>
+<script type="text/babel" src="js/components/modals/AddExpModal.js"></script>
+<script type="text/babel" src="js/components/modals/ReportModal.js"></script>
+<script type="text/babel" src="js/components/modals/CreateEventModal.js"></script>
+<script type="text/babel" src="js/components/modals/ModalContainer.js"></script>
 
-<!-- Report Modal -->
-<div class="li-modal-overlay" id="report-modal-overlay" onclick="if(event.target===this)App.closeModal('report-modal')">
-  <div class="li-modal">
-    <div class="li-modal__header">
-      <span class="li-modal__title">Report this post</span>
-      <button class="li-modal__close" onclick="App.closeModal('report-modal')">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
-      </button>
-    </div>
-    <div class="li-modal__body">
-      <p style="font-size:14px;color:var(--text-2);margin-bottom:16px;">Why are you reporting this post?</p>
-      <div style="display:flex;flex-direction:column;gap:8px;">
-        <label style="display:flex;align-items:center;gap:10px;padding:10px;border:1px solid var(--border);border-radius:4px;cursor:pointer;font-size:14px;"><input type="radio" name="report" style="accent-color:#0A66C2;"> Harassment or bullying</label>
-        <label style="display:flex;align-items:center;gap:10px;padding:10px;border:1px solid var(--border);border-radius:4px;cursor:pointer;font-size:14px;"><input type="radio" name="report" style="accent-color:#0A66C2;"> Spam or scam</label>
-        <label style="display:flex;align-items:center;gap:10px;padding:10px;border:1px solid var(--border);border-radius:4px;cursor:pointer;font-size:14px;"><input type="radio" name="report" style="accent-color:#0A66C2;"> Misinformation</label>
-        <label style="display:flex;align-items:center;gap:10px;padding:10px;border:1px solid var(--border);border-radius:4px;cursor:pointer;font-size:14px;"><input type="radio" name="report" style="accent-color:#0A66C2;"> Inappropriate content</label>
-        <label style="display:flex;align-items:center;gap:10px;padding:10px;border:1px solid var(--border);border-radius:4px;cursor:pointer;font-size:14px;"><input type="radio" name="report" style="accent-color:#0A66C2;"> Something else</label>
-      </div>
-    </div>
-    <div class="li-modal__footer">
-      <button class="li-btn li-btn--ghost li-btn--sm" onclick="App.closeModal('report-modal')">Cancel</button>
-      <button class="li-btn li-btn--primary li-btn--sm" onclick="App.showToast('Report submitted. Thank you.');App.closeModal('report-modal')">Submit</button>
-    </div>
-  </div>
-</div>
+<!-- ── Navigation components ───────────────────────────────── -->
+<script type="text/babel" src="js/components/NavBar.js"></script>
+<script type="text/babel" src="js/components/MobileNav.js"></script>
 
-<!-- Create Event Modal -->
-<div class="li-modal-overlay" id="create-event-modal-overlay" onclick="if(event.target===this)App.closeModal('create-event-modal')">
-  <div class="li-modal li-modal--lg">
-    <div class="li-modal__header">
-      <span class="li-modal__title">Create an event</span>
-      <button class="li-modal__close" onclick="App.closeModal('create-event-modal')">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
-      </button>
-    </div>
-    <div class="li-modal__body">
-      <div style="display:flex;gap:12px;margin-bottom:16px;">
-        <button style="flex:1;padding:12px;border:2px solid var(--blue);border-radius:8px;background:var(--blue-light);font-size:14px;font-weight:600;cursor:pointer;color:var(--blue);">🌐 Online</button>
-        <button style="flex:1;padding:12px;border:1px solid var(--border);border-radius:8px;background:var(--white);font-size:14px;font-weight:600;cursor:pointer;color:var(--text-2);">📍 In person</button>
-      </div>
-      <div style="margin-bottom:12px;"><label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px;">Event name *</label><input class="li-settings-input" placeholder="Enter event name" style="width:100%;"/></div>
-      <div style="margin-bottom:12px;"><label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px;">Organizer *</label><input class="li-settings-input" value="Alex Johnson" style="width:100%;"/></div>
-      <div class="li-settings-form-row">
-        <div style="flex:1;"><label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px;">Start date *</label><input type="date" class="li-settings-input" style="width:100%;"/></div>
-        <div style="flex:1;"><label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px;">Start time *</label><input type="time" class="li-settings-input" style="width:100%;"/></div>
-      </div>
-      <div class="li-settings-form-row">
-        <div style="flex:1;"><label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px;">End date *</label><input type="date" class="li-settings-input" style="width:100%;"/></div>
-        <div style="flex:1;"><label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px;">End time *</label><input type="time" class="li-settings-input" style="width:100%;"/></div>
-      </div>
-      <div style="margin-bottom:12px;"><label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px;">Description</label><textarea style="width:100%;height:100px;border:1px solid var(--border-2);border-radius:4px;padding:10px;font-size:14px;resize:none;outline:none;font-family:inherit;" placeholder="Tell people more about your event..."></textarea></div>
-    </div>
-    <div class="li-modal__footer">
-      <button class="li-btn li-btn--ghost li-btn--sm" onclick="App.closeModal('create-event-modal')">Cancel</button>
-      <button class="li-btn li-btn--primary li-btn--sm" onclick="App.showToast('Event created!');App.closeModal('create-event-modal')">Create event</button>
-    </div>
-  </div>
-</div>
+<!-- ── Root — mounts React app (must be last) ──────────────── -->
+<script type="text/babel" src="js/components/App.js"></script>
 
-<!-- Toast Container -->
-<div class="li-toast-container" id="toast-container"></div>
-
-<!-- SCRIPTS -->
-<script src="js/data.js"></script>
-<script src="js/app.js"></script>
 </body>
 </html>

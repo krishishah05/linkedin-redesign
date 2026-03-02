@@ -46,3 +46,17 @@ All design tokens are CSS variables on `:root`:
 - **Modals** — Opened/closed via `openModal(id)` / `closeModal(id)`; modal HTML lives in `app.html`
 - **XSS prevention** — Use `escapeHtml()` when inserting user-provided content into the DOM
 - **Toast notifications** — `createToast(message, type)` for user feedback
+
+## Lessons Learned
+
+### Development Patterns
+- **Issue**: [Brief description of what went wrong]
+  - **Root cause**: [Why it happened]
+  - **Solution**: [What fixed it]
+  - **Prevention**: [How to avoid repeating]
+
+### Performance Gotchas
+- [Add specific performance lessons as they're discovered]
+
+### Browser Compatibility Notes
+- [Add cross-browser issues encountered]
