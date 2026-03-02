@@ -7,8 +7,6 @@ function NavBar() {
   const currentHash = useHash();
 
   const [meOpen, setMeOpen] = React.useState(false);
-  const [workOpen, setWorkOpen] = React.useState(false);
-
   const [searchVal, setSearchVal] = React.useState('');
   const [suggestions, setSuggestions] = React.useState([]);
   const [showSuggestions, setShowSuggestions] = React.useState(false);
@@ -16,16 +14,13 @@ function NavBar() {
 
   const searchListId = 'nav-search-listbox';
   const meMenuId = 'nav-me-menu';
-  const workMenuId = 'nav-work-menu';
 
   const meBtnRef = React.useRef(null);
-  const workBtnRef = React.useRef(null);
 
   // Close dropdowns on outside click
   React.useEffect(() => {
     function handleClick(e) {
       if (!e.target.closest('#nav-me-wrap')) setMeOpen(false);
-      if (!e.target.closest('#nav-work-wrap')) setWorkOpen(false);
     }
     document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
@@ -108,13 +103,6 @@ function NavBar() {
     { id: 'jobs',          label: 'Jobs',          badge: 0,                    icon: <path d="M20 6h-2.18c.07-.44.18-.88.18-1.36C18 2.51 15.49 0 12.36 0c-1.4 0-2.72.56-3.71 1.56L12 4.91l3.35-3.35C15.69 2.65 16 3.32 16 4.07c0 .9-.66 1.65-1.5 1.8L14.18 6H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2z"/> },
     { id: 'messaging',     label: 'Messaging',     badge: unreadMessages,       icon: <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/> },
     { id: 'notifications', label: 'Notifications', badge: unreadNotifications,  icon: <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/> },
-  ];
-
-  const appItems = [
-    { label: 'Learning',  icon: <path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3zM5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z"/>, color: '#0F5DBD', page: 'learning' },
-    { label: 'Jobs',      icon: <path d="M20 6h-2.18c.07-.44.18-.88.18-1.36C18 2.51 15.49 0 12.36 0c-1.4 0-2.72.56-3.71 1.56L12 4.91l3.35-3.35C15.69 2.65 16 3.32 16 4.07c0 .9-.66 1.65-1.5 1.8L14.18 6H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2z"/>, color: '#915907', page: 'jobs' },
-    { label: 'Groups',    icon: <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>, color: '#6B46C1', page: 'groups' },
-    { label: 'Events',    icon: <path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/>, color: '#E67E22', page: 'events' },
   ];
 
   return (
@@ -326,55 +314,6 @@ function NavBar() {
             )}
           </div>
 
-          {/* Work / Apps dropdown */}
-          <div className="li-nav__item" id="nav-work-wrap">
-            <button
-              ref={workBtnRef}
-              className="li-nav__menu-btn"
-              id="nav-work-btn"
-              type="button"
-              onClick={() => setWorkOpen(v => !v)}
-              aria-haspopup="menu"
-              aria-expanded={workOpen}
-              aria-controls={workMenuId}
-              aria-label="For Business menu"
-            >
-              <svg className="nav-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
-                <path d="M4 8h4V4H4v4zm6 12h4v-4h-4v4zm-6 0h4v-4H4v4zm0-6h4v-4H4v4zm6 0h4v-4h-4v4zm6-10v4h4V4h-4zm-6 4h4V4h-4v4zm6 6h4v-4h-4v4zm0 6h4v-4h-4v4z"/>
-              </svg>
-              <span className="li-nav__item-label">For Business ▾</span>
-            </button>
-
-            {workOpen && (
-              <div className="li-dropdown li-apps-dropdown" id={workMenuId} role="menu" style={{ display: 'block' }}>
-                <div style={{ padding: '12px 16px', fontSize: 14, fontWeight: 700, borderBottom: '1px solid var(--border)' }}>
-                  Explore Nexus
-                </div>
-                <div className="li-apps-grid">
-                  {appItems.map(item => (
-                    <button
-                      key={item.label}
-                      type="button"
-                      className="li-app-item"
-                      role="menuitem"
-                      onClick={() => {
-                        setWorkOpen(false);
-                        if (item.page) navigate(item.page);
-                        else showToast(`${item.label} — coming soon`);
-                      }}
-                    >
-                      <span className="li-app-icon" style={{ background: item.color, color: '#fff' }} aria-hidden="true">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="#fff" aria-hidden="true" focusable="false">
-                          {item.icon}
-                        </svg>
-                      </span>
-                      <span>{item.label}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
 
         </div>
       </div>
