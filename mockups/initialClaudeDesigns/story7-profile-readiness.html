@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ReachRight — Profile Readiness</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Serif:wght@400;600&display=swap');
+
+:root {
+  --bg: #f4f2ee;
+  --white: #ffffff;
+  --border: #e0dbd3;
+  --border-dark: #c8c3bb;
+  --text: #1a1a1a;
+  --text-muted: #737373;
+  --text-light: #a0a0a0;
+  --blue: #0a66c2;
+  --blue-hover: #004182;
+  --blue-light: #dce6f1;
+  --green: #057642;
+  --green-light: #d4edda;
+  --amber: #915907;
+  --amber-light: #fdf3e3;
+  --red: #b91c1c;
+  --red-light: #fef2f2;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+  --shadow-md: 0 2px 8px rgba(0,0,0,0.10);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.14);
+  --radius: 8px;
+  --font: 'IBM Plex Sans', sans-serif;
+  --font-serif: 'IBM Plex Serif', serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #d0ccc6; border-radius: 4px; }
+
+/* ════════════════════ TOPBAR ════════════════════ */
+.topbar {
+  position: sticky; top: 0; z-index: 200;
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  height: 52px; display: flex; align-items: center;
+  box-shadow: var(--shadow-sm);
+}
+.topbar-inner {
+  max-width: 1200px; margin: 0 auto; width: 100%;
+  padding: 0 20px; display: flex; align-items: center;
+}
+.brand { font-family: var(--font-serif); font-size: 18px; font-weight: 600; color: var(--blue); letter-spacing: -0.3px; margin-right: 28px; white-space: nowrap; }
+.brand span { color: var(--text); }
+.nav-tabs { display: flex; align-items: stretch; height: 52px; }
+.nav-tab {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 0 20px; font-size: 12px; font-weight: 500; color: var(--text-muted);
+  cursor: pointer; border: none; background: none;
+  border-bottom: 2px solid transparent;
+  transition: color 0.15s, border-color 0.15s;
+  gap: 2px; white-space: nowrap; font-family: var(--font); height: 52px;
+}
+.nav-tab svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.nav-tab:hover { color: var(--text); }
+.nav-tab.active { color: var(--text); border-bottom-color: var(--text); font-weight: 600; }
+.topbar-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+.t-avatar { width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #4f7096, #6b93b8); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; color: white; border: 1.5px solid var(--border); cursor: pointer; }
+.topbar-name { font-size: 12px; color: var(--text-muted); }
+
+/* ════════════════════ MODE STRIP ════════════════════ */
+.mode-strip { background: var(--white); border-bottom: 1px solid var(--border); position: sticky; top: 52px; z-index: 100; }
+.msi { max-width: 1200px; margin: 0 auto; padding: 0 20px; display: flex; align-items: center; gap: 16px; }
+.mode-tabs { display: flex; }
+.mode-tab {
+  display: flex; align-items: center; gap: 7px;
+  padding: 0 20px; height: 44px;
+  font-size: 13px; font-weight: 500; color: var(--text-muted);
+  cursor: pointer; border: none; background: none;
+  border-bottom: 2px solid transparent;
+  transition: all 0.15s; font-family: var(--font);
+}
+.mode-tab svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.mode-tab:hover { color: var(--text); }
+.mode-tab.active { color: var(--text); border-bottom-color: var(--text); font-weight: 600; }
+.mode-hint { font-size: 12px; color: var(--text-muted); border-left: 1px solid var(--border); padding-left: 16px; display: none; }
+.mode-hint strong { color: var(--text); }
+
+/* ════════════════════ GATE BANNER ════════════════════ */
+.gate-banner {
+  background: var(--white); border-bottom: 1px solid var(--border);
+  padding: 11px 20px; display: none;
+  border-left: 3px solid var(--amber);
+}
+.gate-inner { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.gate-left { display: flex; align-items: center; gap: 12px; }
+.gate-pill { display: flex; align-items: center; gap: 5px; background: var(--amber-light); border: 1px solid #e8c97e; border-radius: 20px; padding: 3px 11px; font-size: 12px; font-weight: 600; color: var(--amber); white-space: nowrap; }
+.gate-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--amber); }
+.gate-text { font-size: 13px; color: var(--text); }
+.gate-text span { color: var(--text-muted); }
+.gate-btns { display: flex; gap: 8px; flex-shrink: 0; }
+
+/* ════════════════════ PAGE LAYOUT ════════════════════ */
+.page-body { max-width: 1200px; margin: 0 auto; padding: 24px 20px; display: grid; grid-template-columns: 1fr 300px; gap: 20px; align-items: start; }
+.main-col { display: flex; flex-direction: column; gap: 12px; }
+.sidebar { display: flex; flex-direction: column; gap: 12px; }
+
+/* ════════════════════ CARD ════════════════════ */
+.card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow-sm); position: relative; overflow: visible; }
+
+/* ════════════════════ PROFILE HEADER ════════════════════ */
+.cover { height: 148px; background: linear-gradient(120deg, #c9d8ea 0%, #dce6f1 60%, #cdd9e8 100%); border-radius: var(--radius) var(--radius) 0 0; position: relative; overflow: hidden; }
+.cover-edit-btn { position: absolute; top: 12px; right: 12px; background: rgba(255,255,255,0.9); border: 1px solid var(--border); border-radius: 6px; padding: 5px 10px; font-size: 11px; font-weight: 600; color: var(--text-muted); cursor: pointer; font-family: var(--font); transition: all 0.15s; }
+.cover-edit-btn:hover { background: var(--white); color: var(--text); }
+.pinfo { padding: 0 24px 20px; }
+.av-wrap { position: relative; display: inline-block; margin-top: -44px; margin-bottom: 10px; }
+.pav { width: 108px; height: 108px; border-radius: 50%; border: 3px solid var(--white); background: linear-gradient(135deg, #4f6f8f, #6b93b8); display: flex; align-items: center; justify-content: center; font-size: 34px; font-weight: 600; color: #fff; box-shadow: var(--shadow-md); }
+.av-plus { position: absolute; bottom: 4px; right: 0; width: 28px; height: 28px; border-radius: 50%; background: var(--white); border: 1.5px solid var(--border); display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: var(--shadow-sm); font-size: 18px; color: var(--text-muted); line-height: 1; transition: border-color 0.15s; }
+.av-plus:hover { border-color: var(--blue); color: var(--blue); }
+.pname { font-family: var(--font-serif); font-size: 22px; font-weight: 600; color: var(--text); }
+.phl { font-size: 15px; color: var(--text); margin-top: 3px; }
+.pmeta { font-size: 13px; color: var(--text-muted); margin-top: 3px; display: flex; align-items: center; gap: 5px; }
+.pschool { font-size: 13px; color: var(--blue); margin-top: 3px; cursor: pointer; }
+.pschool:hover { text-decoration: underline; }
+.open-badge { display: inline-flex; align-items: center; gap: 6px; background: var(--green-light); border: 1px solid #a5d6a7; color: var(--green); font-size: 12px; font-weight: 600; padding: 4px 12px; border-radius: 20px; margin-top: 10px; }
+.odot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); }
+.pacts { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+
+/* ════════════════════ SECTION CARDS ════════════════════ */
+.scard { padding: 20px 24px; }
+.stop { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.stitle { font-family: var(--font-serif); font-size: 18px; font-weight: 600; color: var(--text); }
+.sbtns { display: flex; gap: 4px; }
+.icon-btn { width: 34px; height: 34px; border-radius: 50%; border: none; background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.15s; color: var(--text-muted); }
+.icon-btn svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.icon-btn:hover { background: var(--bg); color: var(--text); }
+
+/* About text */
+.about-txt { font-size: 14px; line-height: 1.65; color: var(--text); }
+
+/* Exp */
+.exp-item { display: flex; gap: 14px; }
+.exp-item + .exp-item { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--bg); }
+.elogo { width: 44px; height: 44px; border-radius: 6px; background: var(--bg); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: var(--text-muted); flex-shrink: 0; }
+.etitle { font-size: 14px; font-weight: 600; color: var(--text); }
+.eco { font-size: 13px; color: var(--text); margin-top: 1px; }
+.edate { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.edesc { font-size: 13px; color: var(--text); line-height: 1.55; margin-top: 6px; }
+
+/* Edu */
+.edu-item { display: flex; gap: 14px; }
+.dulogo { width: 44px; height: 44px; border-radius: 6px; background: var(--bg); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: var(--text-muted); flex-shrink: 0; }
+.dschool { font-size: 14px; font-weight: 600; color: var(--text); }
+.ddeg { font-size: 13px; color: var(--text); margin-top: 1px; }
+.ddate { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+/* Skills */
+.skills-wrap { display: flex; flex-wrap: wrap; gap: 8px; }
+.skill-chip { padding: 6px 14px; border-radius: 20px; border: 1px solid var(--border); background: transparent; font-size: 13px; font-weight: 500; color: var(--text); cursor: pointer; transition: all 0.15s; font-family: var(--font); }
+.skill-chip:hover { background: var(--bg); border-color: var(--border-dark); }
+.skill-end { font-size: 11px; color: var(--blue); font-weight: 600; margin-left: 4px; }
+.add-skill-btn { padding: 6px 16px; border-radius: 20px; border: 1.5px solid var(--blue); background: transparent; color: var(--blue); font-size: 13px; font-weight: 600; cursor: pointer; font-family: var(--font); transition: all 0.15s; }
+.add-skill-btn:hover { background: var(--blue-light); }
+.skills-more { font-size: 13px; color: var(--blue); cursor: pointer; margin-top: 10px; display: block; }
+.skills-more:hover { text-decoration: underline; }
+
+/* ════════════════════ RATING BARS (rating mode) ════════════════════ */
+.rating-bar { display: none; margin: 0 24px 14px; border-radius: var(--radius); padding: 12px 14px; gap: 12px; align-items: flex-start; }
+.rating-bar.warn { background: var(--amber-light); border: 1px solid #e8c97e; }
+.rating-bar.bad  { background: var(--red-light);   border: 1px solid #fecaca; }
+.rating-bar.good { background: var(--green-light);  border: 1px solid #a5d6a7; }
+.rb-score { font-family: var(--font-serif); font-size: 22px; font-weight: 600; flex-shrink: 0; line-height: 1; margin-top: 2px; }
+.rb-score.warn { color: var(--amber); }
+.rb-score.bad  { color: var(--red); }
+.rb-score.good { color: var(--green); }
+.rb-ttl { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 3px; }
+.rb-txt { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+.rb-act { margin-top: 7px; }
+
+/* ════════════════════ SCORE BUBBLES ════════════════════ */
+.bubble-wrap { position: absolute; display: none; z-index: 50; }
+.sbubble {
+  position: relative; width: 36px; height: 36px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; border: 2px solid var(--white);
+  box-shadow: var(--shadow-md); cursor: pointer;
+  transition: transform 0.15s; font-family: var(--font);
+}
+.sbubble:hover { transform: scale(1.12); }
+.sbubble.good { background: var(--green); color: #fff; }
+.sbubble.warn { background: var(--amber); color: #fff; }
+.sbubble.bad  { background: var(--red);   color: #fff; }
+
+.btip {
+  display: none; position: absolute; top: 50%; transform: translateY(-50%);
+  background: #1a1a1a; color: #fff;
+  font-size: 11px; line-height: 1.5; padding: 10px 12px;
+  border-radius: var(--radius); width: 216px;
+  box-shadow: var(--shadow-lg); pointer-events: none; z-index: 300;
+}
+.btip-r { left:  calc(100% + 10px); }
+.btip-l { right: calc(100% + 10px); }
+.btip-r::before { content:''; position:absolute; top:50%; transform:translateY(-50%); right:100%; border:6px solid transparent; border-right-color:#1a1a1a; }
+.btip-l::before { content:''; position:absolute; top:50%; transform:translateY(-50%); left:100%;  border:6px solid transparent; border-left-color:#1a1a1a; }
+.sbubble:hover .btip { display: block; }
+.bt-lbl { font-weight: 600; color: #e2e8f0; margin-bottom: 4px; font-size: 11px; }
+.bt-txt { font-size: 11px; color: #cbd5e1; }
+.bt-fix { font-size: 11px; color: #93c5fd; margin-top: 4px; font-weight: 500; }
+
+/* Positions */
+.b-photo    { top: 86px;  left: 116px; }
+.b-headline { top: 174px; right: 24px; }
+.b-about    { top: 12px; right: -14px; }
+.b-exp      { top: 12px; right: -14px; }
+.b-edu      { top: 12px; right: -14px; }
+.b-skills   { top: 12px; right: -14px; }
+
+/* ════════════════════ SIDEBAR ════════════════════ */
+.score-card-inner { padding: 20px; }
+.sct { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 16px; }
+.ring-wrap { display: flex; align-items: center; justify-content: center; position: relative; margin-bottom: 10px; }
+.ring-val { position: absolute; inset:0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.ring-num  { font-family: var(--font-serif); font-size: 30px; font-weight: 600; color: var(--text); line-height: 1; }
+.ring-den  { font-size: 12px; color: var(--text-muted); }
+.s-status  { text-align: center; margin-bottom: 16px; }
+.status-badge { display: inline-block; padding: 3px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+.status-badge.warn { background: var(--amber-light); color: var(--amber); }
+.status-badge.bad  { background: var(--red-light);   color: var(--red); }
+.status-badge.good { background: var(--green-light);  color: var(--green); }
+
+.sbars { display: flex; flex-direction: column; gap: 7px; }
+.sbar  { display: flex; align-items: center; gap: 8px; }
+.sbl   { font-size: 12px; color: var(--text); flex: 0 0 74px; }
+.sbtr  { flex:1; height:5px; background: var(--bg); border-radius:3px; overflow:hidden; }
+.sbf   { height:100%; border-radius:3px; transition: width 0.6s ease; }
+.sbf.good { background: var(--green); }
+.sbf.warn { background: var(--amber); }
+.sbf.bad  { background: var(--red); }
+.sbp   { font-size:11px; font-weight:600; flex:0 0 28px; text-align:right; }
+.sbp.good { color: var(--green); }
+.sbp.warn { color: var(--amber); }
+.sbp.bad  { color: var(--red); }
+
+/* quick fixes */
+.qf-inner { padding: 18px 20px; }
+.qf-ttl { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 12px; }
+.qfi { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--bg); }
+.qfi:last-child { border-bottom: none; padding-bottom: 0; }
+.qfl { display: flex; align-items: center; gap: 9px; }
+.qdot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.qdot.done { background: var(--green); }
+.qdot.warn { background: var(--amber); }
+.qdot.bad  { background: var(--red); }
+.qlabel { font-size: 13px; color: var(--text); }
+.qdone { font-size: 11px; color: var(--green); font-weight: 600; }
+.qbtn { padding: 3px 10px; border-radius: 12px; border: 1px solid var(--blue); background: transparent; color: var(--blue); font-size: 11px; font-weight: 600; cursor: pointer; font-family: var(--font); transition: all 0.15s; }
+.qbtn:hover { background: var(--blue-light); }
+
+/* nudge */
+.nudge-inner { padding: 18px 20px; }
+.nudge-ttl { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+.nudge-txt { font-size: 13px; color: var(--text-muted); line-height: 1.55; margin-bottom: 12px; }
+.nudge-txt strong { color: var(--text); }
+
+/* proceed */
+.proceed-inner { padding: 18px 20px; background: var(--green-light); }
+.proc-ttl { font-size: 13px; font-weight: 600; color: var(--green); margin-bottom: 5px; }
+.proc-txt { font-size: 12px; color: var(--text); line-height: 1.55; margin-bottom: 12px; }
+
+/* ════════════════════ BUTTONS ════════════════════ */
+.btn { padding: 7px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; font-family: var(--font); cursor: pointer; border: none; transition: all 0.15s; display: inline-flex; align-items: center; gap: 6px; line-height: 1; }
+.btn svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.btn-primary   { background: var(--blue);  color: #fff; border: 1.5px solid var(--blue); }
+.btn-primary:hover   { background: var(--blue-hover); border-color: var(--blue-hover); }
+.btn-secondary { background: transparent; color: var(--blue); border: 1.5px solid var(--blue); }
+.btn-secondary:hover { background: var(--blue-light); }
+.btn-ghost     { background: transparent; color: var(--text-muted); border: 1.5px solid var(--border); }
+.btn-ghost:hover     { border-color: var(--border-dark); color: var(--text); }
+.btn-green     { background: var(--green); color: #fff; border: 1.5px solid var(--green); }
+.btn-green:hover     { background: #045a31; }
+.btn-sm  { padding: 5px 14px; font-size: 12px; }
+.btn-xs  { padding: 4px 10px; font-size: 11px; border-radius: 14px; }
+.btn-full { width: 100%; justify-content: center; border-radius: var(--radius) !important; }
+
+/* ════════════════════ MODAL ════════════════════ */
+.modal-overlay { position: fixed; inset: 0; z-index: 500; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; padding: 20px; animation: fadeIn 0.15s ease; }
+.modal-overlay.hidden { display: none; }
+@keyframes fadeIn  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { transform: translateY(16px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.modal { background: var(--white); border-radius: 12px; box-shadow: var(--shadow-lg); width: 100%; max-width: 460px; animation: slideUp 0.2s ease; overflow: hidden; }
+.modal-hd { padding: 20px 24px 0; display: flex; align-items: flex-start; justify-content: space-between; }
+.modal-ttl { font-family: var(--font-serif); font-size: 18px; font-weight: 600; color: var(--text); }
+.modal-sub { font-size: 13px; color: var(--text-muted); margin-top: 3px; }
+.modal-x { width: 30px; height: 30px; border-radius: 50%; border: none; background: var(--bg); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.15s; flex-shrink: 0; margin-top: -2px; }
+.modal-x:hover { background: var(--border); }
+.modal-x svg { width: 14px; height: 14px; fill: none; stroke: var(--text-muted); stroke-width: 2.2; stroke-linecap: round; }
+.modal-bd { padding: 18px 24px; display: flex; flex-direction: column; gap: 14px; }
+.fg { display: flex; flex-direction: column; gap: 5px; }
+.flabel { font-size: 12px; font-weight: 600; color: var(--text); }
+.flabel span { color: var(--text-muted); font-weight: 400; }
+.finput, .ftextarea { padding: 9px 12px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 13px; font-family: var(--font); color: var(--text); background: var(--white); outline: none; transition: border-color 0.15s; }
+.finput:focus, .ftextarea:focus { border-color: var(--blue); }
+.ftextarea { resize: vertical; min-height: 80px; line-height: 1.55; }
+.finput::placeholder, .ftextarea::placeholder { color: var(--text-light); }
+.modal-ft { padding: 14px 24px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px; background: #fafaf8; }
+
+/* ════════════════════ TOAST ════════════════════ */
+.toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: #1a1a1a; color: #fff; padding: 10px 20px; border-radius: 20px; font-size: 13px; font-weight: 500; box-shadow: var(--shadow-lg); transition: transform 0.3s ease; z-index: 9999; white-space: nowrap; }
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+/* ════════════════════ RATING MODE ════════════════════ */
+body.rating-mode .bubble-wrap { display: block; }
+body.rating-mode .rating-bar  { display: flex; }
+body.rating-mode .gate-banner { display: block; }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════ EDIT MODAL ════════════════════ -->
+<div class="modal-overlay hidden" id="edit-modal">
+  <div class="modal">
+    <div class="modal-hd">
+      <div>
+        <div class="modal-ttl" id="m-title">Edit</div>
+        <div class="modal-sub" id="m-sub"></div>
+      </div>
+      <button class="modal-x" onclick="closeModal()">
+        <svg viewBox="0 0 14 14"><line x1="2" y1="2" x2="12" y2="12"/><line x1="12" y1="2" x2="2" y2="12"/></svg>
+      </button>
+    </div>
+    <div class="modal-bd" id="m-body"></div>
+    <div class="modal-ft">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="saveModal()">Save changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════ TOPBAR ════════════════════ -->
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">Reach<span>Right</span></div>
+    <nav class="nav-tabs">
+      <button class="nav-tab" onclick="goBuilder()">
+        <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Message Builder
+      </button>
+      <button class="nav-tab active">
+        <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        My Profile
+      </button>
+    </nav>
+    <div class="topbar-right">
+      <div class="topbar-name">Jordan K.</div>
+      <div class="t-avatar">JK</div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════ MODE STRIP ════════════════════ -->
+<div class="mode-strip">
+  <div class="msi">
+    <div class="mode-tabs">
+      <button class="mode-tab active" id="tab-profile" onclick="setMode('profile')">
+        <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Profile View
+      </button>
+      <button class="mode-tab" id="tab-rating" onclick="setMode('rating')">
+        <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Rating Mode
+      </button>
+    </div>
+    <div class="mode-hint" id="mode-hint">
+      <strong>Rating Mode:</strong> Hover the score badges on each section for improvement tips.
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════ GATE BANNER ════════════════════ -->
+<div class="gate-banner">
+  <div class="gate-inner">
+    <div class="gate-left">
+      <div class="gate-pill"><div class="gate-dot"></div>Profile: 67 / 100</div>
+      <div class="gate-text">
+        <strong>A few fixes before you message someone.</strong>
+        <span> Profiles scoring 70+ get 3× more replies to cold outreach.</span>
+      </div>
+    </div>
+    <div class="gate-btns">
+      <button class="btn btn-ghost btn-sm" onclick="proceedAnyway()">Proceed anyway</button>
+      <button class="btn btn-primary btn-sm" onclick="scrollFixes()">Fix now</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════ PAGE ════════════════════ -->
+<div class="page-body">
+
+  <!-- MAIN COL -->
+  <div class="main-col">
+
+    <!-- HEADER CARD -->
+    <div class="card">
+      <!-- Photo bubble -->
+      <div class="bubble-wrap b-photo">
+        <div class="sbubble warn">67%
+          <div class="btip btip-r">
+            <div class="bt-lbl">Profile Photo — 67%</div>
+            <div class="bt-txt">Good quality but low contrast. A brighter or plainer background helps your face stand out to recruiters.</div>
+            <div class="bt-fix">Try a neutral, well-lit indoor or outdoor background.</div>
+          </div>
+        </div>
+      </div>
+      <!-- Headline bubble -->
+      <div class="bubble-wrap b-headline">
+        <div class="sbubble bad">42%
+          <div class="btip btip-l">
+            <div class="bt-lbl">Headline — 42%</div>
+            <div class="bt-txt">Too generic. Add your target role, school, and a key skill so people know your focus instantly.</div>
+            <div class="bt-fix">Try: "CS Student @ UC Davis | Aspiring PM | Product Thinking"</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cover">
+        <button class="cover-edit-btn" onclick="openEdit('cover')">Edit cover</button>
+      </div>
+      <div class="pinfo">
+        <div class="av-wrap">
+          <div class="pav">JK</div>
+          <button class="av-plus" onclick="openEdit('photo')" title="Change photo">+</button>
+        </div>
+        <div class="pname" id="d-name">Jordan Kim</div>
+        <div class="phl"  id="d-headline">Computer Science Student at UC Davis</div>
+        <div class="pmeta">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          Sacramento, CA &nbsp;·&nbsp; <span style="color:var(--blue);cursor:pointer">500+ connections</span>
+        </div>
+        <div class="pschool">University of California, Davis</div>
+        <div class="open-badge"><div class="odot"></div>Open to internships</div>
+        <div class="pacts">
+          <button class="btn btn-primary">Open to work</button>
+          <button class="btn btn-secondary" onclick="openEdit('headline')">Add section</button>
+          <button class="btn btn-ghost">More</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ABOUT -->
+    <div class="card">
+      <div class="bubble-wrap b-about">
+        <div class="sbubble bad">30%
+          <div class="btip btip-l">
+            <div class="bt-lbl">About — 30%</div>
+            <div class="bt-txt">Too short. Recruiters read this first. Aim for 150–200 words covering goals, 2–3 skills, and what drives you.</div>
+            <div class="bt-fix">Expand this section — it's the highest-impact fix available.</div>
+          </div>
+        </div>
+      </div>
+      <div class="rating-bar bad">
+        <div class="rb-score bad">30%</div>
+        <div>
+          <div class="rb-ttl">About section is too brief</div>
+          <div class="rb-txt">Recruiters read this before anything else. Add career goals, 2–3 skills, and what excites you — aim for 150–200 words.</div>
+          <div class="rb-act"><button class="btn btn-xs btn-secondary" onclick="openEdit('about')">Expand About</button></div>
+        </div>
+      </div>
+      <div class="scard">
+        <div class="stop">
+          <div class="stitle">About</div>
+          <div class="sbtns">
+            <button class="icon-btn" onclick="openEdit('about')">
+              <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="about-txt" id="d-about">CS student at UC Davis passionate about building products that solve real problems. Currently looking for summer 2026 internships in product management or software engineering.</div>
+      </div>
+    </div>
+
+    <!-- EXPERIENCE -->
+    <div class="card">
+      <div class="bubble-wrap b-exp">
+        <div class="sbubble warn">60%
+          <div class="btip btip-l">
+            <div class="bt-lbl">Experience — 60%</div>
+            <div class="bt-txt">Descriptions are too vague. Use strong action verbs and measurable outcomes to stand out.</div>
+            <div class="bt-fix">Example: "Led API redesign reducing latency by 35%"</div>
+          </div>
+        </div>
+      </div>
+      <div class="rating-bar warn">
+        <div class="rb-score warn">60%</div>
+        <div>
+          <div class="rb-ttl">Experience descriptions lack impact</div>
+          <div class="rb-txt">Add measurable results to your bullet points — e.g. "Increased X by 20%", "Led a team of 4". Quantified work is far more compelling to recruiters.</div>
+          <div class="rb-act"><button class="btn btn-xs btn-secondary" onclick="openEdit('exp')">Edit Experience</button></div>
+        </div>
+      </div>
+      <div class="scard">
+        <div class="stop">
+          <div class="stitle">Experience</div>
+          <div class="sbtns">
+            <button class="icon-btn" onclick="openEdit('exp')"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+            <button class="icon-btn" onclick="openEdit('exp')"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+          </div>
+        </div>
+        <div class="exp-item">
+          <div class="elogo">AC</div>
+          <div>
+            <div class="etitle">Software Engineering Intern</div>
+            <div class="eco">Acme Corp · Internship</div>
+            <div class="edate">Jun 2025 – Aug 2025 · 3 months · Remote</div>
+            <div class="edesc" id="d-exp1">Worked on backend APIs for the main product. Collaborated with senior engineers on code reviews and feature planning.</div>
+          </div>
+        </div>
+        <div class="exp-item">
+          <div class="elogo">UC</div>
+          <div>
+            <div class="etitle">Teaching Assistant — CS 50</div>
+            <div class="eco">UC Davis · Part-time</div>
+            <div class="edate">Sep 2024 – Present · 10 months</div>
+            <div class="edesc">Assist professor with grading, office hours, and lab sections for 80+ students each quarter.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EDUCATION -->
+    <div class="card">
+      <div class="bubble-wrap b-edu">
+        <div class="sbubble good">90%
+          <div class="btip btip-l">
+            <div class="bt-lbl">Education — 90%</div>
+            <div class="bt-txt">This section looks strong. Optionally add relevant coursework or a GPA callout (3.5+) to hit 100%.</div>
+            <div class="bt-fix">Optional: add honors, awards, or relevant courses.</div>
+          </div>
+        </div>
+      </div>
+      <div class="rating-bar good">
+        <div class="rb-score good">90%</div>
+        <div>
+          <div class="rb-ttl">Education section looks strong</div>
+          <div class="rb-txt">You're in good shape here. Add relevant coursework, a GPA highlight, or academic awards to reach 100%.</div>
+        </div>
+      </div>
+      <div class="scard">
+        <div class="stop">
+          <div class="stitle">Education</div>
+          <div class="sbtns">
+            <button class="icon-btn" onclick="openEdit('edu')"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+            <button class="icon-btn" onclick="openEdit('edu')"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+          </div>
+        </div>
+        <div class="edu-item">
+          <div class="dulogo">UC</div>
+          <div>
+            <div class="dschool">University of California, Davis</div>
+            <div class="ddeg">B.S. Computer Science · GPA: 3.7</div>
+            <div class="ddate">Sep 2023 – Jun 2027</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SKILLS -->
+    <div class="card">
+      <div class="bubble-wrap b-skills">
+        <div class="sbubble warn">55%
+          <div class="btip btip-l">
+            <div class="bt-lbl">Skills — 55%</div>
+            <div class="bt-txt">Only 3 skills listed. Recruiters filter by skills — add at least 8 relevant ones including tools, languages, and PM skills.</div>
+            <div class="bt-fix">Add: Python, SQL, Figma, Product Thinking, User Research</div>
+          </div>
+        </div>
+      </div>
+      <div class="rating-bar warn">
+        <div class="rb-score warn">55%</div>
+        <div>
+          <div class="rb-ttl">Add more skills to improve visibility</div>
+          <div class="rb-txt">Recruiters search by skills. You have 3 listed — aim for 8–10 to maximize search discoverability and show breadth.</div>
+          <div class="rb-act"><button class="btn btn-xs btn-secondary" onclick="openEdit('skills')">Add skills</button></div>
+        </div>
+      </div>
+      <div class="scard">
+        <div class="stop">
+          <div class="stitle">Skills</div>
+          <div class="sbtns">
+            <button class="icon-btn" onclick="openEdit('skills')"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+            <button class="icon-btn" onclick="openEdit('skills')"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+          </div>
+        </div>
+        <div class="skills-wrap" id="skills-list">
+          <div class="skill-chip">JavaScript<span class="skill-end">· 4</span></div>
+          <div class="skill-chip">React.js<span class="skill-end">· 2</span></div>
+          <div class="skill-chip">Product Management</div>
+          <button class="add-skill-btn" onclick="openEdit('skills')">+ Add skill</button>
+        </div>
+        <a class="skills-more" id="skills-more-link">Show all 3 skills</a>
+      </div>
+    </div>
+
+  </div><!-- /main-col -->
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+
+    <!-- SCORE CARD -->
+    <div class="card">
+      <div class="score-card-inner">
+        <div class="sct">Profile Readiness Score</div>
+        <div class="ring-wrap">
+          <svg width="116" height="116" viewBox="0 0 116 116">
+            <circle cx="58" cy="58" r="48" stroke="#e0dbd3" stroke-width="8" fill="none"/>
+            <circle cx="58" cy="58" r="48"
+              stroke="#915907" stroke-width="8" fill="none"
+              stroke-dasharray="301.6"
+              stroke-dashoffset="99.5"
+              stroke-linecap="round"
+              transform="rotate(-90 58 58)"/>
+          </svg>
+          <div class="ring-val">
+            <div class="ring-num">67</div>
+            <div class="ring-den">/ 100</div>
+          </div>
+        </div>
+        <div class="s-status"><span class="status-badge warn">Needs Improvement</span></div>
+
+        <div class="sbars">
+          <div class="sbar"><div class="sbl">Photo</div>     <div class="sbtr"><div class="sbf warn" style="width:67%" id="b-photo"></div></div>   <div class="sbp warn">67%</div></div>
+          <div class="sbar"><div class="sbl">Headline</div>  <div class="sbtr"><div class="sbf bad"  style="width:42%" id="b-headline"></div></div><div class="sbp bad">42%</div></div>
+          <div class="sbar"><div class="sbl">About</div>     <div class="sbtr"><div class="sbf bad"  style="width:30%" id="b-about"></div></div>   <div class="sbp bad">30%</div></div>
+          <div class="sbar"><div class="sbl">Experience</div><div class="sbtr"><div class="sbf warn" style="width:60%" id="b-exp"></div></div>     <div class="sbp warn">60%</div></div>
+          <div class="sbar"><div class="sbl">Education</div> <div class="sbtr"><div class="sbf good" style="width:90%" id="b-edu"></div></div>     <div class="sbp good">90%</div></div>
+          <div class="sbar"><div class="sbl">Skills</div>    <div class="sbtr"><div class="sbf warn" style="width:55%" id="b-skills"></div></div>  <div class="sbp warn">55%</div></div>
+        </div>
+
+        <div style="margin-top:14px">
+          <button class="btn btn-ghost btn-sm btn-full" onclick="refreshScore(event)">Refresh score</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- QUICK FIXES -->
+    <div class="card" id="quick-fixes">
+      <div class="qf-inner">
+        <div class="qf-ttl">Quick Fixes</div>
+        <div class="qfi"><div class="qfl"><div class="qdot done"></div><div class="qlabel">Profile photo</div></div><div class="qdone">Done</div></div>
+        <div class="qfi"><div class="qfl"><div class="qdot bad"></div> <div class="qlabel">Improve headline</div></div><button class="qbtn" onclick="openEdit('headline')">Fix</button></div>
+        <div class="qfi"><div class="qfl"><div class="qdot bad"></div> <div class="qlabel">Expand About section</div></div><button class="qbtn" onclick="openEdit('about')">Fix</button></div>
+        <div class="qfi"><div class="qfl"><div class="qdot warn"></div><div class="qlabel">Add 5+ skills</div></div><button class="qbtn" onclick="openEdit('skills')">Add</button></div>
+        <div class="qfi"><div class="qfl"><div class="qdot warn"></div><div class="qlabel">Metrics in experience</div></div><button class="qbtn" onclick="openEdit('exp')">Edit</button></div>
+        <div class="qfi"><div class="qfl"><div class="qdot done"></div><div class="qlabel">Education complete</div></div><div class="qdone">Done</div></div>
+      </div>
+    </div>
+
+    <!-- NUDGE -->
+    <div class="card">
+      <div class="nudge-inner">
+        <div class="nudge-ttl">Before you message someone</div>
+        <div class="nudge-txt">Profiles scoring <strong>70 or higher</strong> get <strong>3× more replies</strong> to cold outreach. You're a few fixes away.</div>
+        <div style="display:flex;flex-direction:column;gap:7px">
+          <button class="btn btn-primary btn-full" onclick="scrollFixes()">Fix and go to builder</button>
+          <button class="btn btn-ghost btn-full"   onclick="proceedAnyway()">Go to builder anyway</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROCEED -->
+    <div class="card" style="border-left: 3px solid var(--green)">
+      <div class="proceed-inner">
+        <div class="proc-ttl">Your profile is improving</div>
+        <div class="proc-txt">You can start messaging now, or spend a few minutes on the fixes above to meaningfully boost your reply rate.</div>
+        <button class="btn btn-green btn-full" onclick="goBuilder()">Go to Message Builder</button>
+      </div>
+    </div>
+
+  </div><!-- /sidebar -->
+</div><!-- /page-body -->
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ── MODAL CONFIG ── */
+const edits = {
+  headline: { title:'Edit Headline', sub:'A strong headline includes role, school, and a key skill.', fields:[
+    { id:'e-name',     label:'Full name',  type:'input',    bind:'d-name',     ph:'Jordan Kim' },
+    { id:'e-headline', label:'Headline',   type:'input',    bind:'d-headline', ph:'CS Student @ UC Davis | Aspiring PM | Product Thinking' }
+  ]},
+  about: { title:'Edit About', sub:'Aim for 150–200 words. Cover goals, skills, and what drives you.', fields:[
+    { id:'e-about', label:'About / Summary', type:'textarea', bind:'d-about', ph:'Write about your goals, skills, and what excites you...' }
+  ]},
+  exp: { title:'Edit Experience', sub:'Add metrics and action verbs to make descriptions more impactful.', fields:[
+    { id:'e-exp1', label:'Description — Acme Corp', type:'textarea', bind:'d-exp1', ph:'e.g. Led backend API redesign, reducing load time by 35%...' }
+  ]},
+  skills: { title:'Add a Skill', sub:'Add relevant tools, languages, and soft skills (aim for 8–10 total).', fields:[
+    { id:'e-skill', label:'Skill to add', type:'input', ph:'e.g. Python, SQL, Figma, User Research...' }
+  ]},
+  photo:  { title:'Update Profile Photo',   sub:'Use a clear, professional headshot with a simple background.', fields:[ { id:'e-photo', label:'Photo URL', type:'input', ph:'https://...' } ]},
+  cover:  { title:'Update Cover Photo',     sub:'A relevant cover adds context to your profile.',              fields:[ { id:'e-cover', label:'Image URL',  type:'input', ph:'https://...' } ]},
+  edu:    { title:'Edit Education',         sub:'Add coursework, GPA, or honors to strengthen this section.',  fields:[ { id:'e-edu', label:'Additional info (coursework, GPA, honors)', type:'textarea', ph:'e.g. Relevant coursework: Data Structures, HCI, PM Fundamentals' } ]}
+};
+
+let activeFields = null;
+
+function openEdit(key) {
+  const cfg = edits[key];
+  if (!cfg) { toast('Edit: ' + key); return; }
+  document.getElementById('m-title').textContent = cfg.title;
+  document.getElementById('m-sub').textContent   = cfg.sub;
+  const body = document.getElementById('m-body');
+  body.innerHTML = '';
+  activeFields = cfg.fields;
+  cfg.fields.forEach(f => {
+    const g = document.createElement('div'); g.className = 'fg';
+    const l = document.createElement('label'); l.className = 'flabel'; l.textContent = f.label; g.appendChild(l);
+    const el = document.createElement(f.type === 'textarea' ? 'textarea' : 'input');
+    el.className   = f.type === 'textarea' ? 'ftextarea' : 'finput';
+    el.placeholder = f.ph; el.id = f.id;
+    if (f.bind) el.value = document.getElementById(f.bind)?.textContent?.trim() || '';
+    g.appendChild(el); body.appendChild(g);
+  });
+  document.getElementById('edit-modal').classList.remove('hidden');
+}
+
+function closeModal() { document.getElementById('edit-modal').classList.add('hidden'); }
+
+function saveModal() {
+  if (!activeFields) { closeModal(); return; }
+  let changed = false;
+  activeFields.forEach(f => {
+    const el = document.getElementById(f.id);
+    if (!el || !el.value.trim()) return;
+    if (f.bind) {
+      const t = document.getElementById(f.bind);
+      if (t) { t.textContent = el.value.trim(); changed = true; }
+    }
+    // skills: add chip
+    if (f.id === 'e-skill') {
+      const chip = document.createElement('div'); chip.className = 'skill-chip';
+      chip.textContent = el.value.trim();
+      const addBtn = document.querySelector('.add-skill-btn');
+      addBtn.parentNode.insertBefore(chip, addBtn);
+      const count = document.querySelectorAll('.skill-chip').length;
+      document.getElementById('skills-more-link').textContent = 'Show all ' + count + ' skills';
+      // nudge bar
+      const newPct = Math.min(100, 55 + count * 8);
+      const bar = document.getElementById('b-skills');
+      if (bar) bar.style.width = newPct + '%';
+      changed = true;
+    }
+  });
+  closeModal();
+  toast(changed ? 'Changes saved' : 'No changes made');
+}
+
+/* ── MODE ── */
+function setMode(m) {
+  document.getElementById('tab-profile').classList.toggle('active', m === 'profile');
+  document.getElementById('tab-rating').classList.toggle('active',  m === 'rating');
+  document.getElementById('mode-hint').style.display = m === 'rating' ? 'block' : 'none';
+  document.body.classList.toggle('rating-mode', m === 'rating');
+  toast(m === 'rating' ? 'Rating Mode — hover the score badges for tips' : 'Profile View');
+}
+
+/* ── NAVIGATION ── */
+function goBuilder()      { window.location.href = 'story1-message-guidance.html'; }
+function proceedAnyway()  { toast('Opening message builder...'); setTimeout(goBuilder, 900); }
+function scrollFixes()    { document.getElementById('quick-fixes').scrollIntoView({ behavior:'smooth', block:'start' }); toast('Fix these to boost your score'); }
+
+/* ── SCORE REFRESH ── */
+function refreshScore(e) {
+  const btn = e.currentTarget;
+  btn.textContent = 'Calculating...'; btn.disabled = true;
+  setTimeout(() => { btn.textContent = 'Refresh score'; btn.disabled = false; toast('Score refreshed — 67 / 100'); }, 1200);
+}
+
+/* ── TOAST ── */
+let tt;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(tt); tt = setTimeout(() => el.classList.remove('show'), 2400);
+}
+</script>
+</body>
+</html>

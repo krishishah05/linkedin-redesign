@@ -1,0 +1,1388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ReachRight — Message Builder</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Serif:wght@400;600&display=swap');
+
+:root {
+  --bg: #f4f2ee;
+  --white: #ffffff;
+  --border: #e0dbd3;
+  --border-dark: #c8c3bb;
+  --text: #1a1a1a;
+  --text-muted: #737373;
+  --text-light: #a0a0a0;
+  --blue: #0a66c2;
+  --blue-hover: #004182;
+  --blue-light: #dce6f1;
+  --green: #057642;
+  --green-light: #d4edda;
+  --amber: #915907;
+  --amber-light: #fdf3e3;
+  --red: #b91c1c;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+  --shadow-md: 0 2px 8px rgba(0,0,0,0.10);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.14);
+  --radius: 8px;
+  --font: 'IBM Plex Sans', sans-serif;
+  --font-serif: 'IBM Plex Serif', serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #d0ccc6; border-radius: 4px; }
+
+/* ══════════════════════════════════════
+   TOPBAR
+══════════════════════════════════════ */
+.topbar {
+  position: sticky; top: 0; z-index: 200;
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  height: 52px;
+  display: flex; align-items: center;
+  box-shadow: var(--shadow-sm);
+}
+.topbar-inner {
+  max-width: 1200px; margin: 0 auto; width: 100%;
+  padding: 0 20px;
+  display: flex; align-items: center; gap: 0;
+}
+.brand {
+  font-family: var(--font-serif);
+  font-size: 18px; font-weight: 600;
+  color: var(--blue);
+  letter-spacing: -0.3px;
+  margin-right: 28px;
+  white-space: nowrap;
+}
+.brand span { color: var(--text); }
+
+/* NAV TABS */
+.nav-tabs {
+  display: flex; align-items: stretch; height: 52px;
+  gap: 0;
+}
+.nav-tab {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 0 20px;
+  font-size: 12px; font-weight: 500; color: var(--text-muted);
+  cursor: pointer; border: none; background: none;
+  border-bottom: 2px solid transparent;
+  transition: color 0.15s, border-color 0.15s;
+  gap: 2px; white-space: nowrap;
+  font-family: var(--font);
+  height: 52px;
+}
+.nav-tab svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.nav-tab:hover { color: var(--text); }
+.nav-tab.active { color: var(--text); border-bottom-color: var(--text); font-weight: 600; }
+
+.topbar-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+.avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: linear-gradient(135deg, #4f7096, #6b93b8);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 600; color: white; cursor: pointer;
+  border: 1.5px solid var(--border);
+}
+.topbar-name { font-size: 12px; color: var(--text-muted); }
+
+/* ══════════════════════════════════════
+   PAGE VIEWS
+══════════════════════════════════════ */
+.view { display: none; }
+.view.active { display: flex; flex-direction: column; }
+
+/* ══════════════════════════════════════
+   MESSAGE BUILDER VIEW
+══════════════════════════════════════ */
+#view-builder {
+  flex-direction: row;
+  height: calc(100vh - 52px);
+  overflow: hidden;
+}
+
+/* ── LEFT PANEL ── */
+.left-panel {
+  width: 360px; min-width: 320px;
+  background: var(--white);
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+.lp-header {
+  padding: 16px 20px 14px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.lp-header-top {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 12px;
+}
+.lp-title { font-size: 15px; font-weight: 600; color: var(--text); }
+.lp-edit-btn {
+  font-size: 12px; color: var(--blue); cursor: pointer;
+  background: none; border: none; font-family: var(--font);
+  font-weight: 500;
+}
+.lp-edit-btn:hover { color: var(--blue-hover); text-decoration: underline; }
+
+.context-summary { display: flex; flex-direction: column; gap: 6px; }
+.cs-row {
+  display: flex; align-items: flex-start; gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--bg);
+}
+.cs-row:last-child { border-bottom: none; }
+.cs-label { font-size: 11px; font-weight: 600; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.5px; flex: 0 0 90px; padding-top: 1px; }
+.cs-val { font-size: 13px; color: var(--text); line-height: 1.4; }
+
+.tone-pills { display: flex; gap: 6px; margin-top: 12px; }
+.tone-pill {
+  padding: 4px 14px; border-radius: 20px;
+  font-size: 12px; font-weight: 500; cursor: pointer;
+  border: 1px solid var(--border); background: transparent;
+  color: var(--text-muted); transition: all 0.15s;
+  font-family: var(--font);
+}
+.tone-pill:hover { border-color: var(--blue); color: var(--blue); }
+.tone-pill.active { background: var(--blue); border-color: var(--blue); color: #fff; }
+
+.lp-body { flex: 1; overflow-y: auto; padding: 16px 20px; display: flex; flex-direction: column; gap: 14px; }
+
+/* Draft editor */
+.draft-label { font-size: 11px; font-weight: 600; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+.draft-textarea {
+  width: 100%; min-height: 260px;
+  background: #fafaf9;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  font-size: 14px; font-family: var(--font);
+  color: var(--text); line-height: 1.65;
+  resize: none; outline: none;
+  transition: border-color 0.15s;
+}
+.draft-textarea:focus { border-color: var(--blue); background: #fff; }
+.draft-textarea::placeholder { color: var(--text-light); }
+
+.draft-footer {
+  display: flex; align-items: center; justify-content: space-between;
+  padding-top: 8px;
+}
+.char-count { font-size: 12px; color: var(--text-light); }
+.draft-actions { display: flex; gap: 8px; }
+
+/* Similarity finder in left panel */
+.sim-section { }
+.sim-label { font-size: 11px; font-weight: 600; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+.sim-input-row { display: flex; gap: 6px; }
+.sim-input {
+  flex: 1;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 13px; font-family: var(--font);
+  color: var(--text); background: var(--white);
+  outline: none; transition: border-color 0.15s;
+}
+.sim-input:focus { border-color: var(--blue); }
+.sim-input::placeholder { color: var(--text-light); }
+.sim-btn {
+  padding: 8px 14px;
+  background: var(--blue); color: #fff;
+  border: none; border-radius: var(--radius);
+  font-size: 12px; font-weight: 600; cursor: pointer;
+  font-family: var(--font); transition: background 0.15s;
+  white-space: nowrap;
+}
+.sim-btn:hover { background: var(--blue-hover); }
+
+.sim-results { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 5px; }
+.sim-tag {
+  padding: 3px 10px; border-radius: 20px;
+  font-size: 11px; font-weight: 500;
+  background: var(--amber-light);
+  border: 1px solid #e8c97e;
+  color: var(--amber);
+}
+
+/* ── RIGHT PANEL ── */
+.right-panel {
+  flex: 1; display: flex; flex-direction: column;
+  overflow: hidden; background: var(--bg);
+}
+.rp-header {
+  padding: 14px 24px;
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  flex-shrink: 0;
+}
+.rp-title { font-size: 15px; font-weight: 600; color: var(--text); }
+.rp-subtitle { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
+.rp-actions { display: flex; gap: 8px; }
+
+.rp-body {
+  flex: 1; overflow-y: auto;
+  padding: 20px 24px;
+  display: flex; flex-direction: column; gap: 16px;
+}
+
+/* Recipient card */
+.recipient-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  display: flex; gap: 12px; align-items: flex-start;
+  box-shadow: var(--shadow-sm);
+}
+.rc-avatar {
+  width: 44px; height: 44px; border-radius: 50%;
+  background: linear-gradient(135deg, #4f6f8f, #6b93b8);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; font-weight: 600; color: #fff; flex-shrink: 0;
+}
+.rc-name { font-size: 14px; font-weight: 600; color: var(--text); }
+.rc-role { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+.rc-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+.rc-tag {
+  padding: 2px 8px; border-radius: 12px;
+  font-size: 11px; background: var(--bg);
+  border: 1px solid var(--border); color: var(--text-muted);
+}
+
+/* Match banner */
+.match-banner {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--amber);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  box-shadow: var(--shadow-sm);
+}
+.mb-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 7px; }
+.mb-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.mb-chip {
+  padding: 3px 10px; border-radius: 14px;
+  background: var(--amber-light); border: 1px solid #e8c97e;
+  font-size: 11px; font-weight: 500; color: var(--amber);
+}
+
+/* Category tabs */
+.cat-bar {
+  display: flex; gap: 0; border-bottom: 1px solid var(--border);
+  background: var(--white); border-radius: var(--radius) var(--radius) 0 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+.cat-tab {
+  flex: 1; padding: 10px 8px;
+  font-size: 12px; font-weight: 500; color: var(--text-muted);
+  cursor: pointer; border: none; background: none;
+  border-bottom: 2px solid transparent;
+  transition: all 0.15s; font-family: var(--font);
+  text-align: center;
+}
+.cat-tab:hover { color: var(--text); background: var(--bg); }
+.cat-tab.active { color: var(--blue); border-bottom-color: var(--blue); font-weight: 600; }
+
+/* Starter cards */
+.starters-list { display: flex; flex-direction: column; gap: 0; }
+.starter-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-top: none;
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: background 0.15s;
+  position: relative;
+}
+.starter-card:last-child { border-radius: 0 0 var(--radius) var(--radius); }
+.starter-card:hover { background: #f9f8f6; }
+.starter-card.selected { background: var(--blue-light); border-left: 3px solid var(--blue); }
+.starter-text { font-size: 13.5px; color: var(--text); line-height: 1.65; margin-bottom: 8px; }
+.starter-hl { background: #fef9c3; border-bottom: 1.5px solid #fbbf24; padding: 0 2px; border-radius: 2px; }
+.starter-footer { display: flex; align-items: center; justify-content: space-between; }
+.starter-tags { display: flex; gap: 4px; }
+.stag {
+  padding: 2px 8px; border-radius: 10px;
+  font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px;
+}
+.stag-formal { background: var(--blue-light); color: var(--blue); }
+.stag-friendly { background: var(--green-light); color: var(--green); }
+.stag-short { background: var(--amber-light); color: var(--amber); }
+.stag-conn { background: #fce7f3; color: #be185d; }
+.use-btn {
+  padding: 4px 12px; border-radius: 6px;
+  border: 1px solid var(--border); background: var(--white);
+  font-size: 11px; font-weight: 500; color: var(--text-muted);
+  cursor: pointer; transition: all 0.15s; font-family: var(--font);
+}
+.use-btn:hover { border-color: var(--blue); color: var(--blue); background: var(--blue-light); }
+
+/* Info callout */
+.info-callout {
+  background: var(--blue-light);
+  border: 1px solid #a8c0dc;
+  border-radius: var(--radius);
+  padding: 11px 14px;
+  font-size: 12px; color: #1a3a5c; line-height: 1.6;
+}
+.info-callout strong { color: var(--blue); }
+
+/* ══════════════════════════════════════
+   DRAFTS VIEW
+══════════════════════════════════════ */
+#view-drafts {
+  padding: 28px 0;
+  min-height: calc(100vh - 52px);
+}
+.view-container { max-width: 800px; margin: 0 auto; padding: 0 20px; }
+.view-heading { font-family: var(--font-serif); font-size: 22px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+.view-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 24px; }
+
+.drafts-grid { display: flex; flex-direction: column; gap: 10px; }
+.draft-item {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 16px;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.15s, border-color 0.15s;
+  cursor: pointer;
+}
+.draft-item:hover { box-shadow: var(--shadow-md); border-color: var(--border-dark); }
+.di-body { flex: 1; min-width: 0; }
+.di-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 3px; }
+.di-preview { font-size: 13px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 540px; margin-bottom: 8px; }
+.di-meta { display: flex; gap: 10px; align-items: center; }
+.di-tag { padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 500; }
+.di-tag-saved { background: var(--green-light); color: var(--green); }
+.di-tag-draft { background: var(--amber-light); color: var(--amber); }
+.di-tag-exported { background: var(--blue-light); color: var(--blue); }
+.di-date { font-size: 11px; color: var(--text-light); }
+.di-actions { display: flex; gap: 6px; flex-shrink: 0; }
+
+.empty-state {
+  text-align: center; padding: 60px 20px;
+  background: var(--white); border: 1px solid var(--border);
+  border-radius: var(--radius); box-shadow: var(--shadow-sm);
+}
+.es-icon {
+  width: 48px; height: 48px; margin: 0 auto 14px;
+  background: var(--bg); border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+}
+.es-icon svg { width: 24px; height: 24px; fill: none; stroke: var(--text-muted); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.es-title { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 5px; }
+.es-text { font-size: 13px; color: var(--text-muted); }
+
+/* ══════════════════════════════════════
+   TEMPLATES VIEW
+══════════════════════════════════════ */
+#view-templates {
+  padding: 28px 0;
+  min-height: calc(100vh - 52px);
+}
+.templates-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+}
+.template-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px;
+  cursor: pointer;
+  transition: all 0.15s;
+  box-shadow: var(--shadow-sm);
+}
+.template-card:hover { box-shadow: var(--shadow-md); border-color: var(--border-dark); transform: translateY(-1px); }
+.tc-category { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-light); margin-bottom: 8px; }
+.tc-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+.tc-desc { font-size: 12px; color: var(--text-muted); line-height: 1.55; margin-bottom: 12px; }
+.tc-footer { display: flex; justify-content: space-between; align-items: center; }
+.tc-badge { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 10px; }
+.tc-badge-alumni { background: var(--blue-light); color: var(--blue); }
+.tc-badge-recruiter { background: var(--green-light); color: var(--green); }
+.tc-badge-info { background: var(--amber-light); color: var(--amber); }
+.tc-badge-followup { background: #fce7f3; color: #be185d; }
+.tc-use {
+  font-size: 12px; font-weight: 500; color: var(--blue);
+  background: none; border: none; cursor: pointer; font-family: var(--font);
+}
+.tc-use:hover { text-decoration: underline; }
+
+.filter-row { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+.filter-chip {
+  padding: 5px 14px; border-radius: 20px;
+  font-size: 12px; font-weight: 500;
+  border: 1px solid var(--border); background: var(--white);
+  color: var(--text-muted); cursor: pointer; transition: all 0.15s;
+  font-family: var(--font);
+}
+.filter-chip:hover { border-color: var(--blue); color: var(--blue); }
+.filter-chip.active { background: var(--blue); border-color: var(--blue); color: #fff; }
+
+/* ══════════════════════════════════════
+   BUTTONS (shared)
+══════════════════════════════════════ */
+.btn {
+  padding: 7px 16px; border-radius: 20px;
+  font-size: 13px; font-weight: 600; font-family: var(--font);
+  cursor: pointer; border: none; transition: all 0.15s;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.btn-primary { background: var(--blue); color: #fff; border: 1.5px solid var(--blue); }
+.btn-primary:hover { background: var(--blue-hover); border-color: var(--blue-hover); }
+.btn-secondary { background: transparent; color: var(--blue); border: 1.5px solid var(--blue); }
+.btn-secondary:hover { background: var(--blue-light); }
+.btn-ghost { background: transparent; color: var(--text-muted); border: 1.5px solid var(--border); }
+.btn-ghost:hover { border-color: var(--border-dark); color: var(--text); }
+.btn-sm { padding: 5px 12px; font-size: 12px; }
+.btn-green { background: var(--green); color: #fff; border: 1.5px solid var(--green); }
+.btn-green:hover { background: #045a31; }
+
+/* ══════════════════════════════════════
+   MODAL / POPUP
+══════════════════════════════════════ */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 500;
+  background: rgba(0,0,0,0.45);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+  animation: fadeIn 0.18s ease;
+}
+.modal-overlay.hidden { display: none; }
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+.modal {
+  background: var(--white);
+  border-radius: 12px;
+  box-shadow: var(--shadow-lg);
+  width: 100%; max-width: 520px;
+  animation: slideUp 0.2s ease;
+  overflow: hidden;
+}
+.modal-header {
+  padding: 20px 24px 0;
+  display: flex; align-items: flex-start; justify-content: space-between;
+}
+.modal-title { font-family: var(--font-serif); font-size: 20px; font-weight: 600; color: var(--text); }
+.modal-sub { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+.modal-close {
+  width: 32px; height: 32px; border-radius: 50%;
+  border: none; background: var(--bg); cursor: pointer;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  transition: background 0.15s; margin-top: -4px;
+}
+.modal-close:hover { background: var(--border); }
+.modal-close svg { width: 16px; height: 16px; fill: none; stroke: var(--text-muted); stroke-width: 2.2; stroke-linecap: round; }
+
+.modal-body { padding: 20px 24px; display: flex; flex-direction: column; gap: 16px; }
+
+.modal-step { display: none; }
+.modal-step.active { display: flex; flex-direction: column; gap: 14px; }
+
+/* Progress indicator */
+.modal-progress { padding: 0 24px; margin-top: 16px; }
+.mp-dots { display: flex; gap: 6px; align-items: center; }
+.mp-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); transition: all 0.2s; }
+.mp-dot.done { background: var(--blue); }
+.mp-dot.current { background: var(--blue); transform: scale(1.3); }
+.mp-label { font-size: 11px; color: var(--text-muted); margin-left: auto; }
+
+.form-group { display: flex; flex-direction: column; gap: 5px; }
+.form-label { font-size: 12px; font-weight: 600; color: var(--text); }
+.form-label span { color: var(--text-muted); font-weight: 400; }
+.form-input, .form-select, .form-textarea {
+  padding: 9px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 13px; font-family: var(--font); color: var(--text);
+  background: var(--white); outline: none;
+  transition: border-color 0.15s;
+}
+.form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--blue); }
+.form-select option { background: var(--white); }
+.form-textarea { resize: none; height: 80px; line-height: 1.5; }
+.form-input::placeholder, .form-textarea::placeholder { color: var(--text-light); }
+
+/* Type selector grid */
+.type-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.type-option {
+  padding: 12px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer; transition: all 0.15s;
+  background: var(--white);
+}
+.type-option:hover { border-color: var(--blue); }
+.type-option.selected { border-color: var(--blue); background: var(--blue-light); }
+.type-option-title { font-size: 13px; font-weight: 600; color: var(--text); }
+.type-option-desc { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+.type-option.selected .type-option-title { color: var(--blue); }
+
+.modal-footer {
+  padding: 16px 24px;
+  border-top: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  background: #fafaf8;
+}
+.modal-footer-left { display: flex; gap: 8px; }
+.modal-footer-right { display: flex; gap: 8px; }
+
+/* ══════════════════════════════════════
+   TOAST NOTIFICATION
+══════════════════════════════════════ */
+.toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px);
+  background: #1a1a1a; color: #fff;
+  padding: 10px 20px; border-radius: 20px;
+  font-size: 13px; font-weight: 500;
+  box-shadow: var(--shadow-lg);
+  transition: transform 0.3s ease;
+  z-index: 9999; white-space: nowrap;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+/* ══════════════════════════════════════
+   MISC
+══════════════════════════════════════ */
+.divider { height: 1px; background: var(--border); }
+.section-sep { margin: 4px 0; }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════
+     ONBOARDING POPUP
+══════════════════════════════════════ -->
+<div class="modal-overlay" id="onboarding-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">Start a new message</div>
+        <div class="modal-sub">Tell us a bit about your outreach so we can help you frame it.</div>
+      </div>
+      <button class="modal-close" onclick="closeModal()">
+        <svg viewBox="0 0 16 16"><line x1="3" y1="3" x2="13" y2="13"/><line x1="13" y1="3" x2="3" y2="13"/></svg>
+      </button>
+    </div>
+    <div class="modal-progress" style="padding:16px 24px 0">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <div class="mp-dots">
+          <div class="mp-dot current" id="dot-1"></div>
+          <div class="mp-dot" id="dot-2"></div>
+          <div class="mp-dot" id="dot-3"></div>
+        </div>
+        <div class="mp-label" id="step-label">Step 1 of 3 — Message type</div>
+      </div>
+      <div style="height:3px;background:var(--border);border-radius:2px;overflow:hidden">
+        <div id="modal-prog-bar" style="height:100%;background:var(--blue);border-radius:2px;width:33%;transition:width 0.3s"></div>
+      </div>
+    </div>
+
+    <!-- STEP 1: Message Type -->
+    <div class="modal-body">
+      <div class="modal-step active" id="step-1">
+        <div class="form-group">
+          <div class="form-label">What kind of message are you sending?</div>
+        </div>
+        <div class="type-grid">
+          <div class="type-option selected" onclick="selectType(this,'Alumni Outreach')">
+            <div class="type-option-title">Alumni Outreach</div>
+            <div class="type-option-desc">Connecting with someone who went to your school</div>
+          </div>
+          <div class="type-option" onclick="selectType(this,'Recruiter Intro')">
+            <div class="type-option-title">Recruiter Intro</div>
+            <div class="type-option-desc">Reaching out to a recruiter at a company</div>
+          </div>
+          <div class="type-option" onclick="selectType(this,'Informational Interview')">
+            <div class="type-option-title">Informational Interview</div>
+            <div class="type-option-desc">Asking for a chat to learn about their career</div>
+          </div>
+          <div class="type-option" onclick="selectType(this,'Cold Outreach')">
+            <div class="type-option-title">Cold Outreach</div>
+            <div class="type-option-desc">First contact with someone you don't know</div>
+          </div>
+          <div class="type-option" onclick="selectType(this,'Follow-Up')">
+            <div class="type-option-title">Follow-Up</div>
+            <div class="type-option-desc">Following up after applying or meeting</div>
+          </div>
+          <div class="type-option" onclick="selectType(this,'Referral Ask')">
+            <div class="type-option-title">Referral Ask</div>
+            <div class="type-option-desc">Asking for a referral to a role or company</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 2: Role & Purpose -->
+      <div class="modal-step" id="step-2">
+        <div class="form-group">
+          <div class="form-label">Their role / title <span>(Required)</span></div>
+          <input class="form-input" id="field-role" placeholder="e.g. Product Manager at Google" />
+        </div>
+        <div class="form-group">
+          <div class="form-label">Purpose of your message <span>(Required)</span></div>
+          <select class="form-select" id="field-purpose">
+            <option value="">Select a purpose...</option>
+            <option>Explore internship opportunities</option>
+            <option>Learn about their career path</option>
+            <option>Ask about company culture</option>
+            <option>Request a referral</option>
+            <option>Follow up after applying</option>
+            <option>Get advice on breaking into the field</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <div class="form-label">What are you asking for? <span>(Required)</span></div>
+          <select class="form-select" id="field-ask">
+            <option value="">Select what you want...</option>
+            <option>A 15-minute informational chat</option>
+            <option>A 30-minute virtual coffee</option>
+            <option>Resume review</option>
+            <option>Referral for an open role</option>
+            <option>General advice or guidance</option>
+            <option>Job shadow or site visit</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- STEP 3: Personalization -->
+      <div class="modal-step" id="step-3">
+        <div class="form-group">
+          <div class="form-label">Their company <span>(Optional — helps personalize)</span></div>
+          <input class="form-input" id="field-company" placeholder="e.g. Google, Stripe, Figma" />
+        </div>
+        <div class="form-group">
+          <div class="form-label">Your school <span>(Optional — used for alumni connection)</span></div>
+          <input class="form-input" id="field-school" placeholder="e.g. UC Davis, Michigan, NYU" />
+        </div>
+        <div class="form-group">
+          <div class="form-label">Anything specific you want to mention? <span>(Optional)</span></div>
+          <textarea class="form-textarea" id="field-note" placeholder="e.g. I saw your talk at a conference, we share a mutual connection, I admired a project you worked on..."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <div class="modal-footer-left">
+        <button class="btn btn-ghost btn-sm" id="btn-back" onclick="modalBack()" style="display:none">Back</button>
+      </div>
+      <div class="modal-footer-right">
+        <button class="btn btn-ghost btn-sm" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary btn-sm" id="btn-next" onclick="modalNext()">Next</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     TOPBAR
+══════════════════════════════════════ -->
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">Reach<span>Right</span></div>
+
+    <nav class="nav-tabs">
+      <button class="nav-tab active" data-view="builder" onclick="switchView('builder')">
+        <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Message Builder
+      </button>
+      <button class="nav-tab" data-view="drafts" onclick="switchView('drafts')">
+        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        My Drafts
+        <span id="drafts-badge" style="background:var(--blue);color:#fff;border-radius:10px;font-size:10px;padding:1px 6px;font-weight:700">3</span>
+      </button>
+      <button class="nav-tab" data-view="templates" onclick="switchView('templates')">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Templates
+      </button>
+    </nav>
+
+    <div class="topbar-right">
+      <div class="topbar-name">Jordan K.</div>
+      <div class="avatar">JK</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     VIEW: MESSAGE BUILDER
+══════════════════════════════════════ -->
+<div class="view active" id="view-builder">
+
+  <!-- LEFT PANEL -->
+  <div class="left-panel">
+    <div class="lp-header">
+      <div class="lp-header-top">
+        <div class="lp-title">Your Context</div>
+        <button class="lp-edit-btn" onclick="openModal()">Edit context</button>
+      </div>
+      <div class="context-summary" id="context-display">
+        <div class="cs-row"><div class="cs-label">Type</div><div class="cs-val" id="ctx-type">Alumni Outreach</div></div>
+        <div class="cs-row"><div class="cs-label">Their Role</div><div class="cs-val" id="ctx-role">Product Manager at Google</div></div>
+        <div class="cs-row"><div class="cs-label">Purpose</div><div class="cs-val" id="ctx-purpose">Explore internship opportunities</div></div>
+        <div class="cs-row"><div class="cs-label">Asking For</div><div class="cs-val" id="ctx-ask">A 15-minute informational chat</div></div>
+      </div>
+      <div class="tone-pills" style="margin-top:14px">
+        <span style="font-size:11px;font-weight:600;color:var(--text-light);text-transform:uppercase;letter-spacing:.5px;align-self:center;margin-right:4px">Tone</span>
+        <button class="tone-pill" onclick="setTone(this,'Short')">Short</button>
+        <button class="tone-pill active" onclick="setTone(this,'Friendly')">Friendly</button>
+        <button class="tone-pill" onclick="setTone(this,'Formal')">Formal</button>
+      </div>
+    </div>
+
+    <div class="lp-body">
+
+      <div>
+        <div class="draft-label">Your draft</div>
+        <textarea class="draft-textarea" id="draft-editor" placeholder="Click a starter on the right to add it here, then fill in your own story in between..."></textarea>
+        <div class="draft-footer">
+          <div class="char-count" id="char-counter">0 words</div>
+          <div class="draft-actions">
+            <button class="btn btn-ghost btn-sm" onclick="clearDraft()">Clear</button>
+            <button class="btn btn-secondary btn-sm" onclick="saveDraft()">Save Draft</button>
+            <button class="btn btn-primary btn-sm" onclick="copyDraft()">Copy</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider section-sep"></div>
+
+      <div class="sim-section">
+        <div class="sim-label">Similarity Finder</div>
+        <div class="sim-input-row">
+          <input class="sim-input" id="sim-url" placeholder="linkedin.com/in/their-profile" />
+          <button class="sim-btn" onclick="runSimilarity()">Analyze</button>
+        </div>
+        <div class="sim-results" id="sim-results" style="display:none">
+          <div class="sim-tag">UC Davis Alumni</div>
+          <div class="sim-tag">Mobile-first products</div>
+          <div class="sim-tag">PM career path</div>
+          <div class="sim-tag">Y Combinator interest</div>
+        </div>
+        <div style="font-size:11px;color:var(--text-light);margin-top:6px;line-height:1.5">Shared connections appear in the starters on the right as highlighted opportunities to connect.</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="right-panel">
+    <div class="rp-header">
+      <div>
+        <div class="rp-title">Message Starters</div>
+        <div class="rp-subtitle">Pick a sentence frame, adapt it, and weave your own story in. We don't write it — you do.</div>
+      </div>
+      <div class="rp-actions">
+        <button class="btn btn-ghost btn-sm" onclick="regenerate()">Regenerate</button>
+      </div>
+    </div>
+    <div class="rp-body" id="rp-body">
+
+      <!-- Recipient context -->
+      <div class="recipient-card">
+        <div class="rc-avatar">SC</div>
+        <div>
+          <div class="rc-name">Sarah Chen</div>
+          <div class="rc-role">Product Manager at Google · 3rd+</div>
+          <div class="rc-tags">
+            <span class="rc-tag">Ex-Meta</span>
+            <span class="rc-tag">Stanford MBA</span>
+            <span class="rc-tag">UC Davis '16</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Match banner (shown after similarity run) -->
+      <div class="match-banner" id="match-banner" style="display:none">
+        <div class="mb-title">Shared connections — use these to open your message naturally</div>
+        <div class="mb-chips">
+          <span class="mb-chip">Both attended UC Davis</span>
+          <span class="mb-chip">Shared interest in mobile products</span>
+          <span class="mb-chip">Same PM career path</span>
+        </div>
+      </div>
+
+      <div class="info-callout">
+        <strong>How this works:</strong> Click "Use this" on any starter below to drop it into your draft on the left. Combine fragments — an opener, a connection line, and a clear ask — then write your own story in the gaps.
+      </div>
+
+      <!-- Category tabs + starters -->
+      <div>
+        <div class="cat-bar">
+          <button class="cat-tab active" onclick="filterStarters('all', this)">All</button>
+          <button class="cat-tab" onclick="filterStarters('opener', this)">Openers</button>
+          <button class="cat-tab" onclick="filterStarters('connection', this)">Connection</button>
+          <button class="cat-tab" onclick="filterStarters('ask', this)">Ask</button>
+          <button class="cat-tab" onclick="filterStarters('closer', this)">Closers</button>
+        </div>
+        <div class="starters-list" id="starters-list">
+
+          <div class="starter-card" data-cat="opener" onclick="selectStarter(this)">
+            <div class="starter-text">
+              "Hi [Name] — I'm a current <span class="starter-hl">UC Davis</span> student studying computer science, and I came across your profile while researching product roles at <span class="starter-hl">Google</span>. Your path from Davis to PM work really stood out to me…"
+            </div>
+            <div class="starter-footer">
+              <div class="starter-tags">
+                <span class="stag stag-friendly">Friendly</span>
+                <span class="stag stag-conn">Uses shared school</span>
+              </div>
+              <button class="use-btn" onclick="useStarter(event, this)">Use this</button>
+            </div>
+          </div>
+
+          <div class="starter-card" data-cat="opener" onclick="selectStarter(this)">
+            <div class="starter-text">
+              "I'm reaching out because I'm actively exploring <span class="starter-hl">product management</span> as a career path after graduating, and your background caught my attention — particularly your work on consumer-facing products at Google…"
+            </div>
+            <div class="starter-footer">
+              <div class="starter-tags">
+                <span class="stag stag-formal">Formal</span>
+              </div>
+              <button class="use-btn" onclick="useStarter(event, this)">Use this</button>
+            </div>
+          </div>
+
+          <div class="starter-card" data-cat="opener" onclick="selectStarter(this)">
+            <div class="starter-text">
+              "Quick note from a fellow <span class="starter-hl">Davis alum</span> — I'm a senior exploring careers in PM and you'd be exactly the right person to learn from. I'd love to connect if you have a few minutes…"
+            </div>
+            <div class="starter-footer">
+              <div class="starter-tags">
+                <span class="stag stag-short">Short</span>
+                <span class="stag stag-conn">Uses shared school</span>
+              </div>
+              <button class="use-btn" onclick="useStarter(event, this)">Use this</button>
+            </div>
+          </div>
+
+          <div class="starter-card" data-cat="connection" onclick="selectStarter(this)">
+            <div class="starter-text">
+              "…What drew me specifically to your profile was your focus on <span class="starter-hl">mobile-first products</span> — it aligns closely with the kind of work I've been building toward in my coursework and side projects…"
+            </div>
+            <div class="starter-footer">
+              <div class="starter-tags">
+                <span class="stag stag-friendly">Friendly</span>
+              </div>
+              <button class="use-btn" onclick="useStarter(event, this)">Use this</button>
+            </div>
+          </div>
+
+          <div class="starter-card" data-cat="connection" onclick="selectStarter(this)">
+            <div class="starter-text">
+              "…I noticed we both share an interest in <span class="starter-hl">product thinking and user research</span>, which is why I think your perspective would be especially valuable for where I'm trying to go professionally…"
+            </div>
+            <div class="starter-footer">
+              <div class="starter-tags">
+                <span class="stag stag-formal">Formal</span>
+              </div>
+              <button class="use-btn" onclick="useStarter(event, this)">Use this</button>
+            </div>
+          </div>
+
+          <div class="starter-card" data-cat="ask" onclick="selectStarter(this)">
+            <div class="starter-text">
+              "…I would be really grateful for even a <span class="starter-hl">15-minute call</span> to hear your perspective on breaking into PM straight out of undergrad. No pressure at all if your schedule is packed right now — I understand it's a big ask."
+            </div>
+            <div class="starter-footer">
+              <div class="starter-tags">
+                <span class="stag stag-friendly">Friendly</span>
+                <span class="stag stag-short">CTA</span>
+              </div>
+              <button class="use-btn" onclick="useStarter(event, this)">Use this</button>
+            </div>
+          </div>
+
+          <div class="starter-card" data-cat="ask" onclick="selectStarter(this)">
+            <div class="starter-text">
+              "…I'd welcome the opportunity for a brief <span class="starter-hl">informational conversation</span> — even 15–20 minutes over video call would be immensely helpful. I'm happy to work around your schedule."
+            </div>
+            <div class="starter-footer">
+              <div class="starter-tags">
+                <span class="stag stag-formal">Formal</span>
+              </div>
+              <button class="use-btn" onclick="useStarter(event, this)">Use this</button>
+            </div>
+          </div>
+
+          <div class="starter-card" data-cat="closer" onclick="selectStarter(this)">
+            <div class="starter-text">
+              "…Either way, thank you for everything you've shared publicly about your career journey — I've already found it genuinely helpful. I hope to connect soon."
+            </div>
+            <div class="starter-footer">
+              <div class="starter-tags">
+                <span class="stag stag-friendly">Closer</span>
+              </div>
+              <button class="use-btn" onclick="useStarter(event, this)">Use this</button>
+            </div>
+          </div>
+
+          <div class="starter-card" data-cat="closer" onclick="selectStarter(this)">
+            <div class="starter-text">
+              "…Thank you for taking the time to read this. I look forward to the possibility of connecting."
+            </div>
+            <div class="starter-footer">
+              <div class="starter-tags">
+                <span class="stag stag-formal">Formal</span>
+                <span class="stag stag-short">Short</span>
+              </div>
+              <button class="use-btn" onclick="useStarter(event, this)">Use this</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     VIEW: MY DRAFTS
+══════════════════════════════════════ -->
+<div class="view" id="view-drafts">
+  <div class="view-container">
+    <div class="view-heading">My Drafts</div>
+    <div class="view-sub">Saved outreach messages. Pick up where you left off.</div>
+
+    <div class="drafts-grid" id="drafts-grid">
+
+      <div class="draft-item" onclick="openDraft('draft-1')">
+        <div class="di-body">
+          <div class="di-title">Alumni Outreach — Sarah Chen, Google</div>
+          <div class="di-preview">"Hi Sarah — I'm a current UC Davis student studying computer science, and I came across your profile..."</div>
+          <div class="di-meta">
+            <span class="di-tag di-tag-saved">Saved</span>
+            <span class="di-date">Last edited 2 hours ago</span>
+          </div>
+        </div>
+        <div class="di-actions">
+          <button class="btn btn-ghost btn-sm" onclick="editDraftInBuilder(event,'draft-1')">Edit</button>
+          <button class="btn btn-secondary btn-sm" onclick="copyDraftItem(event,'draft-1')">Copy</button>
+        </div>
+      </div>
+
+      <div class="draft-item" onclick="openDraft('draft-2')">
+        <div class="di-body">
+          <div class="di-title">Recruiter Intro — Mark Torres, Stripe</div>
+          <div class="di-preview">"I'm reaching out because I'm actively exploring software engineering roles at Stripe after graduating this spring..."</div>
+          <div class="di-meta">
+            <span class="di-tag di-tag-draft">In progress</span>
+            <span class="di-date">Last edited yesterday</span>
+          </div>
+        </div>
+        <div class="di-actions">
+          <button class="btn btn-ghost btn-sm" onclick="editDraftInBuilder(event,'draft-2')">Edit</button>
+          <button class="btn btn-secondary btn-sm" onclick="copyDraftItem(event,'draft-2')">Copy</button>
+        </div>
+      </div>
+
+      <div class="draft-item" onclick="openDraft('draft-3')">
+        <div class="di-body">
+          <div class="di-title">Informational Interview — Priya Nair, Meta</div>
+          <div class="di-preview">"Quick note from a fellow Davis alum — I'm a senior exploring careers in PM and you'd be exactly the right person..."</div>
+          <div class="di-meta">
+            <span class="di-tag di-tag-exported">Sent</span>
+            <span class="di-date">3 days ago</span>
+          </div>
+        </div>
+        <div class="di-actions">
+          <button class="btn btn-ghost btn-sm" onclick="editDraftInBuilder(event,'draft-3')">Edit</button>
+          <button class="btn btn-secondary btn-sm" onclick="copyDraftItem(event,'draft-3')">Copy</button>
+        </div>
+      </div>
+
+    </div>
+
+    <div style="margin-top:16px">
+      <button class="btn btn-primary" onclick="startNew()">Start new message</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     VIEW: TEMPLATES
+══════════════════════════════════════ -->
+<div class="view" id="view-templates">
+  <div class="view-container">
+    <div class="view-heading">Templates</div>
+    <div class="view-sub">Starter templates for every type of outreach. Select one to load it into the builder.</div>
+
+    <div class="filter-row">
+      <button class="filter-chip active" onclick="filterTemplates('all',this)">All</button>
+      <button class="filter-chip" onclick="filterTemplates('alumni',this)">Alumni</button>
+      <button class="filter-chip" onclick="filterTemplates('recruiter',this)">Recruiter</button>
+      <button class="filter-chip" onclick="filterTemplates('info',this)">Info Interview</button>
+      <button class="filter-chip" onclick="filterTemplates('followup',this)">Follow-Up</button>
+    </div>
+
+    <div class="templates-grid">
+
+      <div class="template-card" data-cat="alumni" onclick="useTemplate('alumni-1')">
+        <div class="tc-category">Alumni</div>
+        <div class="tc-title">Same School, Same Path</div>
+        <div class="tc-desc">Lead with your shared school connection before getting to your ask. Works well for cold outreach to alums at target companies.</div>
+        <div class="tc-footer">
+          <span class="tc-badge tc-badge-alumni">Alumni</span>
+          <button class="tc-use" onclick="useTemplate(event,'alumni-1')">Use template</button>
+        </div>
+      </div>
+
+      <div class="template-card" data-cat="alumni" onclick="useTemplate('alumni-2')">
+        <div class="tc-category">Alumni</div>
+        <div class="tc-title">Short Alumni Note</div>
+        <div class="tc-desc">A concise, punchy note that leads with school connection and asks for one specific thing. Under 80 words.</div>
+        <div class="tc-footer">
+          <span class="tc-badge tc-badge-alumni">Alumni</span>
+          <button class="tc-use" onclick="useTemplate(event,'alumni-2')">Use template</button>
+        </div>
+      </div>
+
+      <div class="template-card" data-cat="recruiter" onclick="useTemplate('rec-1')">
+        <div class="tc-category">Recruiter</div>
+        <div class="tc-title">Inbound Interest Signal</div>
+        <div class="tc-desc">For reaching out to a recruiter at a company you've already applied to. Shows initiative without being pushy.</div>
+        <div class="tc-footer">
+          <span class="tc-badge tc-badge-recruiter">Recruiter</span>
+          <button class="tc-use" onclick="useTemplate(event,'rec-1')">Use template</button>
+        </div>
+      </div>
+
+      <div class="template-card" data-cat="recruiter" onclick="useTemplate('rec-2')">
+        <div class="tc-category">Recruiter</div>
+        <div class="tc-title">Cold Recruiter Intro</div>
+        <div class="tc-desc">Introduce yourself to a recruiter you haven't been in contact with. Includes a brief skills summary and clear ask.</div>
+        <div class="tc-footer">
+          <span class="tc-badge tc-badge-recruiter">Recruiter</span>
+          <button class="tc-use" onclick="useTemplate(event,'rec-2')">Use template</button>
+        </div>
+      </div>
+
+      <div class="template-card" data-cat="info" onclick="useTemplate('info-1')">
+        <div class="tc-category">Info Interview</div>
+        <div class="tc-title">Career Path Curiosity</div>
+        <div class="tc-desc">Framed around genuine curiosity about someone's career journey. Best when you've researched their background.</div>
+        <div class="tc-footer">
+          <span class="tc-badge tc-badge-info">Info Interview</span>
+          <button class="tc-use" onclick="useTemplate(event,'info-1')">Use template</button>
+        </div>
+      </div>
+
+      <div class="template-card" data-cat="info" onclick="useTemplate('info-2')">
+        <div class="tc-category">Info Interview</div>
+        <div class="tc-title">Specific Project Interest</div>
+        <div class="tc-desc">Reference a specific project, article, or talk they gave. Shows you did your homework and makes the message feel personal.</div>
+        <div class="tc-footer">
+          <span class="tc-badge tc-badge-info">Info Interview</span>
+          <button class="tc-use" onclick="useTemplate(event,'info-2')">Use template</button>
+        </div>
+      </div>
+
+      <div class="template-card" data-cat="followup" onclick="useTemplate('fu-1')">
+        <div class="tc-category">Follow-Up</div>
+        <div class="tc-title">Post-Application Follow-Up</div>
+        <div class="tc-desc">Sent after applying to a role at their company. Politely signals genuine interest without being overbearing.</div>
+        <div class="tc-footer">
+          <span class="tc-badge tc-badge-followup">Follow-Up</span>
+          <button class="tc-use" onclick="useTemplate(event,'fu-1')">Use template</button>
+        </div>
+      </div>
+
+      <div class="template-card" data-cat="followup" onclick="useTemplate('fu-2')">
+        <div class="tc-category">Follow-Up</div>
+        <div class="tc-title">After Meeting at an Event</div>
+        <div class="tc-desc">For connecting after a career fair, info session, or networking event where you briefly spoke.</div>
+        <div class="tc-footer">
+          <span class="tc-badge tc-badge-followup">Follow-Up</span>
+          <button class="tc-use" onclick="useTemplate(event,'fu-2')">Use template</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- ══════════════════════════════════════
+     JAVASCRIPT
+══════════════════════════════════════ -->
+<script>
+/* ── STATE ── */
+let currentStep = 1;
+let selectedType = 'Alumni Outreach';
+const totalSteps = 3;
+
+const draftsData = {
+  'draft-1': 'Hi Sarah — I\'m a current UC Davis student studying computer science, and I came across your profile while researching product roles at Google. Your path from Davis to PM work really stood out to me.\n\nI\'d be really grateful for even a 15-minute call to hear your perspective on breaking into PM straight out of undergrad.',
+  'draft-2': 'I\'m reaching out because I\'m actively exploring software engineering roles at Stripe after graduating this spring, and your background caught my attention.',
+  'draft-3': 'Quick note from a fellow Davis alum — I\'m a senior exploring careers in PM and you\'d be exactly the right person to learn from. I\'d love to connect if you have a few minutes.'
+};
+
+/* ── VIEW SWITCHING ── */
+function switchView(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('view-' + name).classList.add('active');
+  document.querySelector(`[data-view="${name}"]`).classList.add('active');
+}
+
+/* ── MODAL ── */
+function openModal() {
+  currentStep = 1;
+  document.getElementById('onboarding-modal').classList.remove('hidden');
+  showStep(1);
+}
+
+function closeModal() {
+  document.getElementById('onboarding-modal').classList.add('hidden');
+}
+
+function showStep(n) {
+  document.querySelectorAll('.modal-step').forEach(s => s.classList.remove('active'));
+  document.getElementById('step-' + n).classList.add('active');
+
+  // Progress
+  const pct = (n / totalSteps) * 100;
+  document.getElementById('modal-prog-bar').style.width = pct + '%';
+  const labels = ['', 'Step 1 of 3 — Message type', 'Step 2 of 3 — Role & purpose', 'Step 3 of 3 — Personalization'];
+  document.getElementById('step-label').textContent = labels[n];
+
+  for (let i = 1; i <= 3; i++) {
+    const dot = document.getElementById('dot-' + i);
+    dot.classList.remove('done', 'current');
+    if (i < n) dot.classList.add('done');
+    else if (i === n) dot.classList.add('current');
+  }
+
+  document.getElementById('btn-back').style.display = n > 1 ? 'inline-flex' : 'none';
+  document.getElementById('btn-next').textContent = n === totalSteps ? 'Start Building' : 'Next';
+}
+
+function modalNext() {
+  if (currentStep < totalSteps) {
+    currentStep++;
+    showStep(currentStep);
+  } else {
+    // Apply context
+    applyContext();
+    closeModal();
+  }
+}
+
+function modalBack() {
+  if (currentStep > 1) {
+    currentStep--;
+    showStep(currentStep);
+  }
+}
+
+function selectType(el, type) {
+  document.querySelectorAll('.type-option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedType = type;
+}
+
+function applyContext() {
+  const role = document.getElementById('field-role').value || 'Product Manager at Google';
+  const purpose = document.getElementById('field-purpose').value || 'Explore internship opportunities';
+  const ask = document.getElementById('field-ask').value || 'A 15-minute informational chat';
+  const company = document.getElementById('field-company').value;
+  const school = document.getElementById('field-school').value;
+
+  document.getElementById('ctx-type').textContent = selectedType;
+  document.getElementById('ctx-role').textContent = role;
+  document.getElementById('ctx-purpose').textContent = purpose;
+  document.getElementById('ctx-ask').textContent = ask;
+
+  showToast('Context updated');
+}
+
+/* ── TONE ── */
+function setTone(el, tone) {
+  document.querySelectorAll('.tone-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  showToast('Tone set to ' + tone);
+}
+
+/* ── DRAFT ── */
+const draftEditor = document.getElementById('draft-editor');
+draftEditor.addEventListener('input', updateCharCount);
+
+function updateCharCount() {
+  const words = draftEditor.value.trim() ? draftEditor.value.trim().split(/\s+/).length : 0;
+  document.getElementById('char-counter').textContent = words + ' word' + (words !== 1 ? 's' : '');
+}
+
+function clearDraft() {
+  if (draftEditor.value && confirm('Clear your current draft?')) {
+    draftEditor.value = '';
+    updateCharCount();
+  }
+}
+
+function saveDraft() {
+  if (!draftEditor.value.trim()) {
+    showToast('Nothing to save — write something first');
+    return;
+  }
+  showToast('Draft saved');
+  // Update badge
+  const badge = document.getElementById('drafts-badge');
+  badge.textContent = parseInt(badge.textContent) + 1;
+}
+
+function copyDraft() {
+  const text = draftEditor.value.trim();
+  if (!text) { showToast('Nothing to copy yet'); return; }
+  navigator.clipboard.writeText(text).then(() => showToast('Copied to clipboard')).catch(() => {
+    // fallback
+    const ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta);
+    ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+    showToast('Copied to clipboard');
+  });
+}
+
+/* ── SIMILARITY ── */
+function runSimilarity() {
+  const url = document.getElementById('sim-url').value.trim();
+  if (!url) { showToast('Enter a LinkedIn URL first'); return; }
+  const btn = document.querySelector('.sim-btn');
+  btn.textContent = 'Analyzing...';
+  btn.disabled = true;
+  setTimeout(() => {
+    document.getElementById('sim-results').style.display = 'flex';
+    document.getElementById('match-banner').style.display = 'block';
+    btn.textContent = 'Re-analyze';
+    btn.disabled = false;
+    showToast('4 shared connections found');
+  }, 1200);
+}
+
+/* ── STARTERS ── */
+function selectStarter(card) {
+  document.querySelectorAll('.starter-card').forEach(c => c.classList.remove('selected'));
+  card.classList.add('selected');
+}
+
+function useStarter(e, btn) {
+  e.stopPropagation();
+  const card = btn.closest('.starter-card');
+  const text = card.querySelector('.starter-text').textContent.trim();
+  const current = draftEditor.value;
+  draftEditor.value = current + (current && !current.endsWith('\n\n') ? '\n\n' : '') + text;
+  updateCharCount();
+  draftEditor.focus();
+  draftEditor.scrollTop = draftEditor.scrollHeight;
+  showToast('Added to draft');
+  selectStarter(card);
+}
+
+function filterStarters(cat, tabEl) {
+  document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
+  tabEl.classList.add('active');
+  document.querySelectorAll('.starter-card').forEach(card => {
+    if (cat === 'all' || card.dataset.cat === cat) {
+      card.style.display = '';
+    } else {
+      card.style.display = 'none';
+    }
+  });
+}
+
+function regenerate() {
+  showToast('Starters refreshed');
+}
+
+/* ── DRAFTS VIEW ── */
+function openDraft(id) {
+  // handled by edit
+}
+
+function editDraftInBuilder(e, id) {
+  e.stopPropagation();
+  const content = draftsData[id] || '';
+  draftEditor.value = content;
+  updateCharCount();
+  switchView('builder');
+  showToast('Draft loaded into builder');
+}
+
+function copyDraftItem(e, id) {
+  e.stopPropagation();
+  const text = draftsData[id] || '';
+  navigator.clipboard.writeText(text).catch(() => {});
+  showToast('Copied to clipboard');
+}
+
+/* ── TEMPLATES VIEW ── */
+function filterTemplates(cat, chipEl) {
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  chipEl.classList.add('active');
+  document.querySelectorAll('.template-card').forEach(card => {
+    if (cat === 'all' || card.dataset.cat === cat) {
+      card.style.display = '';
+    } else {
+      card.style.display = 'none';
+    }
+  });
+}
+
+function useTemplate(e, id) {
+  if (e && e.stopPropagation) e.stopPropagation();
+  switchView('builder');
+  openModal();
+  showToast('Template loaded — complete setup to continue');
+}
+
+function startNew() {
+  switchView('builder');
+  openModal();
+}
+
+/* ── TOAST ── */
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2400);
+}
+
+/* ── INIT ── */
+// Show modal on first load
+window.addEventListener('load', () => {
+  setTimeout(() => openModal(), 300);
+});
+</script>
+</body>
+</html>
