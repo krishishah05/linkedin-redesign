@@ -51,16 +51,39 @@ function Router() {
 /* ── App shell ───────────────────────────────────────────── */
 function AppShell() {
   const { appLoading, appError } = React.useContext(AppContext);
+  const hash = useHash();
+
+  // Move focus to main content on route changes (hash navigation)
+  React.useEffect(() => {
+    const main = document.getElementById('app-root');
+    if (main) main.focus();
+  }, [hash]);
 
   if (appLoading) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
+      <div
+        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh' }}
+        role="status"
+        aria-live="polite"
+        aria-busy="true"
+      >
         <div style={{ textAlign: 'center' }}>
-          <svg width="48" height="48" viewBox="0 0 48 48">
-            <rect width="48" height="48" rx="8" fill="#0F5DBD"/>
-            <text x="11" y="36" fontFamily="-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" fontSize="28" fontWeight="800" fill="#fff">N</text>
+          <svg width="48" height="48" viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+            <rect width="48" height="48" rx="8" fill="#0F5DBD" />
+            <text
+              x="11"
+              y="36"
+              fontFamily="-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"
+              fontSize="28"
+              fontWeight="800"
+              fill="#fff"
+            >
+              N
+            </text>
           </svg>
-          <p style={{ color: 'var(--text-2)', fontFamily: 'sans-serif', marginTop: 12 }}>Loading Nexus...</p>
+          <p style={{ color: 'var(--text-2)', fontFamily: 'sans-serif', marginTop: 12 }}>
+            Loading Nexus...
+          </p>
         </div>
       </div>
     );
@@ -68,10 +91,29 @@ function AppShell() {
 
   if (appError) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', flexDirection: 'column', gap: 12 }}>
-        <svg width="48" height="48" viewBox="0 0 48 48">
-          <rect width="48" height="48" rx="8" fill="#0F5DBD"/>
-          <text x="11" y="36" fontFamily="-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" fontSize="28" fontWeight="800" fill="#fff">N</text>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          height: '100vh',
+          flexDirection: 'column',
+          gap: 12
+        }}
+        role="alert"
+      >
+        <svg width="48" height="48" viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+          <rect width="48" height="48" rx="8" fill="#0F5DBD" />
+          <text
+            x="11"
+            y="36"
+            fontFamily="-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"
+            fontSize="28"
+            fontWeight="800"
+            fill="#fff"
+          >
+            N
+          </text>
         </svg>
         <p style={{ color: 'var(--text-2)', maxWidth: 400, textAlign: 'center' }}>
           Could not connect to the backend. Make sure <code>python backend/app.py</code> is running.
@@ -86,17 +128,24 @@ function AppShell() {
 
   return (
     <>
+      {/* Skip link for keyboard users */}
+      <a className="skip-link" href="#app-root">
+        Skip to main content
+      </a>
+
       <NavBar />
-      <main className="li-page" id="app-root">
+
+      {/* Make main focusable so we can move focus here on navigation */}
+      <main className="li-page" id="app-root" tabIndex="-1">
         <Router />
       </main>
+
       <MobileNav />
       <ModalContainer />
       <ToastContainer />
     </>
   );
 }
-
 /* ── Root ────────────────────────────────────────────────── */
 function App() {
   return (

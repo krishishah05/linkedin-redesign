@@ -361,7 +361,14 @@
           <label for="login-pw">Password</label>
           <div class="pw-wrap">
             <input type="password" id="login-pw" autocomplete="current-password" />
-            <button class="pw-toggle" onclick="togglePw('login-pw', this)">Show</button>
+            <button
+            type="button"
+            class="pw-toggle"
+            onclick="togglePw('login-pw', this)"
+            aria-controls="login-pw"
+            aria-pressed="false">
+              Show
+            </button>
           </div>
           <span class="error-msg" id="login-pw-err">Please enter your password.</span>
         </div>
@@ -754,7 +761,7 @@
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 
 <script>
   const TOTAL_STEPS = 9;
@@ -875,9 +882,17 @@
 
   function togglePw(inputId, btn) {
     const input = document.getElementById(inputId);
-    if (input.type === 'password') { input.type='text'; btn.textContent='Hide'; }
-    else { input.type='password'; btn.textContent='Show'; }
+    const isHidden = input.type === 'password';
+     if (isHidden) {
+      input.type = 'text';
+      btn.textContent = 'Hide';
+      btn.setAttribute('aria-pressed', 'true');
+    } else {
+      input.type = 'password';
+      btn.textContent = 'Show';
+      btn.setAttribute('aria-pressed', 'false');
   }
+}
 
   function showToast(msg) {
     const t = document.getElementById('toast');
