@@ -1,5 +1,5 @@
 /* ============================================================
-   LINKEDIN REDESIGN — COMPLETE STYLESHEET
+   NEXUS — COMPLETE STYLESHEET
    ============================================================ */
 
 /* ── RESET ── */
@@ -13,8 +13,8 @@ img { max-width: 100%; }
 
 /* ── DESIGN TOKENS ── */
 :root {
-  --blue:           #0A66C2;
-  --blue-dark:      #004182;
+  --blue:           #0F5DBD;
+  --blue-dark:      #0A4A9E;
   --blue-light:     #EAF4FF;
   --blue-bg:        #EEF3F8;
   --bg:             #F3F2EF;
@@ -28,14 +28,11 @@ img { max-width: 100%; }
   --green-light:    #D4EDDA;
   --gold:           #F5A623;
   --gold-dark:      #E09112;
-  --premium-gold:   #E8A000;
   --red:            #CC1016;
   --orange:         #E8750A;
   --purple:         #6B46C1;
   --open-to-work-bg:       #d4edda;
   --open-to-work-text:     #155724;
-  --premium-banner-bg:     #fef3c7;
-  --premium-banner-border: #f5a623;
   --success-banner-bg:     #d1fae5;
   --success-banner-border: #34d399;
   --shadow-sm:      0 0 0 1px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.05);
@@ -171,18 +168,6 @@ img { max-width: 100%; }
   font-size: 10px; font-weight: 700;
   overflow: hidden;
 }
-.li-nav__premium-btn {
-  display: flex; align-items: center; gap: 4px;
-  padding: 4px 12px;
-  border: 1px solid var(--gold);
-  border-radius: var(--radius-xl);
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--gold-dark);
-  margin: 0 8px;
-  transition: background var(--transition);
-}
-.li-nav__premium-btn:hover { background: rgba(245,166,35,0.08); }
 .li-nav__post-btn {
   padding: 4px 14px;
   border: 1px solid var(--blue);
@@ -380,17 +365,6 @@ img { max-width: 100%; }
   font-weight: 700;
   color: var(--blue);
 }
-.li-profile-card__premium {
-  padding: 12px 16px;
-  border-top: 1px solid var(--border);
-  cursor: pointer;
-  display: flex; align-items: center; gap: 8px;
-  font-size: 12px;
-  color: var(--text-2);
-  transition: background var(--transition);
-}
-.li-profile-card__premium:hover { background: rgba(0,0,0,0.04); }
-.li-profile-card__premium-icon { color: var(--gold); font-size: 14px; }
 .li-profile-card__links {
   padding: 8px 16px;
   border-top: 1px solid var(--border);
@@ -1144,19 +1118,6 @@ img { max-width: 100%; }
   display: inline-flex;
 }
 
-/* Premium badge */
-.li-premium-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  background: linear-gradient(135deg, #f5a623, #e09112);
-  color: var(--white);
-  font-size: 10px;
-  font-weight: 700;
-  padding: 1px 5px;
-  border-radius: 2px;
-  text-transform: uppercase;
-}
 
 /* ============================================================
    MY NETWORK PAGE
@@ -1756,7 +1717,7 @@ img { max-width: 100%; }
 }
 .li-company-cover {
   height: 160px;
-  background: linear-gradient(135deg, #0A66C2 0%, #004182 100%);
+  background: linear-gradient(135deg, #0F5DBD 0%, #0A4A9E 100%);
 }
 .li-company-cover img { width: 100%; height: 100%; object-fit: cover; }
 .li-company-header__body {
@@ -2109,112 +2070,6 @@ img { max-width: 100%; }
 .li-group-header__meta { font-size: 14px; color: var(--text-2); margin-top: 4px; display: flex; gap: 12px; align-items: center; }
 .li-group-header__actions { display: flex; gap: 8px; margin-top: 12px; }
 
-/* ============================================================
-   PREMIUM PAGE
-   ============================================================ */
-.li-premium-page { background: var(--bg); }
-.li-premium-inner {
-  max-width: 1000px;
-  margin: 0 auto;
-  padding: 32px 16px;
-}
-.li-premium-hero {
-  text-align: center;
-  margin-bottom: 40px;
-}
-.li-premium-hero__title { font-size: 32px; font-weight: 700; }
-.li-premium-hero__sub { font-size: 18px; color: var(--text-2); margin-top: 8px; }
-.li-premium-hero__trial {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 16px;
-  font-size: 14px;
-  color: var(--text-2);
-}
-
-.li-premium-plans {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-  margin-bottom: 48px;
-}
-.li-premium-plan {
-  background: var(--white);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
-  padding: 24px;
-  position: relative;
-  border: 2px solid transparent;
-  transition: border-color var(--transition), box-shadow var(--transition);
-}
-.li-premium-plan:hover { box-shadow: var(--shadow-md); }
-.li-premium-plan.popular { border-color: var(--gold); }
-.li-premium-plan__badge {
-  position: absolute;
-  top: -12px; left: 50%; transform: translateX(-50%);
-  background: var(--gold);
-  color: var(--text);
-  font-size: 11px; font-weight: 700;
-  padding: 3px 12px;
-  border-radius: 12px;
-  white-space: nowrap;
-}
-.li-premium-plan__name { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
-.li-premium-plan__desc { font-size: 13px; color: var(--text-2); margin-bottom: 16px; }
-.li-premium-plan__price { font-size: 32px; font-weight: 700; }
-.li-premium-plan__price span { font-size: 16px; color: var(--text-2); }
-.li-premium-plan__period { font-size: 13px; color: var(--text-2); margin-bottom: 16px; }
-.li-premium-plan__cta {
-  width: 100%;
-  padding: 10px;
-  background: var(--gold);
-  color: var(--text);
-  border: none;
-  border-radius: var(--radius-xl);
-  font-size: 14px; font-weight: 700;
-  cursor: pointer;
-  margin-bottom: 20px;
-  transition: background var(--transition);
-}
-.li-premium-plan__cta:hover { background: var(--gold-dark); color: var(--white); }
-.li-premium-plan__features { list-style: none; }
-.li-premium-plan__feature {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  font-size: 13px;
-  padding: 6px 0;
-  border-bottom: 1px solid var(--border);
-}
-.li-premium-plan__feature:last-child { border-bottom: none; }
-.li-premium-plan__feature-check { color: var(--green); flex-shrink: 0; }
-
-/* FAQ */
-.li-faq { max-width: 700px; margin: 0 auto 40px; }
-.li-faq__title { font-size: 24px; font-weight: 700; margin-bottom: 16px; text-align: center; }
-.li-faq-item {
-  border-bottom: 1px solid var(--border);
-  padding: 16px 0;
-}
-.li-faq-question {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  cursor: pointer;
-  font-size: 16px; font-weight: 600;
-}
-.li-faq-question:hover { color: var(--blue); }
-.li-faq-answer {
-  font-size: 14px;
-  color: var(--text-2);
-  line-height: 1.6;
-  margin-top: 8px;
-  display: none;
-}
-.li-faq-item.open .li-faq-answer { display: block; }
-.li-faq-chevron { transition: transform var(--transition); }
-.li-faq-item.open .li-faq-chevron { transform: rotate(180deg); }
 
 /* ============================================================
    MODALS
@@ -2484,11 +2339,9 @@ img { max-width: 100%; }
   .li-jobs-inner { flex-direction: column; }
   .li-jobs-list { width: 100%; }
   .li-msg-sidebar { width: 100%; }
-  .li-premium-plans { grid-template-columns: 1fr 1fr; }
   .li-nav__search-input { width: 200px; }
 }
 @media (max-width: 480px) {
-  .li-premium-plans { grid-template-columns: 1fr; }
   .li-course-grid { grid-template-columns: 1fr; }
 }
 
@@ -2600,11 +2453,6 @@ img { max-width: 100%; }
   display: flex; align-items: center; justify-content: center; padding: 0 3px;
 }
 .nav-avatar-sm { width: 24px; height: 24px; border-radius: 50%; overflow: hidden; }
-.nav-premium-link {
-  font-size: 12px; font-weight: 600; color: var(--gold);
-  text-decoration: none; padding: 0 8px; white-space: nowrap;
-  display: flex; align-items: center;
-}
 .search-suggestions {
   position: absolute; top: calc(100% + 4px); left: 0;
   width: 100%; min-width: 280px;
@@ -2731,8 +2579,6 @@ body.dark-mode {
   --shadow:                0 0 0 1px rgba(255,255,255,0.05), 0 4px 8px rgba(0,0,0,0.4);
   --shadow-md:             0 4px 12px rgba(0,0,0,0.55);
   --shadow-lg:             0 8px 24px rgba(0,0,0,0.7);
-  --premium-banner-bg:     #2a2000;
-  --premium-banner-border: #8a6000;
   --success-banner-bg:     #002a10;
   --success-banner-border: #1a6640;
   --open-to-work-bg:       #0d2e18;
@@ -2896,8 +2742,7 @@ body.dark-mode .li-network-page,
 body.dark-mode .li-profile-page,
 body.dark-mode .li-settings-page,
 body.dark-mode .li-company-page,
-body.dark-mode .li-learning-page,
-body.dark-mode .li-premium-page { background: var(--bg); }
+body.dark-mode .li-learning-page { background: var(--bg); }
 
 /* Modal overlay */
 body.dark-mode #modal-overlay { background: rgba(0,0,0,0.78); }
@@ -3016,13 +2861,6 @@ body.dark-mode tr:hover td { background: rgba(255,255,255,0.04); }
 .feed-sort-pill { transition: background 0.15s, color 0.15s; cursor: pointer; }
 .feed-sort-pill.active { background: var(--blue) !important; color: white !important; }
 
-/* ============================================================
-   PREMIUM PAGE — plan card hover
-   ============================================================ */
-.li-premium-plan {
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-}
-.li-premium-plan:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
 
 /* ============================================================
    NETWORK PAGE — people card hover
@@ -3107,24 +2945,6 @@ body.dark-mode .li-skeleton {
   transform: translateY(-2px);
 }
 
-/* ============================================================
-   PREMIUM PAGE TABLE
-   ============================================================ */
-.premium-table th, .premium-table td {
-  padding: 12px 16px;
-  text-align: left;
-  border-bottom: 1px solid var(--border);
-  font-size: 14px;
-  color: var(--text);
-}
-.premium-table thead th {
-  font-weight: 700;
-  font-size: 13px;
-  color: var(--text-2);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  background: var(--bg);
-}
 
 /* ============================================================
    SETTINGS PAGE IMPROVEMENTS
@@ -3179,15 +2999,6 @@ body.dark-mode .modal-box textarea {
 }
 body.dark-mode .modal-box label { color: var(--text); }
 
-/* Legacy inline-style overrides for premium/success banners */
-body.dark-mode [style*="background:#fef3c7"] {
-  background: #2a2000 !important;
-  border-color: #8a6000 !important;
-}
-body.dark-mode [style*="background:#d1fae5"] {
-  background: #002a10 !important;
-  border-color: #1a6640 !important;
-}
 
 /* Group join button dark mode */
 body.dark-mode [style*="background:white;color:var(--blue)"] {
@@ -3219,11 +3030,6 @@ body.dark-mode .job-description li {
   color: var(--text);
 }
 
-/* FAQ button text in dark mode */
-body.dark-mode #premium-faq button,
-body.dark-mode [onclick*="toggleFaq"] {
-  color: var(--text) !important;
-}
 
 /* ============================================================
    OUTREACH MESSAGE GUIDE

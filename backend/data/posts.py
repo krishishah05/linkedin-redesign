@@ -1,0 +1,176 @@
+import time
+
+def _ts(offset_ms):
+    return int(time.time() * 1000) - offset_ms
+
+def get_posts():
+    """Return posts with dynamic timestamps relative to now."""
+    return [
+        {
+            "id": 1,
+            "author": {"id": 2, "name": "Priya Patel", "headline": "Product Manager at Meta | Former Consultant | MBA Wharton", "avatarColor": "#E67E22"},
+            "content": "Excited to share that I've just been promoted to Senior Product Manager at Meta! 🎉\n\nThis journey has been incredible — from presenting to the C-suite to shipping features used by 3 billion people.\n\nA few things I've learned:\n✅ Data tells you WHAT, users tell you WHY\n✅ The best roadmaps have as much strategy as features\n✅ Alignment is a superpower\n\nThank you to my amazing team and mentors who believed in me. Can't wait for what's next!\n\n#ProductManagement #CareerGrowth #Meta #Promotion",
+            "timestamp": _ts(2 * 3600000),
+            "reactions": {"like": 324, "celebrate": 189, "love": 67, "support": 12, "insightful": 34, "funny": 3},
+            "totalReactions": 629,
+            "comments": 78,
+            "reposts": 34,
+            "isLiked": True,
+            "isSaved": False,
+            "reactionType": "celebrate",
+            "type": "text",
+            "tags": ["ProductManagement", "CareerGrowth", "Meta"],
+            "commentsList": [
+                {"id": 1, "author": {"id": 3, "name": "Sarah Chen", "headline": "VP of Engineering at Stripe", "avatarColor": "#E67E22"}, "text": "Huge congrats Priya!! So well deserved! 🎊", "timestamp": "1h", "likes": 23},
+                {"id": 2, "author": {"id": 1, "name": "Alex Johnson", "headline": "Senior Software Engineer at Google", "avatarColor": "#0F5DBD"}, "text": "Amazing news! Meta is lucky to have you as a Senior PM 🚀", "timestamp": "2h", "likes": 15},
+                {"id": 3, "author": {"id": 7, "name": "Marcus Williams", "headline": "Senior Software Engineer at Meta | React Core Team", "avatarColor": "#2C3E50"}, "text": "The point about data telling you WHAT but users telling you WHY is gold. Sharing this with my team!", "timestamp": "3h", "likes": 45}
+            ]
+        },
+        {
+            "id": 2,
+            "author": {"id": 15, "name": "Tyler Brooks", "headline": "Frontend Architect at Vercel | Next.js Core | Web Performance", "avatarColor": "#2C3E50"},
+            "content": "I just shipped a blog post on Web Performance Optimization in 2024 that took me 3 weeks to research and write.\n\nHere are the 10 most impactful techniques I found:\n\n1. 🖼️ Use modern image formats (AVIF > WebP > JPEG)\n2. 📦 Reduce JavaScript bundle size with tree-shaking\n3. ⚡ Implement Streaming SSR with React 18\n4. 🗜️ Enable Brotli compression (30% better than gzip)\n5. 🌊 Use Partial Prerendering for dynamic pages\n6. 🚀 Preconnect to third-party origins\n7. 📱 Optimize Core Web Vitals (LCP < 2.5s)\n8. 💾 Implement aggressive caching strategies\n9. 🔄 Use React Query for smart data fetching\n10. 📊 Measure everything with Real User Monitoring\n\nThe companies doing this right are seeing 20-40% improvement in conversion rates.\n\nLink in comments 👇\n\n#WebPerformance #JavaScript #NextJS #WebDev",
+            "timestamp": _ts(4 * 3600000),
+            "reactions": {"like": 892, "insightful": 341, "love": 78, "celebrate": 45, "support": 23, "funny": 12},
+            "totalReactions": 1391,
+            "comments": 156,
+            "reposts": 234,
+            "isLiked": False,
+            "isSaved": True,
+            "reactionType": None,
+            "type": "text",
+            "tags": ["WebPerformance", "JavaScript", "NextJS"],
+            "commentsList": []
+        },
+        {
+            "id": 3,
+            "author": {"id": 18, "name": "Ana Souza", "headline": "ML Engineer at OpenAI | NLP Research | LLMs | Author", "avatarColor": "#DD2590"},
+            "content": "Hot take: The way we evaluate LLMs is fundamentally broken.\n\nWe keep benchmarking on tests that models have already seen in training data. It's like grading a student on the exact same questions they studied.\n\nWhat we actually need:\n• Real-world task completion rates\n• Calibration metrics (does the model know what it doesn't know?)\n• Adversarial robustness beyond simple jailbreaks\n• Long-context coherence over hours of conversation\n• Multi-step reasoning with verifiable intermediate steps\n\nThe field is optimizing for metrics, not for intelligence. And the gap between benchmark performance and real-world usefulness is growing.\n\nThoughts? Would love to hear from other ML researchers and practitioners.\n\n#AI #MachineLearning #LLMs #OpenAI #Research",
+            "timestamp": _ts(6 * 3600000),
+            "reactions": {"like": 2341, "insightful": 1234, "love": 234, "celebrate": 89, "support": 156, "funny": 45},
+            "totalReactions": 4099,
+            "comments": 423,
+            "reposts": 789,
+            "isLiked": False,
+            "isSaved": False,
+            "reactionType": None,
+            "type": "text",
+            "tags": ["AI", "MachineLearning", "LLMs"],
+            "commentsList": []
+        },
+        {
+            "id": 4,
+            "author": {"id": 8, "name": "Aisha Okafor", "headline": "Startup Founder & CEO | Forbes 30 Under 30 | Building EdTech", "avatarColor": "#915907"},
+            "content": "We just closed our Series A — $12M led by Andreessen Horowitz! 🚀\n\nWhen I started EduAI 18 months ago in my apartment with $0 and a laptop, people told me:\n❌ \"EdTech is a graveyard post-COVID\"\n❌ \"You're too young to raise from top VCs\"\n❌ \"The market is too crowded\"\n\nToday we have:\n✅ 850,000 students using our platform\n✅ Partnerships with 200+ schools in 15 countries\n✅ 4.8/5 satisfaction rating\n✅ A team of 23 incredible people\n\nThe lesson? Timing, focus, and relentless execution beat conventional wisdom every time.\n\nWe're hiring engineers, product managers, and educators. Drop me a DM if you want to change how the next generation learns!\n\n#Startup #FundingAnnouncement #EdTech #SeriesA #a16z",
+            "timestamp": _ts(8 * 3600000),
+            "reactions": {"celebrate": 4231, "like": 1892, "love": 567, "support": 234, "insightful": 123, "funny": 34},
+            "totalReactions": 7081,
+            "comments": 891,
+            "reposts": 1234,
+            "isLiked": True,
+            "isSaved": True,
+            "reactionType": "celebrate",
+            "type": "text",
+            "tags": ["Startup", "EdTech", "SeriesA"],
+            "commentsList": []
+        },
+        {
+            "id": 5,
+            "author": {"id": 3, "name": "Sarah Chen", "headline": "VP of Engineering at Stripe | ex-Google | Speaker | Author", "avatarColor": "#E67E22"},
+            "content": "I interviewed 200 engineers over the past year. Here's what separates the top 5% from everyone else:\n\n1. Communication > technical skill\nThe best engineers I've hired explain complex ideas in simple terms. They know their audience.\n\n2. They ask WHY before HOW\nTop performers question requirements, understand business goals, then solve the right problem.\n\n3. They've failed spectacularly and learned from it\nThe best interview stories involve a project that burned down. What matters is what they did next.\n\n4. They make their colleagues faster\nThey write documentation, review code thoughtfully, and share knowledge freely.\n\n5. They have strong opinions, weakly held\nConviction + humility = the ideal engineer mindset.\n\nSave this if you're preparing for senior/staff engineering interviews.\n\n#EngineeringLeadership #SoftwareEngineering #CareerAdvice #InterviewTips",
+            "timestamp": _ts(12 * 3600000),
+            "reactions": {"like": 5621, "insightful": 2341, "love": 456, "support": 234, "celebrate": 123, "funny": 78},
+            "totalReactions": 8853,
+            "comments": 1234,
+            "reposts": 2341,
+            "isLiked": False,
+            "isSaved": True,
+            "reactionType": None,
+            "type": "text",
+            "tags": ["EngineeringLeadership", "CareerAdvice"],
+            "commentsList": [
+                {"id": 1, "author": {"id": 1, "name": "Alex Johnson", "headline": "Senior Software Engineer at Google", "avatarColor": "#0F5DBD"}, "text": "Point #2 is underrated. So many engineers dive into HOW without understanding WHY. This has changed how I approach design docs.", "timestamp": "2h", "likes": 67},
+                {"id": 2, "author": {"id": 6, "name": "James Thompson", "headline": "Engineering Manager at Amazon | AWS | 3x Founder | Investor", "avatarColor": "#2C3E50"}, "text": "The 'failed spectacularly' point resonates. I now specifically ask candidates about their biggest failure before their biggest success.", "timestamp": "4h", "likes": 34}
+            ]
+        },
+        {
+            "id": 6,
+            "author": {"id": 5, "name": "Michelle Rodriguez", "headline": "UX Design Lead at Apple | Human-Centered Design | Speaker", "avatarColor": "#DD2590"},
+            "content": "3 UX principles I wish someone had told me earlier:\n\n📐 White space is not empty space — it's breathing room for your user's eyes.\n\n🎯 If your user needs a tutorial, your design has already failed. The best interfaces are self-evident.\n\n🔄 Every click costs emotional energy. Ruthlessly eliminate unnecessary steps.\n\nWhat UX principle changed how you work?",
+            "timestamp": _ts(18 * 3600000),
+            "reactions": {"like": 3421, "insightful": 1234, "love": 567, "celebrate": 89, "support": 45, "funny": 23},
+            "totalReactions": 5379,
+            "comments": 567,
+            "reposts": 892,
+            "isLiked": True,
+            "isSaved": False,
+            "reactionType": "like",
+            "type": "text",
+            "tags": ["UXDesign", "Design", "ProductDesign"],
+            "commentsList": []
+        },
+        {
+            "id": 7,
+            "author": {"id": 1, "name": "Alex Johnson", "headline": "Senior Software Engineer at Google | Full Stack Developer | Open Source Enthusiast", "avatarColor": "#0F5DBD"},
+            "content": "Just published my deep dive on building scalable React applications in 2024.\n\nKey architecture decisions that made our team 40% faster:\n\n🏗️ Feature-based folder structure > layer-based\n⚛️ React Query for server state, Zustand for client state\n🧪 Testing pyramid: 70% unit, 20% integration, 10% e2e\n🚀 Module Federation for micro-frontend architecture\n📊 Performance budget enforced in CI/CD pipeline\n\nWhat patterns have worked for your team?\n\n#React #JavaScript #SoftwareEngineering #WebDev",
+            "timestamp": _ts(24 * 3600000),
+            "reactions": {"like": 892, "insightful": 456, "love": 123, "celebrate": 67, "support": 34, "funny": 12},
+            "totalReactions": 1584,
+            "comments": 234,
+            "reposts": 178,
+            "isLiked": False,
+            "isSaved": False,
+            "reactionType": None,
+            "type": "text",
+            "tags": ["React", "JavaScript", "WebDev"],
+            "commentsList": []
+        },
+        {
+            "id": 8,
+            "author": {"id": 4, "name": "David Kim", "headline": "Data Scientist at Netflix | ML Researcher | PhD Stanford", "avatarColor": "#16A085"},
+            "content": "The Netflix recommendation algorithm just got a major upgrade and I'm on the team that built it. 🎬\n\nWe moved from collaborative filtering to a transformer-based approach:\n\nOld system: \"Users who watched X also watched Y\"\nNew system: Understands sequential viewing patterns, time-of-day preferences, mood signals, and social context simultaneously.\n\nResults from A/B test:\n• +23% completion rate\n• +31% discovery of non-mainstream content\n• +18% weekly active streaming time\n\nThe model processes 1B+ events per day in real-time.\n\nFull technical writeup on the Netflix Tech Blog: link in comments!\n\n#MachineLearning #Netflix #RecommendationSystems #AI #DataScience",
+            "timestamp": _ts(2 * 24 * 3600000),
+            "reactions": {"like": 4231, "insightful": 2891, "love": 456, "celebrate": 234, "support": 123, "funny": 45},
+            "totalReactions": 7980,
+            "comments": 789,
+            "reposts": 1567,
+            "isLiked": False,
+            "isSaved": True,
+            "reactionType": None,
+            "type": "text",
+            "tags": ["MachineLearning", "Netflix", "AI"],
+            "commentsList": []
+        },
+        {
+            "id": 9,
+            "author": {"id": 11, "name": "Carlos Mendez", "headline": "Head of Growth at Notion | Previously HubSpot | Growth Hacker", "avatarColor": "#E67E22"},
+            "content": "I asked 50 marketing leaders what growth channel they regret ignoring. The answer was unanimous: Nexus organic.\n\nHere's why most B2B companies are leaving 70% of their pipeline on the table:\n\n❌ They treat Nexus like Twitter (broadcast, not conversation)\n❌ They post company updates instead of insights\n❌ They're afraid to have opinions\n❌ They chase viral instead of valuable\n\nWhat actually works:\n✅ Founder-led content on personal profiles\n✅ Controversial but researched takes\n✅ Behind-the-scenes of building the company\n✅ Specific, actionable frameworks\n✅ Consistency over 90 days minimum\n\nNexus's algorithm rewards dwell time, not clicks. Write things people read, not just like.\n\n#B2BMarketing #GrowthHacking #ContentMarketing #Nexus",
+            "timestamp": _ts(3 * 24 * 3600000),
+            "reactions": {"like": 2341, "insightful": 1456, "love": 234, "celebrate": 89, "support": 67, "funny": 34},
+            "totalReactions": 4221,
+            "comments": 456,
+            "reposts": 678,
+            "isLiked": False,
+            "isSaved": False,
+            "reactionType": None,
+            "type": "text",
+            "tags": ["B2BMarketing", "GrowthHacking", "Nexus"],
+            "commentsList": []
+        },
+        {
+            "id": 10,
+            "author": {"id": 7, "name": "Marcus Williams", "headline": "Senior Software Engineer at Meta | React Core Team", "avatarColor": "#2C3E50"},
+            "content": "React 19 is finally here and the DX improvements are insane.\n\nGame changers:\n\n🪝 use() hook — read any resource (promises, context) directly in components\n🎬 useOptimistic — built-in optimistic updates, no more boilerplate\n📋 Form Actions — server mutations with zero client JS\n🏃 useFormStatus — pending states without prop drilling\n🔄 useTransition upgrades — start transitions from async functions\n\nThe server/client mental model is finally clicking. Components can be async by default and you only add 'use client' where you actually need interactivity.\n\nMigration guide in comments. Who's upgrading this weekend? 👇\n\n#React #JavaScript #WebDevelopment #Frontend",
+            "timestamp": _ts(4 * 24 * 3600000),
+            "reactions": {"like": 3421, "insightful": 1892, "love": 567, "celebrate": 234, "support": 89, "funny": 23},
+            "totalReactions": 6226,
+            "comments": 892,
+            "reposts": 1234,
+            "isLiked": True,
+            "isSaved": True,
+            "reactionType": "insightful",
+            "type": "text",
+            "tags": ["React", "JavaScript", "Frontend"],
+            "commentsList": []
+        }
+    ]
