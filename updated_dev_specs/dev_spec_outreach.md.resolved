@@ -1,0 +1,561 @@
+# Development Specification — Outreach Feature
+## CS485 · Nexus LinkedIn Redesign · Sprint P4
+
+**Author:** Dhyani Soni (Story #1) + Victor Jimenez (Story #7)  
+**Date:** March 3, 2026  
+**Backend:** Single Flask backend ([backend/app.py](file:///c:/Users/dhyan/OneDrive/Desktop/linkedin-redesign/backend/app.py)), shared by both stories  
+
+---
+
+## Table of Contents
+1. [Project Context](#1-project-context)
+2. [Harmonized Backend Overview](#2-harmonized-backend-overview)
+3. [Story #1 — Outreach Message Guidance](#3-story-1--outreach-message-guidance)
+4. [Story #7 — Outreach Readiness Check](#4-story-7--outreach-readiness-check)
+5. [Sequence Diagrams](#5-sequence-diagrams)
+6. [Data Flow Diagram](#6-data-flow-diagram)
+7. [Component Architecture](#7-component-architecture)
+8. [Concurrency & Scalability](#8-concurrency--scalability)
+9. [AWS Deployment Notes (P5)](#9-aws-deployment-notes-p5)
+10. [Testing Plan](#10-testing-plan)
+11. [Mermaid Diagram Prompts (for external LLMs)](#11-mermaid-diagram-prompts-for-external-llms)
+
+---
+
+## 1. Project Context
+
+The Nexus app is a LinkedIn-redesign SPA built with **vanilla HTML/JS/CSS** on the frontend and a **single Flask backend** ([backend/app.py](file:///c:/Users/dhyan/OneDrive/Desktop/linkedin-redesign/backend/app.py)). Both user stories in this sprint add AI-assisted outreach capabilities to that backend. A single [outreach.py](file:///c:/Users/dhyan/OneDrive/Desktop/linkedin-redesign/backend/outreach.py) module contains all business logic for both stories so there are no redundant dependencies.
+
+### Chosen User Stories
+
+| # | Story | Assigned To |
+|---|-------|-------------|
+| 1 | Outreach Message Guidance | Dhyani Soni |
+| 7 | Outreach Readiness Check | Victor Jimenez |
+
+**Story #1 GitHub Issue:** https://github.com/dhy-ani/linkedin-clone/issues/2  
+**Story #7 GitHub Issue:** https://github.com/dhy-ani/linkedin-clone/issues/3  
+
+---
+
+## 2. Harmonized Backend Overview
+
+Both stories live inside the **same Flask process** and share:
+
+| Concern | Choice | Rationale |
+|---------|--------|-----------|
+| Language | Python 3.11 | Already used |
+| Framework | Flask 3.0 + flask-cors 4.0 | Already in [requirements.txt](file:///c:/Users/dhyan/OneDrive/Desktop/linkedin-redesign/backend/requirements.txt) |
+| Data store | In-memory dicts (P4) | No external DB needed for mock phase |
+| AI calls | Mocked locally (P4) → Amazon Bedrock (P5) | Free AWS credits; avoids vendor lock-in |
+| Transport | JSON over HTTP | Consistent with existing API shape |
+| Auth | Simulated (user ID = 1 hardcoded as CURRENT_USER) | Matches P4 convention |
+| Max simultaneous users | 10 | Flask dev server adequate; production → Gunicorn 4 workers |
+
+### New Files
+
+```
+backend/
+  app.py          ← add 2 new route groups (no other file changed)
+  outreach.py     ← NEW — all business logic for Stories #1 & #7
+```
+
+### New Endpoints Summary
+
+| Method | Path | Story | Description |
+|--------|------|-------|-------------|
+| `POST` | `/api/outreach/generate` | #1 | Generate a message draft |
+| `GET`  | `/api/outreach/readiness` | #7 | Profile readiness score |
+
+---
+
+## 3. Story #1 — Outreach Message Guidance
+
+### 3.1 User Story
+> *As a student job seeker, I want help drafting my first LinkedIn message so that I feel confident reaching out to professionals without sounding awkward.*
+
+### 3.2 Acceptance Criteria
+
+| # | Criterion |
+|---|-----------|
+| AC-1 | User can select a recipient from existing users in the system |
+| AC-2 | User can choose a tone: `professional`, `friendly`, or `formal` |
+| AC-3 | User can specify an outreach goal: `job_inquiry`, `networking`, `advice`, `collaboration` |
+| AC-4 | User can optionally add a custom note (≤ 200 characters) |
+| AC-5 | Backend returns a draft message ≤ 500 characters |
+| AC-6 | Backend returns 3 writing tips and 2 alternative openers |
+| AC-7 | Missing `recipientId` returns HTTP 400 |
+| AC-8 | Non-existent `recipientId` returns HTTP 404 |
+
+### 3.3 API Contract
+
+#### `POST /api/outreach/generate`
+
+**Request Body** (JSON):
+
+```json
+{
+  "recipientId": 5,
+  "tone": "professional",
+  "goal": "job_inquiry",
+  "custom_note": "I saw your talk at Config 2025!"
+}
+```
+
+| Field | Type | Required | Default | Constraints |
+|-------|------|----------|---------|-------------|
+| `recipientId` | `int` | ✅ Yes | — | Must match a known user ID |
+| `tone` | `string` | No | `"professional"` | `"professional"` \| `"friendly"` \| `"formal"` |
+| `goal` | `string` | No | `"networking"` | `"job_inquiry"` \| `"networking"` \| `"advice"` \| `"collaboration"` |
+| `custom_note` | `string` | No | `""` | Max 200 characters; appended verbatim |
+
+**Success Response** `200 OK`:
+
+```json
+{
+  "draft": "Hi Michelle,\n\nMy name is Alex, and I came across your profile and was impressed ...",
+  "char_count": 312,
+  "tone": "professional",
+  "tips": [
+    "Keep your message under 300 characters — shorter notes have a 3× higher reply rate.",
+    "Mention a specific detail from their profile to show you've done your homework.",
+    "End with a low-commitment ask (e.g., 'open to a quick chat?') not 'let's hop on a call'."
+  ],
+  "alternatives": [
+    "Hi Michelle, I admire your work and would love to connect briefly.",
+    "Hey Michelle — your background in Design Lead caught my attention!"
+  ]
+}
+```
+
+**Error Responses:**
+
+| Status | Body | Trigger |
+|--------|------|---------|
+| `400` | `{"error": "recipientId is required"}` | Missing `recipientId` |
+| `404` | `{"error": "User 99 not found"}` | Unknown user ID |
+
+### 3.4 Internal Logic — `outreach.generate_outreach_message()`
+
+```
+Input:  sender (CURRENT_USER dict), recipient (user dict), context (dict)
+Output: { draft, char_count, tone, tips, alternatives }
+
+1. Validate tone (default "professional")
+2. Extract sender first name, title from headline
+3. Extract recipient first name, role, company from experience[0]
+4. Build goal_lines dict (4 templates keyed by goal)
+5. Append custom_note if present
+6. Assemble draft from opener + body + closer
+7. Generate 3 static tips
+8. Generate 2 alternative openers using recipient.first_name and role
+9. Return assembled response dict
+```
+
+> **P4 → P5 upgrade path:** Replace step 4–8 with a call to `boto3.client("bedrock-runtime").invoke_model()` using `amazon.titan-text-express-v1` or `anthropic.claude-3-sonnet`. The function signature and response schema do not change.
+
+---
+
+## 4. Story #7 — Outreach Readiness Check
+
+### 4.1 User Story
+> *As a job seeker, I want feedback on my profile before messaging someone so that I present myself professionally.*
+
+### 4.2 Dependency
+Story #7 depends on Story #1: the readiness check is shown to the user **before** they invoke the message generator. If `can_message` is `false`, the frontend should warn the user.
+
+### 4.3 Acceptance Criteria
+
+| # | Criterion |
+|---|-----------|
+| AC-1 | Endpoint evaluates the current user's profile against 9 weighted criteria |
+| AC-2 | Returns a score 0–100, a level string, and a per-criterion breakdown |
+| AC-3 | Returns up to 3 actionable tips for the highest-impact missing items |
+| AC-4 | Returns a boolean `can_message` (true if score ≥ 60) |
+| AC-5 | Optional `userId` query param allows checking another user's readiness |
+| AC-6 | Unknown `userId` returns HTTP 404 |
+
+### 4.4 API Contract
+
+#### `GET /api/outreach/readiness`
+
+**Query Parameters:**
+
+| Param | Type | Required | Description |
+|-------|------|----------|-------------|
+| `userId` | `int` | No | If omitted, evaluates the current logged-in user |
+
+**Success Response** `200 OK`:
+
+```json
+{
+  "score": 85,
+  "max_score": 100,
+  "level": "ready",
+  "can_message": true,
+  "breakdown": [
+    { "key": "photo",       "label": "Profile photo present",  "weight": 10, "met": true,  "tip": null },
+    { "key": "headline",    "label": "Headline is descriptive", "weight": 15, "met": true,  "tip": null },
+    { "key": "about",       "label": "About section filled in", "weight": 10, "met": true,  "tip": null },
+    { "key": "experience",  "label": "Has at least one role",   "weight": 20, "met": true,  "tip": null },
+    { "key": "education",   "label": "Has education listed",    "weight": 10, "met": true,  "tip": null },
+    { "key": "skills",      "label": "5+ skills listed",        "weight": 15, "met": true,  "tip": null },
+    { "key": "connections", "label": "At least 10 connections", "weight": 10, "met": true,  "tip": null },
+    { "key": "open_to_work","label": "Open-to-work signal set", "weight":  5, "met": false, "tip": "Enable 'Open to Work' if you're job-hunting..." },
+    { "key": "website",     "label": "External link / portfolio","weight": 5, "met": false, "tip": "Add a portfolio or GitHub link..." }
+  ],
+  "top_tips": [
+    "Enable 'Open to Work' if you're job-hunting — it doubles recruiter contact.",
+    "Add a portfolio or GitHub link to stand out from other candidates."
+  ]
+}
+```
+
+**Level thresholds:**
+
+| Score | `level` |
+|-------|---------|
+| ≥ 75 | `"ready"` |
+| 50–74 | `"almost_ready"` |
+| < 50 | `"not_ready"` |
+
+**Error Responses:**
+
+| Status | Body | Trigger |
+|--------|------|---------|
+| `404` | `{"error": "User 99 not found"}` | Unknown `userId` |
+
+### 4.5 Scoring Rubric
+
+| `key` | Label | Weight |
+|-------|-------|--------|
+| `experience` | Has at least one role | 20 |
+| `headline` | Headline is descriptive (≥ 5 words) | 15 |
+| `skills` | 5+ skills listed | 15 |
+| `photo` | Profile photo present | 10 |
+| `about` | About section filled in (≥ 100 chars) | 10 |
+| `education` | Has education listed | 10 |
+| `connections` | At least 10 connections | 10 |
+| `open_to_work` | Open-to-work signal set | 5 |
+| `website` | External link / portfolio | 5 |
+| **Total** | | **100** |
+
+### 4.6 Internal Logic — `outreach.compute_outreach_readiness()`
+
+```
+Input:  user (user dict)
+Output: { score, max_score, level, breakdown, top_tips, can_message }
+
+1. For each of 9 criteria, run evaluator lambda against user dict
+2. Accumulate score for passed criteria
+3. Collect tips (with weights) for failed criteria
+4. Sort missing tips by weight descending, take top 3
+5. Compute level from score thresholds
+6. Return assembled response dict
+```
+
+---
+
+## 5. Sequence Diagrams
+
+### 5.1 Story #1 — Message Generation Flow
+
+```mermaid
+sequenceDiagram
+    actor User as Student (User)
+    participant FE as Frontend (api.js)
+    participant BE as Flask app.py
+    participant OM as outreach.py
+    participant AI as AI Service (mocked P4 / Bedrock P5)
+    participant DB as data/ (in-memory)
+
+    User->>FE: Clicks "Get Message Help"<br/>selects recipient, tone, goal
+    FE->>BE: POST /api/outreach/generate<br/>{ recipientId, tone, goal, custom_note }
+    BE->>DB: get_user_by_id(recipientId)
+    DB-->>BE: recipient dict (or None)
+    alt recipientId missing
+        BE-->>FE: 400 { error: "recipientId is required" }
+    else recipient not found
+        BE-->>FE: 404 { error: "User N not found" }
+    else valid request
+        BE->>OM: generate_outreach_message(sender, recipient, context)
+        OM->>AI: _call_ai(prompt)
+        AI-->>OM: draft string (mock: template expansion)
+        OM-->>BE: { draft, char_count, tone, tips, alternatives }
+        BE-->>FE: 200 { draft, char_count, tone, tips, alternatives }
+        FE-->>User: Displays draft + tips in UI
+    end
+```
+
+### 5.2 Story #7 — Readiness Check Flow
+
+```mermaid
+sequenceDiagram
+    actor User as Job Seeker (User)
+    participant FE as Frontend (api.js)
+    participant BE as Flask app.py
+    participant OM as outreach.py
+    participant DB as data/ (in-memory)
+
+    User->>FE: Navigates to "Message Someone"
+    FE->>BE: GET /api/outreach/readiness
+    BE->>DB: resolve user (CURRENT_USER or userId param)
+    DB-->>BE: user dict (or None)
+    alt userId provided but not found
+        BE-->>FE: 404 { error: "User N not found" }
+    else user resolved
+        BE->>OM: compute_outreach_readiness(user)
+        OM->>OM: Run 9 evaluator lambdas
+        OM-->>BE: { score, max_score, level, breakdown, top_tips, can_message }
+        BE-->>FE: 200 { score, level, breakdown, top_tips, can_message }
+        alt can_message == true
+            FE-->>User: Show "Ready to message!" badge + full breakdown
+        else can_message == false
+            FE-->>User: Show warning + top_tips to improve profile
+        end
+    end
+```
+
+---
+
+## 6. Data Flow Diagram
+
+```mermaid
+flowchart TD
+    subgraph Frontend["Frontend (SPA — app.html / api.js)"]
+        UI_Trigger["User triggers outreach flow"]
+        API_Call["window.API.getOutreachReadiness()\nwindow.API.generateOutreachMessage()"]
+    end
+
+    subgraph Backend["Backend (Flask — backend/app.py)"]
+        R1["GET /api/outreach/readiness"]
+        R2["POST /api/outreach/generate"]
+        OM["outreach.py\ncompute_outreach_readiness()\ngenerate_outreach_message()"]
+    end
+
+    subgraph DataLayer["Data Layer (backend/data/)"]
+        USERS["data/users.py\nCURRENT_USER, USERS"]
+    end
+
+    subgraph AILayer["AI Layer"]
+        MOCK["P4: Template Engine\n(no external call)"]
+        BEDROCK["P5: AWS Bedrock\n(amazon.titan-text-express-v1)"]
+    end
+
+    UI_Trigger --> API_Call
+    API_Call --> R1
+    API_Call --> R2
+    R1 --> OM
+    R2 --> OM
+    OM --> USERS
+    OM --> MOCK
+    MOCK -.->|"swap in P5"| BEDROCK
+    OM --> R1
+    OM --> R2
+    R1 --> API_Call
+    R2 --> API_Call
+    API_Call --> UI_Trigger
+```
+
+---
+
+## 7. Component Architecture
+
+```mermaid
+classDiagram
+    class app_py {
+        +GET /api/outreach/readiness
+        +POST /api/outreach/generate
+        -db : data module
+        -outreach_module : outreach.py
+    }
+
+    class outreach_py {
+        +generate_outreach_message(sender, recipient, context) dict
+        +compute_outreach_readiness(user) dict
+        -_call_ai(prompt) str
+        -_first_name(full_name) str
+        -_TONE_OPENERS dict
+        -_TONE_CLOSERS dict
+        -_OUTREACH_CHECKS list
+    }
+
+    class data_users_py {
+        +CURRENT_USER dict
+        +USERS list
+        +get_user_by_id(user_id) dict
+    }
+
+    class api_js {
+        +generateOutreachMessage(recipientId, tone, goal, customNote) Promise
+        +getOutreachReadiness(userId) Promise
+    }
+
+    app_py --> outreach_py : calls
+    app_py --> data_users_py : reads
+    api_js --> app_py : HTTP JSON
+```
+
+---
+
+## 8. Concurrency & Scalability
+
+| Requirement | Design Decision |
+|-------------|-----------------|
+| 10 simultaneous frontend users | Flask dev server handles this. For production: Gunicorn with 4 sync workers (`gunicorn -w 4 app:app`) |
+| In-memory state safety | All outreach logic is **stateless** (pure functions). No shared mutable state is read or written by these routes |
+| No session handling needed | Both endpoints are read/compute only; no DB writes |
+| AI call latency | P4: < 1 ms (local template). P5: ~1–3 s (Bedrock); acceptable for interactive use |
+
+> **Deliberate scope limit:** The backend is designed for exactly 10 concurrent users. No queue, cache, or connection pooling is required.
+
+---
+
+## 9. AWS Deployment Notes (P5)
+
+The single change needed to activate real AI in P5:
+
+**File:** [backend/outreach.py](file:///c:/Users/dhyan/OneDrive/Desktop/linkedin-redesign/backend/outreach.py), function `_call_ai(prompt: str) -> str`
+
+Replace the mock body with:
+
+```python
+import boto3, json
+
+def _call_ai(prompt: str) -> str:
+    client = boto3.client("bedrock-runtime", region_name="us-east-1")
+    body = json.dumps({
+        "inputText": prompt,
+        "textGenerationConfig": {
+            "maxTokenCount": 300,
+            "temperature": 0.7,
+            "topP": 0.9
+        }
+    })
+    response = client.invoke_model(
+        modelId="amazon.titan-text-express-v1",
+        body=body,
+        contentType="application/json",
+        accept="application/json",
+    )
+    result = json.loads(response["body"].read())
+    return result["results"][0]["outputText"]
+```
+
+All other code (routes, module interface, response schema) stays **identical**.
+
+**IAM permission needed:**
+```json
+{ "Effect": "Allow", "Action": "bedrock:InvokeModel",
+  "Resource": "arn:aws:bedrock:us-east-1::foundation-model/amazon.titan-text-express-v1" }
+```
+
+**Estimated cost:** ~$0.0008 per 1,000 output tokens (Titan Express). For 10 users × 10 messages/day = 100 calls/day → negligible against $100–200 credit budget.
+
+---
+
+## 10. Testing Plan
+
+### Story #1 Tests (can be run with `curl` or a test script)
+
+| Test | Input | Expected Output |
+|------|-------|-----------------|
+| Valid request | `{ "recipientId": 5, "tone": "friendly", "goal": "networking" }` | `200`, `draft` non-empty, `tips` has 3 items |
+| Missing recipientId | `{}` | `400` |
+| Unknown recipientId | `{ "recipientId": 9999 }` | `404` |
+| Invalid tone (fallback) | `{ "recipientId": 5, "tone": "sarcastic" }` | `200`, `tone` in response = `"professional"` |
+| Custom note appended | `{ "recipientId": 5, "custom_note": "Hello!" }` | `200`, `"Hello!"` appears in `draft` |
+
+### Story #7 Tests
+
+| Test | Input | Expected Output |
+|------|-------|-----------------|
+| Current user (complete profile) | `GET /api/outreach/readiness` | `200`, `score >= 75`, `level = "ready"` |
+| User with sparse profile | `GET /api/outreach/readiness?userId=12` | `200`, score reflects missing fields |
+| Unknown userId | `GET /api/outreach/readiness?userId=9999` | `404` |
+| `can_message` threshold | Any user with score ≥ 60 | `can_message: true` |
+| `top_tips` ordering | User missing experience + photo | `experience` tip appears first (weight 20 vs 10) |
+
+### Manual curl Examples
+
+```bash
+# Story #1
+curl -s -X POST http://localhost:5000/api/outreach/generate \
+  -H "Content-Type: application/json" \
+  -d '{"recipientId": 5, "tone": "friendly", "goal": "networking"}' | python -m json.tool
+
+# Story #7
+curl -s http://localhost:5000/api/outreach/readiness | python -m json.tool
+```
+
+---
+
+## 11. Mermaid Diagram Prompts (for external LLMs)
+
+If you need to regenerate the diagrams in another tool (e.g., ChatGPT, Claude.ai, Mermaid Live Editor), use these prompts:
+
+---
+
+### Prompt A — Story #1 Sequence Diagram
+
+> Generate a Mermaid `sequenceDiagram` with these exact participants and variable names:
+> - `actor User as Student (User)`
+> - `participant FE as Frontend (api.js)`
+> - `participant BE as Flask app.py`
+> - `participant OM as outreach.py`
+> - `participant AI as AI Service (mocked P4 / Bedrock P5)`
+> - `participant DB as data/ (in-memory)`
+>
+> Show this flow:
+> 1. User → FE: "Clicks 'Get Message Help', selects recipient, tone, goal"
+> 2. FE → BE: `POST /api/outreach/generate` with body `{ recipientId, tone, goal, custom_note }`
+> 3. BE → DB: [get_user_by_id(recipientId)](file:///c:/Users/dhyan/OneDrive/Desktop/linkedin-redesign/backend/data/__init__.py#13-18)
+> 4. DB → BE: recipient dict (or None)
+> 5. `alt` block with three branches:
+>    - `recipientId` missing → BE → FE: `400 { error: "recipientId is required" }`
+>    - recipient not found → BE → FE: `404 { error: "User N not found" }`
+>    - valid request → BE → OM: `generate_outreach_message(sender, recipient, context)` → OM → AI: `_call_ai(prompt)` → AI → OM: draft string → OM → BE: `{ draft, char_count, tone, tips, alternatives }` → BE → FE: 200 response → FE → User: display
+
+---
+
+### Prompt B — Story #7 Sequence Diagram
+
+> Generate a Mermaid `sequenceDiagram` with these exact participants:
+> - `actor User as Job Seeker (User)`
+> - `participant FE as Frontend (api.js)`
+> - `participant BE as Flask app.py`
+> - `participant OM as outreach.py`
+> - `participant DB as data/ (in-memory)`
+>
+> Show this flow:
+> 1. User → FE: "Navigates to 'Message Someone'"
+> 2. FE → BE: `GET /api/outreach/readiness`
+> 3. BE → DB: resolve user (CURRENT_USER or userId param)
+> 4. `alt` block:
+>    - userId provided but not found → BE → FE: `404 { error: "User N not found" }`
+>    - user resolved → BE → OM: `compute_outreach_readiness(user)` → OM internally runs "9 evaluator lambdas" → OM → BE: `{ score, max_score, level, breakdown, top_tips, can_message }` → BE → FE: 200 response
+>    - nested `alt` on `can_message`: true → FE → User: "Show 'Ready to message!' badge"; false → FE → User: "Show warning + top_tips"
+
+---
+
+### Prompt C — Data Flow Diagram
+
+> Generate a Mermaid `flowchart TD` with three labeled subgraphs:
+> - `Frontend` containing nodes `UI_Trigger["User triggers outreach flow"]` and `API_Call["window.API.getOutreachReadiness() / window.API.generateOutreachMessage()"]`
+> - `Backend` containing nodes `R1["GET /api/outreach/readiness"]`, `R2["POST /api/outreach/generate"]`, and `OM["outreach.py — compute_outreach_readiness() / generate_outreach_message()"]`
+> - `DataLayer` containing `USERS["data/users.py — CURRENT_USER, USERS"]`
+> - `AILayer` containing `MOCK["P4: Template Engine (no external call)"]` and `BEDROCK["P5: AWS Bedrock (amazon.titan-text-express-v1)"]`
+>
+> Edges: UI_Trigger→API_Call, API_Call→R1, API_Call→R2, R1→OM, R2→OM, OM→USERS, OM→MOCK, MOCK-.->BEDROCK (dotted, labeled "swap in P5"), OM→R1, OM→R2, R1→API_Call, R2→API_Call, API_Call→UI_Trigger
+
+---
+
+### Prompt D — Component/Class Diagram
+
+> Generate a Mermaid `classDiagram` with four classes and their members:
+> - `app_py` with operations `+GET /api/outreach/readiness`, `+POST /api/outreach/generate`, and attributes `-db`, `-outreach_module`
+> - `outreach_py` with operations `+generate_outreach_message(sender, recipient, context) dict`, `+compute_outreach_readiness(user) dict`, `-_call_ai(prompt) str`, `-_first_name(full_name) str` and attributes `-_TONE_OPENERS dict`, `-_TONE_CLOSERS dict`, `-_OUTREACH_CHECKS list`
+> - `data_users_py` with attributes `+CURRENT_USER dict`, `+USERS list` and operation `+get_user_by_id(user_id) dict`
+> - `api_js` with operations `+generateOutreachMessage(recipientId, tone, goal, customNote) Promise`, `+getOutreachReadiness(userId) Promise`
+>
+> Relationships: `app_py --> outreach_py : calls`, `app_py --> data_users_py : reads`, `api_js --> app_py : HTTP JSON`
