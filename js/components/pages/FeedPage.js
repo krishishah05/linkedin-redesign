@@ -37,7 +37,7 @@ function FeedPage() {
 
   function handleNewPost(content) {
     const newPost = {
-      id: Date.now(),
+      id: generateId(),
       author: u.name,
       authorId: u.id,
       authorTitle: u.headline,

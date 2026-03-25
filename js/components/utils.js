@@ -54,6 +54,12 @@ function escapeHtml(str) {
     .replace(/'/g, '&#39;');
 }
 
+// ── ID generation ─────────────────────────────────────────────
+// Single source of truth — also exported from js/generateId.js for Node tests.
+function generateId() {
+  return Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 6);
+}
+
 // ── Navigation ────────────────────────────────────────────────
 function navigate(path) {
   window.location.hash = path;

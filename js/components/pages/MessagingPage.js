@@ -74,7 +74,7 @@ function MessagingPage() {
 
     // Optimistic update
     const newMsg = {
-      id: Date.now(),
+      id: generateId(),
       senderId: 'me',
       text,
       timestamp: Date.now(),
