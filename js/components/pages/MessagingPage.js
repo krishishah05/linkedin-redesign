@@ -164,13 +164,6 @@ function MessagingPage() {
     }));
   }
 
-  function computeGuidePreview(state) {
-    if (!state || !state.goal) return '';
-    const variants = _OUTREACH_TEMPLATES[state.goal] || [];
-    if (!variants.length) return '';
-    const variant = variants[state.variantIdx % variants.length];
-    return variant.template(state.details || {});
-  }
 
   function selectGoal(goalKey) {
     const cur = guideStateByConv[selectedId] || {};
@@ -332,9 +325,9 @@ function MessagingPage() {
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
           {/* Chat header */}
           <div style={{ padding: '12px 14px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ fontWeight: 800, fontSize: 15 }}>
+            <h2 style={{ fontWeight: 800, fontSize: 15, margin: 0 }}>
               {selectedConv ? (selectedConv.participantName || 'Conversation') : 'Select a conversation'}
-            </div>
+            </h2>
             <div style={{ flex: 1 }} />
 
             {/* User story buttons */}
@@ -575,10 +568,11 @@ function OutreachGuidePanel({
 }
 
 function Field({ label, value, onChange }) {
+  const id = React.useMemo(() => 'field-' + Math.random().toString(36).substr(2, 9), []);
   return (
     <div className="li-msg-guide__field-row">
-      <label>{label}</label>
-      <input className="li-msg-guide__input" value={value || ''} onChange={(e) => onChange(e.target.value)} />
+      <label htmlFor={id}>{label}</label>
+      <input id={id} className="li-msg-guide__input" value={value || ''} onChange={(e) => onChange(e.target.value)} />
     </div>
   );
 }
@@ -753,6 +747,14 @@ function mockBackendGetProfileReadiness(user, opts = {}) {
   return { score, sections, fixes };
 }
 
+function computeGuidePreview(state) {
+  if (!state || !state.goal) return '';
+  const variants = _OUTREACH_TEMPLATES[state.goal] || [];
+  if (!variants.length) return '';
+  const variant = variants[state.variantIdx % variants.length];
+  return variant.template(state.details || {});
+}
+
 /* ─────────────────────────────────────────────────────────────
    Outreach guide templates (from your old app.js)
    ───────────────────────────────────────────────────────────── */
@@ -848,3 +850,19 @@ const _OUTREACH_TEMPLATES = {
     },
   ],
 };
+
+// =============================================================
+// TEST EXPORTS (Only active in Node.js/Jest environment)
+// =============================================================
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    MessagingPage,
+    OutreachGuidePanel,
+    ProfileReadinessPanel,
+    mockBackendGetProfileReadiness,
+    computeGuidePreview,
+    _OUTREACH_GOALS,
+    _OUTREACH_TIPS,
+    _OUTREACH_TEMPLATES
+  };
+}
