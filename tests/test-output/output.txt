@@ -1,0 +1,278 @@
+  console.error
+    An update to MessagingPage inside a test was not wrapped in act(...).
+    
+    When testing, code that causes React state updates should be wrapped into act(...):
+    
+    act(() => {
+      /* fire events that update state */
+    });
+    /* assert on the output */
+    
+    This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+    [0m [90m 51 |[39m     [33mAPI[39m[33m.[39mgetConversation(id)
+     [90m 52 |[39m       [33m.[39mthen(data [33m=>[39m {
+    [31m[1m>[22m[39m[90m 53 |[39m         setMessages(data[33m.[39mmessages [33m||[39m [])[33m;[39m
+     [90m    |[39m         [31m[1m^[22m[39m
+     [90m 54 |[39m         setMsgLoading([36mfalse[39m)[33m;[39m
+     [90m 55 |[39m       })
+     [90m 56 |[39m       [33m.[39m[36mcatch[39m(() [33m=>[39m {[0m
+
+      at node_modules/react-dom/cjs/react-dom-client.development.js:18758:19
+      at runWithFiberInDEV (node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
+      at warnIfUpdatesNotWrappedWithActDEV (node_modules/react-dom/cjs/react-dom-client.development.js:18757:9)
+      at scheduleUpdateOnFiber (node_modules/react-dom/cjs/react-dom-client.development.js:16409:11)
+      at dispatchSetStateInternal (node_modules/react-dom/cjs/react-dom-client.development.js:9170:13)
+      at dispatchSetState (node_modules/react-dom/cjs/react-dom-client.development.js:9127:7)
+      at setMessages (js/components/pages/MessagingPage.js:53:9)
+
+  console.error
+    An update to MessagingPage inside a test was not wrapped in act(...).
+    
+    When testing, code that causes React state updates should be wrapped into act(...):
+    
+    act(() => {
+      /* fire events that update state */
+    });
+    /* assert on the output */
+    
+    This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+    [0m [90m 52 |[39m       [33m.[39mthen(data [33m=>[39m {
+     [90m 53 |[39m         setMessages(data[33m.[39mmessages [33m||[39m [])[33m;[39m
+    [31m[1m>[22m[39m[90m 54 |[39m         setMsgLoading([36mfalse[39m)[33m;[39m
+     [90m    |[39m         [31m[1m^[22m[39m
+     [90m 55 |[39m       })
+     [90m 56 |[39m       [33m.[39m[36mcatch[39m(() [33m=>[39m {
+     [90m 57 |[39m         setMessages([])[33m;[39m[0m
+
+      at node_modules/react-dom/cjs/react-dom-client.development.js:18758:19
+      at runWithFiberInDEV (node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
+      at warnIfUpdatesNotWrappedWithActDEV (node_modules/react-dom/cjs/react-dom-client.development.js:18757:9)
+      at scheduleUpdateOnFiber (node_modules/react-dom/cjs/react-dom-client.development.js:16409:11)
+      at dispatchSetStateInternal (node_modules/react-dom/cjs/react-dom-client.development.js:9170:13)
+      at dispatchSetState (node_modules/react-dom/cjs/react-dom-client.development.js:9127:7)
+      at setMsgLoading (js/components/pages/MessagingPage.js:54:9)
+
+  console.error
+    An update to MessagingPage inside a test was not wrapped in act(...).
+    
+    When testing, code that causes React state updates should be wrapped into act(...):
+    
+    act(() => {
+      /* fire events that update state */
+    });
+    /* assert on the output */
+    
+    This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+    [0m [90m 51 |[39m     [33mAPI[39m[33m.[39mgetConversation(id)
+     [90m 52 |[39m       [33m.[39mthen(data [33m=>[39m {
+    [31m[1m>[22m[39m[90m 53 |[39m         setMessages(data[33m.[39mmessages [33m||[39m [])[33m;[39m
+     [90m    |[39m         [31m[1m^[22m[39m
+     [90m 54 |[39m         setMsgLoading([36mfalse[39m)[33m;[39m
+     [90m 55 |[39m       })
+     [90m 56 |[39m       [33m.[39m[36mcatch[39m(() [33m=>[39m {[0m
+
+      at node_modules/react-dom/cjs/react-dom-client.development.js:18758:19
+      at runWithFiberInDEV (node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
+      at warnIfUpdatesNotWrappedWithActDEV (node_modules/react-dom/cjs/react-dom-client.development.js:18757:9)
+      at scheduleUpdateOnFiber (node_modules/react-dom/cjs/react-dom-client.development.js:16409:11)
+      at dispatchSetStateInternal (node_modules/react-dom/cjs/react-dom-client.development.js:9170:13)
+      at dispatchSetState (node_modules/react-dom/cjs/react-dom-client.development.js:9127:7)
+      at setMessages (js/components/pages/MessagingPage.js:53:9)
+
+  console.error
+    An update to MessagingPage inside a test was not wrapped in act(...).
+    
+    When testing, code that causes React state updates should be wrapped into act(...):
+    
+    act(() => {
+      /* fire events that update state */
+    });
+    /* assert on the output */
+    
+    This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+    [0m [90m 52 |[39m       [33m.[39mthen(data [33m=>[39m {
+     [90m 53 |[39m         setMessages(data[33m.[39mmessages [33m||[39m [])[33m;[39m
+    [31m[1m>[22m[39m[90m 54 |[39m         setMsgLoading([36mfalse[39m)[33m;[39m
+     [90m    |[39m         [31m[1m^[22m[39m
+     [90m 55 |[39m       })
+     [90m 56 |[39m       [33m.[39m[36mcatch[39m(() [33m=>[39m {
+     [90m 57 |[39m         setMessages([])[33m;[39m[0m
+
+      at node_modules/react-dom/cjs/react-dom-client.development.js:18758:19
+      at runWithFiberInDEV (node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
+      at warnIfUpdatesNotWrappedWithActDEV (node_modules/react-dom/cjs/react-dom-client.development.js:18757:9)
+      at scheduleUpdateOnFiber (node_modules/react-dom/cjs/react-dom-client.development.js:16409:11)
+      at dispatchSetStateInternal (node_modules/react-dom/cjs/react-dom-client.development.js:9170:13)
+      at dispatchSetState (node_modules/react-dom/cjs/react-dom-client.development.js:9127:7)
+      at setMsgLoading (js/components/pages/MessagingPage.js:54:9)
+
+  console.error
+    An update to MessagingPage inside a test was not wrapped in act(...).
+    
+    When testing, code that causes React state updates should be wrapped into act(...):
+    
+    act(() => {
+      /* fire events that update state */
+    });
+    /* assert on the output */
+    
+    This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+    [0m [90m 51 |[39m     [33mAPI[39m[33m.[39mgetConversation(id)
+     [90m 52 |[39m       [33m.[39mthen(data [33m=>[39m {
+    [31m[1m>[22m[39m[90m 53 |[39m         setMessages(data[33m.[39mmessages [33m||[39m [])[33m;[39m
+     [90m    |[39m         [31m[1m^[22m[39m
+     [90m 54 |[39m         setMsgLoading([36mfalse[39m)[33m;[39m
+     [90m 55 |[39m       })
+     [90m 56 |[39m       [33m.[39m[36mcatch[39m(() [33m=>[39m {[0m
+
+      at node_modules/react-dom/cjs/react-dom-client.development.js:18758:19
+      at runWithFiberInDEV (node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
+      at warnIfUpdatesNotWrappedWithActDEV (node_modules/react-dom/cjs/react-dom-client.development.js:18757:9)
+      at scheduleUpdateOnFiber (node_modules/react-dom/cjs/react-dom-client.development.js:16409:11)
+      at dispatchSetStateInternal (node_modules/react-dom/cjs/react-dom-client.development.js:9170:13)
+      at dispatchSetState (node_modules/react-dom/cjs/react-dom-client.development.js:9127:7)
+      at setMessages (js/components/pages/MessagingPage.js:53:9)
+
+  console.error
+    An update to MessagingPage inside a test was not wrapped in act(...).
+    
+    When testing, code that causes React state updates should be wrapped into act(...):
+    
+    act(() => {
+      /* fire events that update state */
+    });
+    /* assert on the output */
+    
+    This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+    [0m [90m 52 |[39m       [33m.[39mthen(data [33m=>[39m {
+     [90m 53 |[39m         setMessages(data[33m.[39mmessages [33m||[39m [])[33m;[39m
+    [31m[1m>[22m[39m[90m 54 |[39m         setMsgLoading([36mfalse[39m)[33m;[39m
+     [90m    |[39m         [31m[1m^[22m[39m
+     [90m 55 |[39m       })
+     [90m 56 |[39m       [33m.[39m[36mcatch[39m(() [33m=>[39m {
+     [90m 57 |[39m         setMessages([])[33m;[39m[0m
+
+      at node_modules/react-dom/cjs/react-dom-client.development.js:18758:19
+      at runWithFiberInDEV (node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
+      at warnIfUpdatesNotWrappedWithActDEV (node_modules/react-dom/cjs/react-dom-client.development.js:18757:9)
+      at scheduleUpdateOnFiber (node_modules/react-dom/cjs/react-dom-client.development.js:16409:11)
+      at dispatchSetStateInternal (node_modules/react-dom/cjs/react-dom-client.development.js:9170:13)
+      at dispatchSetState (node_modules/react-dom/cjs/react-dom-client.development.js:9127:7)
+      at setMsgLoading (js/components/pages/MessagingPage.js:54:9)
+
+PASS ../MessagingPage.test.js
+  MessagingPage Component Tests
+    √ Shows loading spinner while conversations fetch (22 ms)
+    √ Renders participant name when conversations load (52 ms)
+    √ Auto-selects first conversation when selectedId is null (42 ms)
+    √ Does not auto-select if selectedId already set (13 ms)
+    √ Calls setUnreadMessages(0) once on mount (2 ms)
+    √ Scrolls to bottom when messages state changes (10 ms)
+    √ Sets selectedId immediately on call (49 ms)
+    √ Sets msgLoading:true before API resolves (22 ms)
+    √ Sets messages from data.messages on success (39 ms)
+    √ Defaults to [] when data.messages is absent (13 ms)
+    √ Sets messages to [] on API rejection (9 ms)
+    √ No-op for empty string (7 ms)
+    √ No-op for whitespace only (9 ms)
+    √ No-op when selectedId is null (5 ms)
+    √ Clears draft state before API call (11 ms)
+    √ Appends optimistic message with correct shape (9 ms)
+    √ Sends trimmed text to API — not raw draft (10 ms)
+    √ Calls showToast on API rejection (10 ms)
+    √ Sets activePanel to 'score' when null (13 ms)
+    √ Sets activePanel to null when was 'score' (12 ms)
+    √ openOutreachGuide returns early safely when selectedId is null (4 ms)
+    √ Initializes fresh state for new conversation in openOutreachGuide (12 ms)
+    √ Does not overwrite existing guide state when reopening (24 ms)
+    √ setGuideState returns early safely when selectedId is null (3 ms)
+    √ setGuideDetailsPatch returns early safely when selectedId is null (4 ms)
+    √ setGuideState shallow-merges patch, preserves other keys (29 ms)
+    √ setGuideDetailsPatch deep-merges into details only, preserves other detail fields (27 ms)
+    √ Returns filled template for valid goal and details (27 ms)
+    √ Uses variantIdx modulo to wrap around variants seamlessly (28 ms)
+    √ selectGoal resets step:2 and variantIdx:0 (38 ms)
+    √ selectGoal computes and stores non-empty preview natively (22 ms)
+    √ nextStep returns early if guideState for selectedId is missing (10 ms)
+    √ nextStep shows info toast on Step 1 with no goal selected (9 ms)
+    √ nextStep advances to step 2 when goal is present (35 ms)
+    √ nextStep advances Step 2 to Step 3 (23 ms)
+    √ updateGuidePreviewManual returns early safely when selectedId is null (2 ms)
+    √ updateGuidePreviewManual overrides state.preview explicitly (23 ms)
+    √ applyGuideMessage returns early safely when selectedId is null (3 ms)
+    √ applyGuideMessage maps text payload to user composer draft properly (30 ms)
+    √ applyGuideMessage intercepts empty strings rendering gracefully (27 ms)
+    √ nextStep is no-op when already on step 3 (22 ms)
+    √ backStep decrements step from 2 to 1 (21 ms)
+    √ backStep is no-op when step is already 1 (13 ms)
+    √ cycleVariant advances variantIdx from 0 to 1 (22 ms)
+    √ cycleVariant wraps variantIdx to 0 when at last template (14 ms)
+    √ cycleVariant recomputes preview to variant-1 output (13 ms)
+    √ updateGuidePreviewManual sets preview to the exact string provided (10 ms)
+    √ applyGuideMessage shows info toast when preview is empty string (10 ms)
+    √ applyGuideMessage sets draft to trimmed preview on success (15 ms)
+    √ applyGuideMessage shows success toast and closes panel (14 ms)
+    √ Sets readinessLoading:true at start (6 ms)
+    √ Sets readiness from API on success (7 ms)
+    √ No showToast when refresh:false and API succeeds (5 ms)
+    √ showToast 'Score refreshed' when refresh:true + success (9 ms)
+    √ Uses mock fallback and sets readinessError on failure (9 ms)
+    √ showToast 'Score refreshed (mock)' when refresh:true + failure (8 ms)
+    √ readinessLoading:false in finally on success (5 ms)
+    √ readinessLoading:false in finally on failure (8 ms)
+    √ Toggles activePanel to 'guide' when null (5 ms)
+    √ Toggles activePanel to null when was 'guide' (6 ms)
+    √ Search box filters conversation list by participant name (4 ms)
+    √ Write button triggers 'New message — coming soon' toast (3 ms)
+    √ Settings button triggers 'Settings — coming soon' toast (3 ms)
+    √ Enter key in composer triggers sendMessage (4 ms)
+    √ Guide ✕ close button sets activePanel to null (6 ms)
+    √ Score panel ✕ close button sets activePanel to null (6 ms)
+    √ 'Continue messaging' button closes score panel (12 ms)
+    √ Keyboard Enter on goal tile selects the goal (17 ms)
+    √ Renders sent message (isMe:true) with right-aligned bubble (5 ms)
+    √ formatTime renders a non-empty timestamp string for each message (5 ms)
+    √ loadProfileReadiness: no toast when refresh:false and API fails (10 ms)
+    √ sendMessage: no-op when draft is empty AND selectedId is null (5 ms)
+    √ selectConversation: reloads messages even if same ID clicked twice (11 ms)
+    √ openOutreachGuide: switches from score panel to guide panel (19 ms)
+    √ nextStep: advances to step 3 from step 2 after goal selection (23 ms)
+  mockBackendGetProfileReadiness() pure function
+    √ Returns object with keys: score, sections, fixes (1 ms)
+    √ Score is clamped 0–100
+    √ Returns exactly 6 sections with correct keys (1 ms)
+    √ Base scores exact without jitter
+    √ Handles null user without throwing
+    √ GB boundary: headline length 34 — stays 'bad' (1 ms)
+    √ GB boundary: headline length 35 — upgrades to 'warn'
+    √ GB boundary: headline length 54 — stays 'warn'
+    √ GB boundary: headline length 55 — upgrades to 'done'
+    √ GB boundary: about length 119 — stays 'bad'
+    √ GB boundary: about length 120 — upgrades to 'warn' (1 ms)
+    √ GB boundary: about length 169 — stays 'warn'
+    √ GB boundary: about length 170 — upgrades to 'done'
+    √ GB boundary: skillCount 7 — stays 'warn'
+    √ GB boundary: skillCount 8 — upgrades to 'done'
+    √ EP bucket: skills is non-array truthy string — skillCount is 1, not done
+    √ EC: skills is 0 (falsy number) -> count is 0
+    √ EC: all thresholds met simultaneously -> all 'done'
+    √ EC: empty string skills -> count is 0
+  computeGuidePreview() pure function
+    √ EC: state.details is undefined -> uses empty object fallback in template
+    √ EC: variantIdx exactly 0 -> returns first template output
+    Branch Coverage Booster
+      √ Cycles all outreach templates (1 ms)
+      √ Exercises all Step 2 field inputs (79 ms)
+      √ Exercises window.location.hash branches (16 ms)
+
+Test Suites: 1 passed, 1 total
+Tests:       99 passed, 99 total
+Snapshots:   0 total
+Time:        3.749 s
+Ran all test suites.
