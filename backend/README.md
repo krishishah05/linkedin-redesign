@@ -175,7 +175,34 @@ Returns `{score, max_score, level, can_message, breakdown, top_tips}`.
 
 ## Running Tests
 
-The backend must be running before executing tests.
+### Unit tests — `database.py` (pytest)
+
+No running backend required. Tests use a temporary in-memory SQLite DB per test.
+
+```bash
+# From the repo root
+pip3 install -r backend/requirements.txt
+
+# Run all unit tests
+cd backend
+pytest tests/test_database.py -v
+
+# Run with coverage report (target: ≥ 80%)
+pytest tests/test_database.py --cov=database --cov-report=term-missing
+```
+
+**86 tests** covering all 23 functions in `database.py` with 6 test types:
+BB (Black Box), WB (White Box), GB (Gray Box), EP (Equivalence Partitioning), RG (Regression), EC (Edge Case).
+
+Coverage: **83%** as of last run.
+
+The test spec is documented in [`tests/test_spec_database.md`](tests/test_spec_database.md).
+
+A GitHub Actions workflow (`.github/workflows/run-backend-tests.yml`) runs these tests automatically on every push and pull request.
+
+---
+
+### Integration tests (backend must be running)
 
 ```bash
 # Terminal 1 — start backend

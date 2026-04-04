@@ -1,0 +1,28 @@
+name: run-backend-tests
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r backend/requirements.txt
+
+      - name: Run database unit tests with coverage
+        run: |
+          cd backend
+          pytest tests/test_database.py --cov=database --cov-report=term-missing --cov-fail-under=80 -v
