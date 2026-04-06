@@ -11,6 +11,7 @@ function SearchPage({ query }) {
   React.useEffect(() => {
     if (!query) return;
     setLocalQuery(query);
+    setFilter('all');
     setLoading(true);
     API.search(query)
       .then(data => { setResults(data); setLoading(false); })

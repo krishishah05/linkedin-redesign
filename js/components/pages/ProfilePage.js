@@ -94,7 +94,7 @@ function ProfilePage({ userId }) {
                       <button className="li-btn li-btn--outline li-btn--sm" onClick={() => openModal('edit-profile')}>Edit profile</button>
                       <button className="li-btn li-btn--ghost li-btn--sm" onClick={() => {
                         const url = window.location.href.split('#')[0] + '#profile?id=' + user.id;
-                        navigator.clipboard?.writeText(url).then(() => showToast('Profile link copied!', 'success')).catch(() => showToast('Profile link copied!', 'success'));
+                        navigator.clipboard?.writeText(url).then(() => showToast('Profile link copied!', 'success')).catch(() => showToast('Failed to copy profile link', 'error'));
                       }}>Share</button>
                     </>
                   ) : (
