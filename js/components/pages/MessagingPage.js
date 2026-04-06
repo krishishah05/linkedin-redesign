@@ -114,7 +114,11 @@ function MessagingPage() {
     setMessages(prev => [...prev, newMsg]);
 
     API.sendMessage(selectedId, text)
-      .catch(() => { showToast('Failed to send message', 'error'); })
+      .catch(() => {
+        setMessages(prev => prev.filter(m => m.id !== newMsg.id));
+        setDraft(text);
+        showToast('Failed to send message', 'error');
+      })
       .finally(() => setSending(false));
   }
 
