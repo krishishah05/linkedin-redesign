@@ -375,6 +375,11 @@ function MessagingPage() {
 
           {/* Conversation list */}
           <div style={{ overflowY: 'auto', flex: 1 }}>
+            {filteredConvs.length === 0 && (
+              <div style={{ padding: '32px 16px', textAlign: 'center', color: 'var(--text-3)', fontSize: 13 }}>
+                {search ? 'No conversations match your search.' : 'No messages yet. Connect with people to start a conversation.'}
+              </div>
+            )}
             {filteredConvs.map(c => (
               <button
                 key={c.id}
@@ -399,8 +404,19 @@ function MessagingPage() {
 
         {/* Right panel — chat */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+          {!selectedConv && allConversations.length === 0 && (
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'var(--text-2)', gap: 12, padding: 32 }}>
+              <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" style={{ color: 'var(--text-3)' }}>
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+              </svg>
+              <div style={{ fontWeight: 700, fontSize: 16 }}>Your inbox is empty</div>
+              <div style={{ fontSize: 13, textAlign: 'center', maxWidth: 260 }}>
+                Connect with people on the Network page to start conversations.
+              </div>
+            </div>
+          )}
           {/* Chat header */}
-          <div style={{ padding: '12px 14px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 10 }}>
+          {(selectedConv || allConversations.length > 0) && <div style={{ padding: '12px 14px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 10 }}>
             <div style={{ fontWeight: 800, fontSize: 15 }}>
               {selectedConv ? (selectedConv.participant?.name || selectedConv.participantName || 'Conversation') : 'Select a conversation'}
             </div>
@@ -425,7 +441,7 @@ function MessagingPage() {
             >
               📊 Readiness Score
             </button>
-          </div>
+          </div>}
 
           {/* Panels (render like your old “side overlay” inside messaging) */}
           {activePanel === 'guide' && selectedId && (

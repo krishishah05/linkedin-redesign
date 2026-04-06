@@ -143,13 +143,16 @@ def init_db():
         c.execute("INSERT INTO companies (id, data) VALUES (?, ?)",
                   (co["id"], json.dumps(co)))
 
-    # ---- Seed conversations (only if table is empty) -----------------------
+    # ---- Seed conversations (upsert metadata so ownerId stays current) ------
     c.execute("SELECT COUNT(*) FROM conversations")
-    if c.fetchone()[0] == 0:
-        for conv in convs_data.get_conversations():
-            meta = {k: v for k, v in conv.items() if k != "messages"}
-            c.execute("INSERT INTO conversations (id, data) VALUES (?, ?)",
-                      (conv["id"], json.dumps(meta)))
+    is_empty = c.fetchone()[0] == 0
+    for conv in convs_data.get_conversations():
+        meta = {k: v for k, v in conv.items() if k != "messages"}
+        c.execute("""
+            INSERT INTO conversations (id, data) VALUES (?, ?)
+            ON CONFLICT(id) DO UPDATE SET data=excluded.data
+        """, (conv["id"], json.dumps(meta)))
+        if is_empty:
             for msg in conv.get("messages", []):
                 c.execute("""
                     INSERT INTO messages
@@ -479,6 +482,26 @@ def get_all_conversations():
         meta = json.loads(r["data"])
         meta["id"] = r["id"]
         # Flatten participantName for easy frontend access
+        if "participantName" not in meta:
+            p = meta.get("participant")
+            meta["participantName"] = p.get("name", "") if isinstance(p, dict) else ""
+        result.append(meta)
+    return result
+
+
+def get_conversations_for_user(user_id: int):
+    """Return conversation summaries belonging to a specific user.
+    Conversations without an ownerId are treated as belonging to user 1 (demo account)."""
+    conn = _connect()
+    rows = conn.execute("SELECT id, data FROM conversations ORDER BY id").fetchall()
+    conn.close()
+    result = []
+    for r in rows:
+        meta = json.loads(r["data"])
+        owner = meta.get("ownerId", 1)
+        if int(owner) != int(user_id):
+            continue
+        meta["id"] = r["id"]
         if "participantName" not in meta:
             p = meta.get("participant")
             meta["participantName"] = p.get("name", "") if isinstance(p, dict) else ""

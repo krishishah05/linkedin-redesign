@@ -259,16 +259,22 @@ def get_company(company_id):
 
 @app.route("/api/conversations")
 def get_conversations_list():
-    """GET /api/conversations — all message threads (summaries)."""
-    return jsonify(dbl.get_all_conversations())
+    """GET /api/conversations — message threads for the current user."""
+    user = _auth_user()
+    uid = user["id"] if user else 1
+    return jsonify(dbl.get_conversations_for_user(uid))
 
 
 @app.route("/api/conversations/<int:conv_id>")
 def get_conversation(conv_id):
     """GET /api/conversations/:id — single conversation with full messages."""
+    user = _auth_user()
+    uid = user["id"] if user else 1
     conv = dbl.get_conversation_by_id(conv_id)
     if not conv:
         abort(404, description=f"Conversation {conv_id} not found")
+    if int(conv.get("ownerId", 1)) != uid:
+        abort(403, description="Access denied")
     return jsonify(conv)
 
 

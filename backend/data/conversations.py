@@ -8,6 +8,7 @@ def get_conversations():
     return [
         {
             "id": 1,
+            "ownerId": 1,
             "participant": {"id": 3, "name": "Sarah Chen", "headline": "VP of Engineering at Stripe | ex-Google | Speaker | Author", "avatarColor": "#E67E22", "isOnline": True},
             "unreadCount": 2,
             "lastMessage": "That sounds like a great approach! Let me know how the interview goes",
@@ -26,6 +27,7 @@ def get_conversations():
         },
         {
             "id": 2,
+            "ownerId": 1,
             "participant": {"id": 2, "name": "Priya Patel", "headline": "Product Manager at Meta | Former Consultant | MBA Wharton", "avatarColor": "#E67E22", "isOnline": False},
             "unreadCount": 0,
             "lastMessage": "Will do! Thanks for the feedback on the PRD.",
@@ -41,6 +43,7 @@ def get_conversations():
         },
         {
             "id": 3,
+            "ownerId": 1,
             "participant": {"id": 17, "name": "Kevin O'Brien", "headline": "Recruiter at Nexus | Connecting Top Tech Talent | ex-Google Recruiter", "avatarColor": "#915907", "isOnline": True},
             "unreadCount": 1,
             "lastMessage": "The package is $280K base + $150K RSU/year. Open to discussion!",
@@ -55,6 +58,7 @@ def get_conversations():
         },
         {
             "id": 4,
+            "ownerId": 1,
             "participant": {"id": 7, "name": "Marcus Williams", "headline": "Senior Software Engineer at Meta | React Core Team", "avatarColor": "#2C3E50", "isOnline": False},
             "unreadCount": 0,
             "lastMessage": "I'll open a PR tomorrow. Excited to collaborate!",
@@ -68,6 +72,7 @@ def get_conversations():
         },
         {
             "id": 5,
+            "ownerId": 1,
             "participant": {"id": 18, "name": "Ana Souza", "headline": "ML Engineer at OpenAI | NLP Research | LLMs | Author", "avatarColor": "#DD2590", "isOnline": True},
             "unreadCount": 3,
             "lastMessage": "Would you want to do a podcast episode on this? I think the audience would love it",
