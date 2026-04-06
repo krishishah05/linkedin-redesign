@@ -11,16 +11,10 @@ function AppProvider({ children }) {
   const [appError, setAppError] = React.useState(null);
 
   // ── UI state (mirrors App.state) ──────────────────────────
-  const [likedPosts, setLikedPosts] = React.useState(() => {
-    try { const s = localStorage.getItem('li-liked-posts'); return s ? new Set(JSON.parse(s)) : new Set(); } catch { return new Set(); }
-  });
+  const [likedPosts, setLikedPosts] = React.useState(() => new Set());
   const [savedJobs, setSavedJobs] = React.useState(() => new Set());
-  const [connections, setConnections] = React.useState(() => {
-    try { const s = localStorage.getItem('li-connections'); return s ? new Set(JSON.parse(s)) : new Set(); } catch { return new Set(); }
-  });
-  const [following, setFollowing] = React.useState(() => {
-    try { const s = localStorage.getItem('li-following'); return s ? new Set(JSON.parse(s)) : new Set(); } catch { return new Set(); }
-  });
+  const [connections, setConnections] = React.useState(() => new Set());
+  const [following, setFollowing] = React.useState(() => new Set());
   const [pendingConnections, setPendingConnections] = React.useState(() => new Set());
 
   const [dismissedInvitations, setDismissedInvitations] = React.useState(() => {
@@ -49,12 +43,35 @@ function AppProvider({ children }) {
     twoFactor: false,
   });
 
+  // Helper to get user-scoped localStorage key
+  const userIdRef = React.useRef(null);
+  React.useEffect(() => { userIdRef.current = currentUser?.id ?? null; }, [currentUser]);
+  function _save(key, set) {
+    const uid = userIdRef.current;
+    if (!uid) return;
+    try { localStorage.setItem(`${key}-${uid}`, JSON.stringify([...set])); } catch (_) {}
+  }
+
   // ── Modal state ───────────────────────────────────────────
   const [activeModal, setActiveModal] = React.useState(null);
   const [modalData, setModalData] = React.useState(null);
 
   // ── Toast state ───────────────────────────────────────────
   const [toasts, setToasts] = React.useState([]);
+
+  // ── Load user-scoped state once currentUser is known ─────
+  React.useEffect(() => {
+    if (!currentUser) return;
+    const uid = currentUser.id;
+    try {
+      const c = localStorage.getItem(`li-connections-${uid}`);
+      if (c) setConnections(new Set(JSON.parse(c)));
+      const f = localStorage.getItem(`li-following-${uid}`);
+      if (f) setFollowing(new Set(JSON.parse(f)));
+      const l = localStorage.getItem(`li-liked-posts-${uid}`);
+      if (l) setLikedPosts(new Set(JSON.parse(l)));
+    } catch (_) {}
+  }, [currentUser?.id]);
 
   // ── Bootstrap: fetch current user on mount ────────────────
   React.useEffect(() => {
@@ -105,7 +122,7 @@ function AppProvider({ children }) {
       const next = new Set(prev);
       if (next.has(postId)) next.delete(postId);
       else next.add(postId);
-      try { localStorage.setItem('li-liked-posts', JSON.stringify([...next])); } catch {}
+      _save('li-liked-posts', next);
       return next;
     });
   }
@@ -120,10 +137,9 @@ function AppProvider({ children }) {
   }
 
   function connect(userId) {
-    // Treat as immediately connected for demo purposes and persist
     setConnections(prev => {
       const next = new Set([...prev, String(userId)]);
-      try { localStorage.setItem('li-connections', JSON.stringify([...next])); } catch {}
+      _save('li-connections', next);
       return next;
     });
     setPendingConnections(prev => new Set([...prev, String(userId)]));
@@ -132,7 +148,7 @@ function AppProvider({ children }) {
   function acceptConnection(userId) {
     setConnections(prev => {
       const next = new Set([...prev, String(userId)]);
-      try { localStorage.setItem('li-connections', JSON.stringify([...next])); } catch {}
+      _save('li-connections', next);
       return next;
     });
     setPendingConnections(prev => {
@@ -170,7 +186,7 @@ function AppProvider({ children }) {
   function follow(userId) {
     setFollowing(prev => {
       const next = new Set([...prev, String(userId)]);
-      try { localStorage.setItem('li-following', JSON.stringify([...next])); } catch {}
+      _save('li-following', next);
       return next;
     });
   }
