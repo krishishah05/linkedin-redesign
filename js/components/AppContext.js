@@ -153,7 +153,15 @@ function AppProvider({ children }) {
       _save('li-liked-posts', next);
       return next;
     });
-    API.likePost(postId).catch(() => { showToast('Failed to react to post', 'error'); });
+    API.likePost(postId).catch(() => {
+      setLikedPosts(prev => {
+        const next = new Set(prev);
+        if (next.has(key)) next.delete(key); else next.add(key);
+        try { localStorage.setItem('li-liked-posts', JSON.stringify([...next])); } catch {}
+        return next;
+      });
+      showToast('Failed to react to post', 'error');
+    });
   }
 
   function toggleSaveJob(jobId) {
