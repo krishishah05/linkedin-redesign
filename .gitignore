@@ -13,3 +13,4 @@ venv/
 
 # SQLite database (auto-generated on startup)
 backend/nexus.db
+node_modules
