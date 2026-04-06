@@ -153,7 +153,7 @@ function AppProvider({ children }) {
       _save('li-liked-posts', next);
       return next;
     });
-    API.likePost(postId).catch(() => {});
+    API.likePost(postId).catch(() => { showToast('Failed to react to post', 'error'); });
   }
 
   function toggleSaveJob(jobId) {

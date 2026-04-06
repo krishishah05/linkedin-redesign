@@ -143,8 +143,12 @@ function FeedPage() {
               showToast={showToast}
               currentUser={u}
               onDelete={id => {
+                const deleted = (localPosts || []).find(p => p.id === id);
                 setLocalPosts(prev => prev.filter(p => p.id !== id));
-                API.deletePost(id).catch(() => {});
+                API.deletePost(id).catch(() => {
+                  showToast('Failed to delete post', 'error');
+                  if (deleted) setLocalPosts(prev => [deleted, ...(prev || [])]);
+                });
               }}
             />
             {/* Sponsored posts interspersed */}
