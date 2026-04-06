@@ -11,10 +11,16 @@ function AppProvider({ children }) {
   const [appError, setAppError] = React.useState(null);
 
   // ── UI state (mirrors App.state) ──────────────────────────
-  const [likedPosts, setLikedPosts] = React.useState(() => new Set());
+  const [likedPosts, setLikedPosts] = React.useState(() => {
+    try { const s = localStorage.getItem('li-liked-posts'); return s ? new Set(JSON.parse(s)) : new Set(); } catch { return new Set(); }
+  });
   const [savedJobs, setSavedJobs] = React.useState(() => new Set());
-  const [connections, setConnections] = React.useState(() => new Set());
-  const [following, setFollowing] = React.useState(() => new Set());
+  const [connections, setConnections] = React.useState(() => {
+    try { const s = localStorage.getItem('li-connections'); return s ? new Set(JSON.parse(s)) : new Set(); } catch { return new Set(); }
+  });
+  const [following, setFollowing] = React.useState(() => {
+    try { const s = localStorage.getItem('li-following'); return s ? new Set(JSON.parse(s)) : new Set(); } catch { return new Set(); }
+  });
   const [pendingConnections, setPendingConnections] = React.useState(() => new Set());
 
   const [dismissedInvitations, setDismissedInvitations] = React.useState(() => {
@@ -99,6 +105,7 @@ function AppProvider({ children }) {
       const next = new Set(prev);
       if (next.has(postId)) next.delete(postId);
       else next.add(postId);
+      try { localStorage.setItem('li-liked-posts', JSON.stringify([...next])); } catch {}
       return next;
     });
   }
@@ -113,11 +120,21 @@ function AppProvider({ children }) {
   }
 
   function connect(userId) {
+    // Treat as immediately connected for demo purposes and persist
+    setConnections(prev => {
+      const next = new Set([...prev, String(userId)]);
+      try { localStorage.setItem('li-connections', JSON.stringify([...next])); } catch {}
+      return next;
+    });
     setPendingConnections(prev => new Set([...prev, String(userId)]));
   }
 
   function acceptConnection(userId) {
-    setConnections(prev => new Set([...prev, String(userId)]));
+    setConnections(prev => {
+      const next = new Set([...prev, String(userId)]);
+      try { localStorage.setItem('li-connections', JSON.stringify([...next])); } catch {}
+      return next;
+    });
     setPendingConnections(prev => {
       const next = new Set(prev);
       next.delete(String(userId));
@@ -151,7 +168,11 @@ function AppProvider({ children }) {
   }
 
   function follow(userId) {
-    setFollowing(prev => new Set([...prev, String(userId)]));
+    setFollowing(prev => {
+      const next = new Set([...prev, String(userId)]);
+      try { localStorage.setItem('li-following', JSON.stringify([...next])); } catch {}
+      return next;
+    });
   }
 
   function joinGroup(groupId) {

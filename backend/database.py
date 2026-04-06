@@ -490,23 +490,62 @@ def get_all_conversations():
 
 
 def get_conversations_for_user(user_id: int):
-    """Return conversation summaries belonging to a specific user.
-    Conversations without an ownerId are treated as belonging to user 1 (demo account)."""
+    """Return conversation summaries where user is the owner or the participant."""
     conn = _connect()
     rows = conn.execute("SELECT id, data FROM conversations ORDER BY id").fetchall()
     conn.close()
     result = []
     for r in rows:
         meta = json.loads(r["data"])
-        owner = meta.get("ownerId", 1)
-        if int(owner) != int(user_id):
+        owner = int(meta.get("ownerId", 1))
+        participant_id = int(meta.get("participantId") or meta.get("participant", {}).get("id", 0) or 0)
+        if owner != int(user_id) and participant_id != int(user_id):
             continue
         meta["id"] = r["id"]
+        # If the current user is the participant (not owner), flip perspective
+        if owner != int(user_id) and participant_id == int(user_id):
+            owner_user = get_user_by_id(owner)
+            if owner_user:
+                meta["participant"] = {
+                    "id": owner_user["id"],
+                    "name": owner_user.get("name", ""),
+                    "headline": owner_user.get("headline", ""),
+                    "avatarColor": owner_user.get("avatarColor", "#0F5DBD"),
+                }
+                meta["participantName"] = owner_user.get("name", "")
         if "participantName" not in meta:
             p = meta.get("participant")
             meta["participantName"] = p.get("name", "") if isinstance(p, dict) else ""
         result.append(meta)
     return result
+
+
+def create_conversation(owner_id: int, participant: dict):
+    """Create a new conversation between owner and participant. Returns summary."""
+    now = _ts()
+    meta = {
+        "ownerId": owner_id,
+        "participantId": participant["id"],
+        "participant": {
+            "id": participant["id"],
+            "name": participant.get("name", ""),
+            "headline": participant.get("headline", ""),
+            "avatarColor": participant.get("avatarColor", "#0F5DBD"),
+        },
+        "participantName": participant.get("name", ""),
+        "unreadCount": 0,
+        "lastMessage": "",
+        "lastTimestamp": now,
+    }
+    conn = _connect()
+    c = conn.cursor()
+    c.execute("INSERT INTO conversations (data) VALUES (?)", (json.dumps(meta),))
+    new_id = c.lastrowid
+    conn.commit()
+    conn.close()
+    meta["id"] = new_id
+    meta["messages"] = []
+    return meta
 
 
 def get_conversation_by_id(conv_id: int):

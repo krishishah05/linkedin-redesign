@@ -157,6 +157,22 @@ img { max-width: 100%; }
   margin: 10px 4px;
   flex-shrink: 0;
 }
+.li-nav__dark-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--text-2);
+  transition: background 0.15s, color 0.15s;
+  flex-shrink: 0;
+}
+.li-nav__dark-toggle:hover { background: rgba(0,0,0,0.06); color: var(--text); }
+body.dark-mode .li-nav__dark-toggle:hover { background: rgba(255,255,255,0.08); }
 
 .li-nav__me { position: relative; }
 .li-nav__me-avatar {
@@ -2754,6 +2770,26 @@ body.dark-mode .li-people-result:hover { background: rgba(255,255,255,0.04); }
 /* Toggle switch track in dark mode */
 body.dark-mode .li-toggle { background: var(--border-2); }
 body.dark-mode .li-toggle.on { background: var(--blue); }
+
+/* Ensure no black/near-black text leaks through in dark mode */
+body.dark-mode [style*="color:#1D2226"],
+body.dark-mode [style*="color: #1D2226"],
+body.dark-mode [style*="color:#1d2226"],
+body.dark-mode [style*="color:#111"],
+body.dark-mode [style*="color: #111"],
+body.dark-mode [style*="color:#000"],
+body.dark-mode [style*="color: #000"],
+body.dark-mode [style*="color:black"],
+body.dark-mode [style*="color: black"],
+body.dark-mode [style*="color:#222"],
+body.dark-mode [style*="color: #222"] { color: var(--text) !important; }
+
+body.dark-mode [style*="color:#1e7e34"],
+body.dark-mode [style*="color: #1e7e34"] { color: #4ade80 !important; }
+
+body.dark-mode [style*="background:#E6F4EA"],
+body.dark-mode [style*="background: #E6F4EA"],
+body.dark-mode [style*="background:#e6f4ea"] { background: #0d2e18 !important; }
 
 /* Table rows in dark mode */
 body.dark-mode table { color: var(--text); }

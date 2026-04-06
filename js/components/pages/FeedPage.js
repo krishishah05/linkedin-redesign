@@ -2,7 +2,7 @@
    FEEDPAGE.JS — Main feed (matches original app.js quality)
    ============================================================ */
 function FeedPage() {
-  const { currentUser, likedPosts, toggleLike, following, follow, openModal, showToast } = React.useContext(AppContext);
+  const { currentUser, likedPosts, toggleLike, following, follow, connections, openModal, showToast } = React.useContext(AppContext);
   const { data: posts, loading, error } = useFetch(API.getFeed, []);
   const { data: news } = useFetch(API.getNews, []);
   const { data: hashtags } = useFetch(API.getHashtags, []);
@@ -25,7 +25,11 @@ function FeedPage() {
     </div>
   );
 
-  const rawPosts = localPosts || [];
+  const rawPosts = (localPosts || []).filter(post => {
+    const authorId = String(post.authorId || post.author?.id || '');
+    const myId = String((currentUser || {}).id || '');
+    return authorId === myId || connections.has(authorId);
+  });
   const allPosts = feedSort === 'Recent'
     ? [...rawPosts].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0))
     : [...rawPosts].sort((a, b) => {
@@ -149,7 +153,8 @@ function FeedPage() {
         {allPosts.length === 0 && (
           <div className="li-card" style={{ textAlign: 'center', padding: 40, color: 'var(--text-2)' }}>
             <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ marginBottom: 12, color: 'var(--text-3)' }}><path d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10l4 4v10a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-            <div>Your feed is empty. Follow people and companies to see posts here.</div>
+            <div style={{ fontWeight: 600, marginBottom: 6 }}>Your feed is empty</div>
+            <div style={{ fontSize: 13 }}>Connect with people on the <span style={{ color: 'var(--blue)', cursor: 'pointer' }} onClick={() => navigate('network')}>My Network</span> page to see their posts here.</div>
           </div>
         )}
       </div>

@@ -257,6 +257,23 @@ def get_company(company_id):
 # Conversation Endpoints
 # ══════════════════════════════════════════════════════════════
 
+@app.route("/api/conversations", methods=["POST"])
+def create_conversation():
+    """POST /api/conversations — start a new conversation with another user."""
+    user = _auth_user()
+    if not user:
+        abort(401, description="Authentication required")
+    body = request.get_json(silent=True) or {}
+    participant_id = body.get("participantId")
+    if not participant_id:
+        abort(400, description="participantId is required")
+    participant = dbl.get_user_by_id(int(participant_id))
+    if not participant:
+        abort(404, description="Participant not found")
+    conv = dbl.create_conversation(user["id"], participant)
+    return jsonify(conv), 201
+
+
 @app.route("/api/conversations")
 def get_conversations_list():
     """GET /api/conversations — message threads for the current user."""
@@ -273,7 +290,8 @@ def get_conversation(conv_id):
     conv = dbl.get_conversation_by_id(conv_id)
     if not conv:
         abort(404, description=f"Conversation {conv_id} not found")
-    if int(conv.get("ownerId", 1)) != uid:
+    participant_id = int(conv.get("participantId") or conv.get("participant", {}).get("id", 0) or 0)
+    if int(conv.get("ownerId", 1)) != uid and participant_id != uid:
         abort(403, description="Access denied")
     return jsonify(conv)
 

@@ -53,6 +53,7 @@
     // ── Conversations ─────────────────────────────────────────
     getConversations: () => request('GET', '/conversations'),
     getConversation: (id) => request('GET', `/conversations/${id}`),
+    createConversation: (participantId) => request('POST', '/conversations', { participantId }),
     sendMessage: (id, text) => request('POST', `/conversations/${id}/messages`, { text }),
 
     // ── Notifications ─────────────────────────────────────────
