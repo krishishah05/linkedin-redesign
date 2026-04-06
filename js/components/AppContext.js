@@ -11,11 +11,21 @@ function AppProvider({ children }) {
   const [appError, setAppError] = React.useState(null);
 
   // ── UI state (mirrors App.state) ──────────────────────────
-  const [likedPosts, setLikedPosts] = React.useState(() => new Set());
-  const [savedJobs, setSavedJobs] = React.useState(() => new Set());
-  const [connections, setConnections] = React.useState(() => new Set());
-  const [following, setFollowing] = React.useState(() => new Set());
-  const [pendingConnections, setPendingConnections] = React.useState(() => new Set());
+  const [likedPosts, setLikedPosts] = React.useState(() => {
+    try { const s = localStorage.getItem('li-liked-posts'); return s ? new Set(JSON.parse(s)) : new Set(); } catch { return new Set(); }
+  });
+  const [savedJobs, setSavedJobs] = React.useState(() => {
+    try { const s = localStorage.getItem('li-saved-jobs'); return s ? new Set(JSON.parse(s)) : new Set(); } catch { return new Set(); }
+  });
+  const [connections, setConnections] = React.useState(() => {
+    try { const s = localStorage.getItem('li-connections'); return s ? new Set(JSON.parse(s)) : new Set(); } catch { return new Set(); }
+  });
+  const [following, setFollowing] = React.useState(() => {
+    try { const s = localStorage.getItem('li-following'); return s ? new Set(JSON.parse(s)) : new Set(); } catch { return new Set(); }
+  });
+  const [pendingConnections, setPendingConnections] = React.useState(() => {
+    try { const s = localStorage.getItem('li-pending-conn'); return s ? new Set(JSON.parse(s)) : new Set(); } catch { return new Set(); }
+  });
 
   const [dismissedInvitations, setDismissedInvitations] = React.useState(() => {
     try { const s = localStorage.getItem('li-dismissed-inv'); return s ? new Set(JSON.parse(s)) : new Set(); } catch { return new Set(); }
@@ -24,7 +34,7 @@ function AppProvider({ children }) {
     try { const s = localStorage.getItem('li-applied-jobs'); return s ? new Set(JSON.parse(s)) : new Set(); } catch { return new Set(); }
   });
   const [joinedGroups, setJoinedGroups] = React.useState(() => {
-    try { const s = localStorage.getItem('li-joined-groups'); return s ? new Set(JSON.parse(s)) : new Set([1, 2, 4]); } catch { return new Set([1, 2, 4]); }
+    try { const s = localStorage.getItem('li-joined-groups'); return s ? new Set(JSON.parse(s)) : new Set(['1', '2', '4']); } catch { return new Set(['1', '2', '4']); }
   });
   const [unreadMessages, setUnreadMessages] = React.useState(0);
   const [unreadNotifications, setUnreadNotifications] = React.useState(0);
@@ -34,13 +44,25 @@ function AppProvider({ children }) {
     () => localStorage.getItem('li-dark-mode') === '1'
   );
 
-  const [settings, setSettings] = React.useState({
-    emailNotifications: true,
-    pushNotifications: true,
-    publicProfile: true,
-    showConnections: true,
-    openToWork: false,
-    twoFactor: false,
+  const [settings, setSettings] = React.useState(() => {
+    try {
+      const s = localStorage.getItem('li-settings');
+      return s ? JSON.parse(s) : {
+        emailNotifications: true, pushNotifications: true,
+        publicProfile: true, showConnections: true,
+        openToWork: false, twoFactor: false,
+        jobAlerts: true, networkUpdates: true,
+        profileViews: true, personalizedAds: false, shareData: false,
+      };
+    } catch {
+      return {
+        emailNotifications: true, pushNotifications: true,
+        publicProfile: true, showConnections: true,
+        openToWork: false, twoFactor: false,
+        jobAlerts: true, networkUpdates: true,
+        profileViews: true, personalizedAds: false, shareData: false,
+      };
+    }
   });
 
   // Helper to get user-scoped localStorage key
@@ -116,33 +138,41 @@ function AppProvider({ children }) {
     localStorage.setItem('li-dark-mode', darkMode ? '1' : '0');
   }, [darkMode]);
 
+  // ── Settings persistence ──────────────────────────────────
+  React.useEffect(() => {
+    try { localStorage.setItem('li-settings', JSON.stringify(settings)); } catch {}
+  }, [settings]);
+
   // ── Actions ───────────────────────────────────────────────
   function toggleLike(postId) {
+    const key = String(postId);
     setLikedPosts(prev => {
       const next = new Set(prev);
-      if (next.has(postId)) next.delete(postId);
-      else next.add(postId);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
       _save('li-liked-posts', next);
       return next;
     });
+    API.likePost(postId).catch(() => {});
   }
 
   function toggleSaveJob(jobId) {
+    const key = String(jobId);
     setSavedJobs(prev => {
       const next = new Set(prev);
-      if (next.has(jobId)) next.delete(jobId);
-      else next.add(jobId);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      try { localStorage.setItem('li-saved-jobs', JSON.stringify([...next])); } catch {}
       return next;
     });
   }
 
   function connect(userId) {
-    setConnections(prev => {
+    setPendingConnections(prev => {
       const next = new Set([...prev, String(userId)]);
-      _save('li-connections', next);
+      try { localStorage.setItem('li-pending-conn', JSON.stringify([...next])); } catch {}
       return next;
     });
-    setPendingConnections(prev => new Set([...prev, String(userId)]));
   }
 
   function acceptConnection(userId) {
@@ -154,6 +184,7 @@ function AppProvider({ children }) {
     setPendingConnections(prev => {
       const next = new Set(prev);
       next.delete(String(userId));
+      try { localStorage.setItem('li-pending-conn', JSON.stringify([...next])); } catch {}
       return next;
     });
   }
@@ -185,7 +216,10 @@ function AppProvider({ children }) {
 
   function follow(userId) {
     setFollowing(prev => {
-      const next = new Set([...prev, String(userId)]);
+      const next = new Set(prev);
+      const key = String(userId);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
       _save('li-following', next);
       return next;
     });
@@ -193,7 +227,7 @@ function AppProvider({ children }) {
 
   function joinGroup(groupId) {
     setJoinedGroups(prev => {
-      const next = new Set([...prev, groupId]);
+      const next = new Set([...prev, String(groupId)]);
       try { localStorage.setItem('li-joined-groups', JSON.stringify([...next])); } catch {}
       return next;
     });
@@ -202,7 +236,7 @@ function AppProvider({ children }) {
   function leaveGroup(groupId) {
     setJoinedGroups(prev => {
       const next = new Set(prev);
-      next.delete(groupId);
+      next.delete(String(groupId));
       try { localStorage.setItem('li-joined-groups', JSON.stringify([...next])); } catch {}
       return next;
     });
