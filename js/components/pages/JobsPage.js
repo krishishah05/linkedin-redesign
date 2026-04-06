@@ -182,7 +182,7 @@ function JobDetailPanel({ job, savedJobs, toggleSaveJob, openModal, showToast, i
       <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
         <button
           className="li-btn li-btn--primary"
-          onClick={() => { if (!isApplied(job.id)) { applyJob(job.id); openModal('apply', { jobTitle: job.title, job }); } }}
+          onClick={() => { if (!isApplied(job.id)) { openModal('apply', { jobTitle: job.title, job, onApply: () => applyJob(job.id) }); } }}
           style={{ flex: 1, opacity: isApplied(job.id) ? 0.7 : 1 }}
           disabled={isApplied(job.id)}
         >

@@ -34,6 +34,7 @@ function ApplyModal() {
     }
     if (step < TOTAL_STEPS) { setStep(s => s + 1); return; }
     // Final submit
+    if (modalData && modalData.onApply) modalData.onApply();
     showToast('Application submitted! Good luck!');
     closeModal();
   }
