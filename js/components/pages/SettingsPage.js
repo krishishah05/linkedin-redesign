@@ -4,6 +4,8 @@
 function SettingsPage() {
   const { settings, setSettings, darkMode, setDarkMode, showToast, currentUser, setCurrentUser } = React.useContext(AppContext);
   const [tab, setTab] = React.useState('notifications');
+  const [savingAccount, setSavingAccount] = React.useState(false);
+  const [updatingPw, setUpdatingPw] = React.useState(false);
   const [passwordData, setPasswordData] = React.useState({ current: '', newPw: '', confirm: '' });
   const [accountForm, setAccountForm] = React.useState(() => ({
     firstName: currentUser ? (currentUser.name || '').split(' ')[0] : '',
@@ -169,14 +171,16 @@ function SettingsPage() {
                     <input className="li-settings-input" value={accountForm.phone} onChange={e => setAccountForm(f => ({ ...f, phone: e.target.value }))} style={{ width: '100%', boxSizing: 'border-box' }} />
                   </div>
                 </div>
-                <button className="li-btn li-btn--primary li-btn--sm" style={{ marginTop: 8 }} onClick={() => {
+                <button className="li-btn li-btn--primary li-btn--sm" style={{ marginTop: 8 }} disabled={savingAccount} onClick={() => {
                   if (!accountForm.firstName.trim()) { showToast('First name is required', 'error'); return; }
+                  if (savingAccount) return;
+                  setSavingAccount(true);
                   const name = (accountForm.firstName + ' ' + accountForm.lastName).trim();
                   API.updateMe({ name, email: accountForm.email, phone: accountForm.phone })
-                    .then(updated => { setCurrentUser(updated); showToast('Account settings saved!'); })
-                    .catch(() => showToast('Failed to save account settings', 'error'));
+                    .then(updated => { setCurrentUser(updated); showToast('Account settings saved!'); setSavingAccount(false); })
+                    .catch(() => { showToast('Failed to save account settings', 'error'); setSavingAccount(false); });
                 }}>
-                  Save changes
+                  {savingAccount ? 'Saving…' : 'Save changes'}
                 </button>
               </div>
             )}
@@ -231,16 +235,19 @@ function SettingsPage() {
                         value={passwordData.confirm} onChange={e => setPasswordData(p => ({ ...p, confirm: e.target.value }))} />
                     </div>
                     <button className="li-btn li-btn--primary li-btn--sm" style={{ alignSelf: 'flex-start' }}
+                      disabled={updatingPw}
                       onClick={() => {
                         if (!passwordData.current) { showToast('Current password is required', 'error'); return; }
                         if (!passwordData.newPw) { showToast('New password is required', 'error'); return; }
                         if (passwordData.newPw.length < 8) { showToast('Password must be at least 8 characters', 'error'); return; }
                         if (passwordData.newPw !== passwordData.confirm) { showToast('Passwords do not match', 'error'); return; }
+                        if (updatingPw) return;
+                        setUpdatingPw(true);
                         API.changePassword(passwordData.current, passwordData.newPw)
-                          .then(() => { showToast('Password updated successfully!'); setPasswordData({ current: '', newPw: '', confirm: '' }); })
-                          .catch(err => showToast(err.message || 'Failed to update password', 'error'));
+                          .then(() => { showToast('Password updated successfully!'); setPasswordData({ current: '', newPw: '', confirm: '' }); setUpdatingPw(false); })
+                          .catch(err => { showToast(err.message || 'Failed to update password', 'error'); setUpdatingPw(false); });
                       }}>
-                      Update password
+                      {updatingPw ? 'Updating…' : 'Update password'}
                     </button>
                   </div>
                 </div>

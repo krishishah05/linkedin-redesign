@@ -13,6 +13,7 @@ function MessagingPage() {
   const [messages, setMessages] = React.useState([]);
   const [msgLoading, setMsgLoading] = React.useState(false);
   const [draft, setDraft] = React.useState('');
+  const [sending, setSending] = React.useState(false);
   const [search, setSearch] = React.useState('');
   const [composing, setComposing] = React.useState(false);
   const [composeSearch, setComposeSearch] = React.useState('');
@@ -97,9 +98,10 @@ function MessagingPage() {
   }
 
   function sendMessage() {
-    if (!draft.trim() || !selectedId) return;
+    if (!draft.trim() || !selectedId || sending) return;
     const text = draft.trim();
     setDraft('');
+    setSending(true);
 
     // Optimistic update
     const newMsg = {
@@ -111,9 +113,9 @@ function MessagingPage() {
     };
     setMessages(prev => [...prev, newMsg]);
 
-    API.sendMessage(selectedId, text).catch(() => {
-      showToast('Failed to send message', 'error');
-    });
+    API.sendMessage(selectedId, text)
+      .catch(() => { showToast('Failed to send message', 'error'); })
+      .finally(() => setSending(false));
   }
 
   // ────────────────────────────────────────────────────────────
@@ -527,8 +529,8 @@ function MessagingPage() {
               onKeyDown={e => { if (e.key === 'Enter') sendMessage(); }}
               style={{ flex: 1 }}
             />
-            <button className="li-btn li-btn--primary" onClick={sendMessage}>
-              Send
+            <button className="li-btn li-btn--primary" onClick={sendMessage} disabled={sending}>
+              {sending ? 'Sending…' : 'Send'}
             </button>
           </div>
         </div>
