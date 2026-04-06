@@ -17,7 +17,7 @@ function NotificationsPage() {
     API.markRead(id).then(() => {
       setNotifications(prev => (prev || []).map(n => n.id === id ? { ...n, isRead: true } : n));
       setUnreadNotifications(prev => Math.max(0, prev - 1));
-    }).catch(() => {});
+    }).catch(() => { showToast('Failed to mark as read', 'error'); });
   }
 
   function markAllRead() {
@@ -25,7 +25,7 @@ function NotificationsPage() {
       setNotifications(prev => (prev || []).map(n => ({ ...n, isRead: true })));
       setUnreadNotifications(0);
       showToast('All notifications marked as read');
-    }).catch(() => {});
+    }).catch(() => { showToast('Failed to mark notifications as read', 'error'); });
   }
 
   if (loading) return <LoadingSpinner text="Loading notifications..." />;

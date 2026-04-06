@@ -2,7 +2,7 @@
    NETWORKPAGE.JS — My Network / People You May Know
    ============================================================ */
 function NetworkPage() {
-  const { connections, connect, pendingConnections, showToast, pendingInvitations, resolveInvitation } = React.useContext(AppContext);
+  const { connections, connect, acceptConnection, pendingConnections, showToast, pendingInvitations, resolveInvitation, dismissedInvitations, dismissInvitation } = React.useContext(AppContext);
   const { data: users, loading: usersLoading } = useFetch(API.getUsers, []);
   const [tab, setTab] = React.useState('suggestions');
 
@@ -44,7 +44,8 @@ function NetworkPage() {
                           showToast('Invitation ignored');
                         }}>Ignore</button>
                         <button className="li-btn li-btn--outline li-btn--sm" onClick={() => {
-                          resolveInvitation(invName);
+                          dismissInvitation(invName);
+                          acceptConnection(invUser.id);
                           showToast(`Connected with ${invName}!`);
                         }}>Accept</button>
                       </div>

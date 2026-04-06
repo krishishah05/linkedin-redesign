@@ -4,6 +4,7 @@
 function CreateEventModal() {
   const { closeModal, currentUser, showToast } = React.useContext(AppContext);
   const [eventType, setEventType] = React.useState('online');
+  const [creating, setCreating] = React.useState(false);
   const [form, setForm] = React.useState({
     name: '',
     organizer: currentUser ? currentUser.name : '',
@@ -25,12 +26,15 @@ function CreateEventModal() {
     if (!form.endTime) { showToast('End time is required', 'error'); return; }
     if (form.endDate < form.startDate) { showToast('End date must be after start date', 'error'); return; }
     if (form.endDate === form.startDate && form.endTime <= form.startTime) { showToast('End time must be after start time', 'error'); return; }
+    if (creating) return;
+    setCreating(true);
     API.createEvent({ ...form, type: eventType }).then(() => {
       showToast('Event created!');
       closeModal();
       navigate('events');
     }).catch(() => {
       showToast('Failed to create event', 'error');
+      setCreating(false);
     });
   }
 
@@ -110,7 +114,7 @@ function CreateEventModal() {
         </div>
         <div className="li-modal__footer">
           <button className="li-btn li-btn--ghost li-btn--sm" onClick={closeModal}>Cancel</button>
-          <button className="li-btn li-btn--primary li-btn--sm" onClick={handleCreate}>Create event</button>
+          <button className="li-btn li-btn--primary li-btn--sm" onClick={handleCreate} disabled={creating}>{creating ? 'Creating…' : 'Create event'}</button>
         </div>
       </div>
     </div>

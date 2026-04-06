@@ -127,7 +127,7 @@ function LearningPage() {
                   <p style={{ fontSize: 13, color: 'var(--text-2)', marginBottom: 8 }}>{course.instructor}</p>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
                     <span style={{ fontSize: 12, color: '#b45309', fontWeight: 600 }}>
-                      {'★'.repeat(Math.min(5, Math.floor(course.rating || 4)))} {course.rating}
+                      {'★'.repeat(Math.min(5, Math.floor(course.rating ?? 4)))} {course.rating}
                     </span>
                     <span style={{ fontSize: 12, color: 'var(--text-2)' }}>({formatNumber(course.reviews || course.students || 0)})</span>
                     <span style={{ fontSize: 12, color: 'var(--text-2)' }}>{course.duration}</span>

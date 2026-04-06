@@ -399,7 +399,7 @@ function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, followi
     }, ...prev]);
     setCommentDraft('');
     showToast('Comment posted!');
-    API.commentOnPost(post.id, text).catch(() => {});
+    API.commentOnPost(post.id, text).catch(() => { showToast('Failed to post comment', 'error'); });
   }
 
   const content = post.content || '';

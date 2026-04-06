@@ -82,7 +82,7 @@
     getHashtags: () => request('GET', '/hashtags'),
 
     // ── Search ────────────────────────────────────────────────
-    search: (q) => request('GET', `/search?q=${encodeURIComponent(q)}`),
+    search: (q) => request('GET', `/search?q=${encodeURIComponent(q || '')}`),
 
     // ── Profile (education / skills) ──────────────────────────
     addEducation: (entry) => request('POST', '/me/education', entry),
