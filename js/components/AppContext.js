@@ -55,14 +55,19 @@ function AppProvider({ children }) {
       .then(user => {
         setCurrentUser(user);
         setAppLoading(false);
-        // Pre-populate UI state from user data
-        if (user.connections) {
-          // Seed connections Set from API if needed
-        }
       })
       .catch(err => {
-        setAppError(err.message);
-        setAppLoading(false);
+        if (err.status === 401) {
+          // Session expired or invalid — clear stored credentials and go to login
+          try {
+            localStorage.removeItem('nx-token');
+            localStorage.removeItem('nx-uid');
+          } catch (_) {}
+          window.location.href = 'index.html';
+        } else {
+          setAppError(err.message);
+          setAppLoading(false);
+        }
       });
   }, []);
 

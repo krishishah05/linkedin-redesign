@@ -40,13 +40,12 @@ dbl.init_db()
 def _auth_user():
     """
     Extract and validate the session token from the Authorization header.
-    Returns the user dict, or user id=1 as fallback for unauthenticated requests
-    (preserves backward compatibility when the app is opened without logging in).
+    Returns the user dict on success, or None if unauthenticated/invalid token.
     """
     auth = request.headers.get("Authorization", "")
     token = auth.removeprefix("Bearer ").strip() if auth.startswith("Bearer ") else ""
     uid = dbl.get_session_user_id(token) if token else None
-    return dbl.get_current_user(uid if uid else 1)
+    return dbl.get_current_user(uid) if uid else None
 
 
 # ── Serve SPA ─────────────────────────────────────────────────
@@ -142,7 +141,7 @@ def get_me():
     """GET /api/me — current logged-in user profile."""
     user = _auth_user()
     if not user:
-        abort(404, description="Current user not found")
+        abort(401, description="Authentication required")
     return jsonify(user)
 
 
@@ -216,7 +215,7 @@ def create_post():
 
     current_user = _auth_user()
     if not current_user:
-        abort(500, description="Current user not found")
+        abort(401, description="Authentication required")
 
     post = dbl.create_post(current_user["id"], content)
     return jsonify(post), 201
@@ -288,7 +287,7 @@ def post_message(conv_id):
 
     current_user = _auth_user()
     if not current_user:
-        abort(500, description="Current user not found")
+        abort(401, description="Authentication required")
     msg = dbl.send_message(conv_id, sender_id=current_user["id"], text=text)
     msg["isMe"] = True
     return jsonify(msg), 201
@@ -384,6 +383,8 @@ def search():
 def get_profile_readiness():
     """GET /api/profile-readiness — compute profile completeness score."""
     u = _auth_user()
+    if not u:
+        abort(401, description="Authentication required")
 
     headline_len = len((u.get("headline") or "").strip())
     about_len    = len((u.get("about") or "").strip())
@@ -455,6 +456,8 @@ def outreach_generate():
     context = {"tone": tone, "goal": goal, "custom_note": custom_note, "details": details}
 
     current_user = _auth_user()
+    if not current_user:
+        abort(401, description="Authentication required")
     result = outreach_mod.generate_outreach_message(
         current_user,
         recipient,
@@ -485,6 +488,8 @@ def outreach_readiness():
             abort(404, description=f"User {user_id} not found")
     else:
         user = _auth_user()
+        if not user:
+            abort(401, description="Authentication required")
 
     return jsonify(outreach_mod.compute_outreach_readiness(user)), 200
 
