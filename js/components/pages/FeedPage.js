@@ -419,7 +419,7 @@ function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, followi
           </div>
         </div>
         <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexShrink: 0 }}>
-          {!isFollowingAuthor && (
+          {!isFollowingAuthor && String(authorId) !== String(currentUser?.id) && (
             <button
               onClick={() => { onFollow(authorId); showToast(`Following ${authorName}`); }}
               style={{ border: '1px solid var(--blue)', color: 'var(--blue)', background: 'none', borderRadius: 20, padding: '5px 14px', fontSize: 13, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}>

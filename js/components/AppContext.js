@@ -28,6 +28,7 @@ function AppProvider({ children }) {
   });
   const [unreadMessages, setUnreadMessages] = React.useState(0);
   const [unreadNotifications, setUnreadNotifications] = React.useState(0);
+  const [pendingInvitations, setPendingInvitations] = React.useState([]);
 
   const [darkMode, setDarkMode] = React.useState(
     () => localStorage.getItem('li-dark-mode') === '1'
@@ -71,16 +72,18 @@ function AppProvider({ children }) {
       });
   }, []);
 
-  // Fetch unread counts on mount
+  // Fetch unread counts and invitations on mount
   React.useEffect(() => {
     Promise.all([
       API.getConversations().catch(() => []),
       API.getNotifications().catch(() => []),
-    ]).then(([convs, notifs]) => {
+      API.getInvitations().catch(() => []),
+    ]).then(([convs, notifs, invs]) => {
       const msgs = convs.reduce((sum, c) => sum + (c.unreadCount || 0), 0);
       const unreadNotifs = notifs.filter(n => !n.isRead).length;
       setUnreadMessages(msgs);
       setUnreadNotifications(unreadNotifs);
+      setPendingInvitations(invs || []);
     });
   }, []);
 
@@ -128,6 +131,15 @@ function AppProvider({ children }) {
       try { localStorage.setItem('li-dismissed-inv', JSON.stringify([...next])); } catch {}
       return next;
     });
+  }
+
+  function resolveInvitation(invName) {
+    setPendingInvitations(prev =>
+      prev.filter(inv => {
+        const name = (inv.user || inv).name || inv.senderName || '';
+        return name !== invName;
+      })
+    );
   }
 
   function applyJob(jobId) {
@@ -202,6 +214,8 @@ function AppProvider({ children }) {
     setCurrentUser,
     dismissedInvitations,
     dismissInvitation,
+    pendingInvitations,
+    resolveInvitation,
     appliedJobs,
     applyJob,
     joinedGroups,

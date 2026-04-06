@@ -2,17 +2,14 @@
    NETWORKPAGE.JS — My Network / People You May Know
    ============================================================ */
 function NetworkPage() {
-  const { connections, connect, pendingConnections, showToast, dismissedInvitations, dismissInvitation } = React.useContext(AppContext);
+  const { connections, connect, pendingConnections, showToast, pendingInvitations, resolveInvitation } = React.useContext(AppContext);
   const { data: users, loading: usersLoading } = useFetch(API.getUsers, []);
-  const { data: invitations, loading: invitesLoading } = useFetch(API.getInvitations, []);
   const [tab, setTab] = React.useState('suggestions');
 
-  const loading = usersLoading || invitesLoading;
-  if (loading) return <LoadingSpinner text="Loading network..." />;
+  if (usersLoading) return <LoadingSpinner text="Loading network..." />;
 
   const allUsers = users || [];
-  const allInvitations = invitations || [];
-  const visibleInvitations = allInvitations.filter(inv => !dismissedInvitations.has((inv.user || inv).name || inv.senderName || ''));
+  const visibleInvitations = pendingInvitations;
 
   return (
     <div className="li-page-inner">
@@ -43,11 +40,11 @@ function NetworkPage() {
                       </div>
                       <div style={{ display: 'flex', gap: 8 }}>
                         <button className="li-btn li-btn--ghost li-btn--sm" onClick={() => {
-                          dismissInvitation(invName);
+                          resolveInvitation(invName);
                           showToast('Invitation ignored');
                         }}>Ignore</button>
                         <button className="li-btn li-btn--outline li-btn--sm" onClick={() => {
-                          dismissInvitation(invName);
+                          resolveInvitation(invName);
                           showToast(`Connected with ${invName}!`);
                         }}>Accept</button>
                       </div>

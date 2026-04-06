@@ -353,7 +353,12 @@ def get_news():
 
 @app.route("/api/invitations")
 def get_invitations():
-    return jsonify(static_data.INVITATIONS)
+    """Return pending invitations for the current user.
+    Falls back to hardcoded seed data only for the demo account (id=1)."""
+    user = _auth_user()
+    if user and user.get("id") == 1:
+        return jsonify(static_data.INVITATIONS)
+    return jsonify([])
 
 
 @app.route("/api/hashtags")
