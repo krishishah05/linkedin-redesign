@@ -10,7 +10,12 @@ __pycache__/
 .env
 venv/
 .venv/
-
+node_modules/
 # SQLite database (auto-generated on startup)
 backend/nexus.db
-node_modules
+
+
+.stryker-tmp
+# tests/tests/coverage-report/ — tracked intentionally
+.coverage
+.mutmut-cache

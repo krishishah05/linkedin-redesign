@@ -5,7 +5,7 @@ function GroupDetailPage({ groupId }) {
   const { showToast, joinedGroups, joinGroup, leaveGroup } = React.useContext(AppContext);
   const { data: group, loading, error } = useFetch(() => API.getGroup(groupId), [groupId]);
   const [tab, setTab] = React.useState('posts');
-  const joined = joinedGroups.has(groupId) || joinedGroups.has(Number(groupId));
+  const joined = joinedGroups.has(String(groupId));
 
   if (loading) return <LoadingSpinner text="Loading group..." />;
   if (error) return <ErrorMessage message={error} onRetry={() => window.location.reload()} />;

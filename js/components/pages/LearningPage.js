@@ -5,6 +5,7 @@ function LearningPage() {
   const { showToast } = React.useContext(AppContext);
   const { data: courses, loading, error } = useFetch(API.getCourses, []);
   const [tab, setTab] = React.useState('explore');
+  const [searchQ, setSearchQ] = React.useState('');
 
   const tabs = ['My Learning', 'Completed', 'Saved', 'Explore'];
 
@@ -22,7 +23,13 @@ function LearningPage() {
     'saved': saved,
     'explore': allCourses,
   };
-  const shownCourses = tabCourses[tab] || allCourses;
+  const baseShown = tabCourses[tab] || allCourses;
+  const shownCourses = (tab === 'explore' && searchQ.trim())
+    ? baseShown.filter(c => {
+        const q = searchQ.toLowerCase();
+        return c.title?.toLowerCase().includes(q) || c.instructor?.toLowerCase().includes(q) || (Array.isArray(c.skills) && c.skills.some(s => s.toLowerCase().includes(q)));
+      })
+    : baseShown;
 
   return (
     <div className="li-page-inner" style={{ maxWidth: 900 }}>
@@ -66,6 +73,8 @@ function LearningPage() {
           <div style={{ marginBottom: 16, position: 'relative' }}>
             <input
               type="text"
+              value={searchQ}
+              onChange={e => setSearchQ(e.target.value)}
               placeholder="Search courses, skills, and more..."
               style={{
                 width: '100%', padding: '12px 16px 12px 40px',

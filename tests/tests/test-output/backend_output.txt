@@ -1,0 +1,264 @@
+================================================================
+BACKEND TEST OUTPUT
+Generated: Sun Apr  5 13:57:35 EDT 2026
+================================================================
+
+================================================================
+TEST SUITE 1: database.py  (86 tests, 83% coverage)
+================================================================
+============================= test session starts ==============================
+platform darwin -- Python 3.14.1, pytest-9.0.2, pluggy-1.6.0 -- /opt/homebrew/opt/python@3.14/bin/python3.14
+cachedir: .pytest_cache
+rootdir: /Users/krishishah/Desktop/NJIT/CS485/Linkedin Redesign
+plugins: cov-7.1.0
+collecting ... collected 86 items
+
+../tests/tests/test-files/test_database.py::TestHashPw::test_T01_WB_same_input_same_hash PASSED [  1%]
+../tests/tests/test-files/test_database.py::TestHashPw::test_T02_WB_different_inputs_different_hashes PASSED [  2%]
+../tests/tests/test-files/test_database.py::TestHashPw::test_T03_EC_empty_string_hashable PASSED [  3%]
+../tests/tests/test-files/test_database.py::TestHashPw::test_T04_BB_returns_64_char_hex PASSED [  4%]
+../tests/tests/test-files/test_database.py::TestTs::test_T05_BB_returns_positive_int PASSED [  5%]
+../tests/tests/test-files/test_database.py::TestTs::test_T06_GB_within_2s_of_now PASSED [  6%]
+../tests/tests/test-files/test_database.py::TestVerifyCredentials::test_T07_BB_correct_credentials_return_user PASSED [  8%]
+../tests/tests/test-files/test_database.py::TestVerifyCredentials::test_T08_WB_unknown_email_returns_none PASSED [  9%]
+../tests/tests/test-files/test_database.py::TestVerifyCredentials::test_T09_WB_wrong_password_returns_none PASSED [ 10%]
+../tests/tests/test-files/test_database.py::TestVerifyCredentials::test_T10_EP_email_lookup_case_insensitive PASSED [ 11%]
+../tests/tests/test-files/test_database.py::TestVerifyCredentials::test_T11_EC_empty_email_returns_none PASSED [ 12%]
+../tests/tests/test-files/test_database.py::TestSessions::test_T12_BB_create_session_returns_64_char_token PASSED [ 13%]
+../tests/tests/test-files/test_database.py::TestSessions::test_T13_WB_token_stored_in_sessions_dict PASSED [ 15%]
+../tests/tests/test-files/test_database.py::TestSessions::test_T14_WB_token_persisted_to_db PASSED [ 16%]
+../tests/tests/test-files/test_database.py::TestSessions::test_T15_BB_two_sessions_are_unique PASSED [ 17%]
+../tests/tests/test-files/test_database.py::TestSessions::test_T16_WB_empty_token_returns_none PASSED [ 18%]
+../tests/tests/test-files/test_database.py::TestSessions::test_T17_EC_none_token_returns_none PASSED [ 19%]
+../tests/tests/test-files/test_database.py::TestSessions::test_T18_WB_in_memory_cache_fast_path PASSED [ 20%]
+../tests/tests/test-files/test_database.py::TestSessions::test_T19_WB_db_fallback_after_cache_cleared PASSED [ 22%]
+../tests/tests/test-files/test_database.py::TestSessions::test_T20_WB_unknown_token_returns_none PASSED [ 23%]
+../tests/tests/test-files/test_database.py::TestSessions::test_T21_RG_db_fallback_still_works_after_restart PASSED [ 24%]
+../tests/tests/test-files/test_database.py::TestGetCurrentUser::test_T22_BB_valid_id_returns_user PASSED [ 25%]
+../tests/tests/test-files/test_database.py::TestGetCurrentUser::test_T23_BB_nonexistent_id_returns_none PASSED [ 26%]
+../tests/tests/test-files/test_database.py::TestUpdateCurrentUser::test_T24_BB_updates_headline PASSED [ 27%]
+../tests/tests/test-files/test_database.py::TestUpdateCurrentUser::test_T25_WB_nonexistent_user_returns_none PASSED [ 29%]
+../tests/tests/test-files/test_database.py::TestUpdateCurrentUser::test_T26_EP_unknown_keys_silently_ignored PASSED [ 30%]
+../tests/tests/test-files/test_database.py::TestUpdateCurrentUser::test_T27_EC_empty_updates_returns_user_unchanged PASSED [ 31%]
+../tests/tests/test-files/test_database.py::TestUpdateCurrentUser::test_T28_BB_all_allowed_fields_update PASSED [ 32%]
+../tests/tests/test-files/test_database.py::TestUserLookup::test_T29_BB_get_all_users_excludes_specified_id PASSED [ 33%]
+../tests/tests/test-files/test_database.py::TestUserLookup::test_T30_EP_exclude_nonexistent_id_returns_all PASSED [ 34%]
+../tests/tests/test-files/test_database.py::TestUserLookup::test_T31_EC_exclude_only_user_returns_empty PASSED [ 36%]
+../tests/tests/test-files/test_database.py::TestUserLookup::test_T32_BB_get_user_by_id_returns_dict PASSED [ 37%]
+../tests/tests/test-files/test_database.py::TestUserLookup::test_T33_BB_get_user_by_id_nonexistent_returns_none PASSED [ 38%]
+../tests/tests/test-files/test_database.py::TestUserLookup::test_T34_WB_string_id_cast_to_int PASSED [ 39%]
+../tests/tests/test-files/test_database.py::TestCreateUser::test_T35_BB_creates_user_with_expected_fields PASSED [ 40%]
+../tests/tests/test-files/test_database.py::TestCreateUser::test_T36_WB_duplicate_email_raises_value_error PASSED [ 41%]
+../tests/tests/test-files/test_database.py::TestCreateUser::test_T37_EP_email_normalized_to_lowercase PASSED [ 43%]
+../tests/tests/test-files/test_database.py::TestCreateUser::test_T38_WB_new_user_default_fields PASSED [ 44%]
+../tests/tests/test-files/test_database.py::TestCreateUser::test_T39_EC_user_can_be_found_after_creation PASSED [ 45%]
+../tests/tests/test-files/test_database.py::TestDeleteUser::test_T40_BB_returns_true_on_success PASSED [ 46%]
+../tests/tests/test-files/test_database.py::TestDeleteUser::test_T41_BB_returns_false_if_not_found PASSED [ 47%]
+../tests/tests/test-files/test_database.py::TestDeleteUser::test_T42_WB_raises_for_user_id_1 PASSED [ 48%]
+../tests/tests/test-files/test_database.py::TestDeleteUser::test_T43_GB_threshold_id1_raises_id2_does_not PASSED [ 50%]
+../tests/tests/test-files/test_database.py::TestDeleteUser::test_T44_WB_user_removed_from_db_after_delete PASSED [ 51%]
+../tests/tests/test-files/test_database.py::TestPosts::test_T45_BB_get_all_posts_returns_expected_fields PASSED [ 52%]
+../tests/tests/test-files/test_database.py::TestPosts::test_T46_RG_posts_ordered_newest_first PASSED [ 53%]
+../tests/tests/test-files/test_database.py::TestPosts::test_T47_WB_likecount_from_total_reactions PASSED [ 54%]
+../tests/tests/test-files/test_database.py::TestPosts::test_T48_EC_empty_posts_returns_empty_list PASSED [ 55%]
+../tests/tests/test-files/test_database.py::TestPosts::test_T49_BB_create_post_returns_correct_fields PASSED [ 56%]
+../tests/tests/test-files/test_database.py::TestPosts::test_T50_WB_create_post_embeds_author_blob PASSED [ 58%]
+../tests/tests/test-files/test_database.py::TestPosts::test_T51_EC_very_long_content_stored PASSED [ 59%]
+../tests/tests/test-files/test_database.py::TestJobs::test_T52_BB_get_all_jobs_returns_list PASSED [ 60%]
+../tests/tests/test-files/test_database.py::TestJobs::test_T53_EC_empty_jobs_returns_empty_list PASSED [ 61%]
+../tests/tests/test-files/test_database.py::TestJobs::test_T54_BB_get_job_by_id_returns_dict PASSED [ 62%]
+../tests/tests/test-files/test_database.py::TestJobs::test_T55_BB_get_job_by_id_nonexistent_returns_none PASSED [ 63%]
+../tests/tests/test-files/test_database.py::TestCompanies::test_T56_BB_valid_id_returns_company PASSED [ 65%]
+../tests/tests/test-files/test_database.py::TestCompanies::test_T57_BB_nonexistent_id_returns_none PASSED [ 66%]
+../tests/tests/test-files/test_database.py::TestConversations::test_T58_BB_get_all_conversations_has_id_and_participant PASSED [ 67%]
+../tests/tests/test-files/test_database.py::TestConversations::test_T59_WB_participant_name_flattened PASSED [ 68%]
+../tests/tests/test-files/test_database.py::TestConversations::test_T60_EC_empty_conversations_returns_empty PASSED [ 69%]
+../tests/tests/test-files/test_database.py::TestConversations::test_T61_BB_get_conversation_by_id_has_messages PASSED [ 70%]
+../tests/tests/test-files/test_database.py::TestConversations::test_T62_BB_nonexistent_conv_returns_none PASSED [ 72%]
+../tests/tests/test-files/test_database.py::TestConversations::test_T63_WB_is_read_is_python_bool PASSED [ 73%]
+../tests/tests/test-files/test_database.py::TestConversations::test_T64_WB_messages_ordered_by_timestamp_asc PASSED [ 74%]
+../tests/tests/test-files/test_database.py::TestSendMessage::test_T65_BB_returns_message_dict PASSED [ 75%]
+../tests/tests/test-files/test_database.py::TestSendMessage::test_T66_WB_nonexistent_conv_returns_none PASSED [ 76%]
+../tests/tests/test-files/test_database.py::TestSendMessage::test_T67_WB_conv_last_message_updated PASSED [ 77%]
+../tests/tests/test-files/test_database.py::TestSendMessage::test_T68_EC_long_text_stored PASSED [ 79%]
+../tests/tests/test-files/test_database.py::TestNotifications::test_T69_BB_get_all_notifications_has_is_read PASSED [ 80%]
+../tests/tests/test-files/test_database.py::TestNotifications::test_T70_WB_is_read_is_python_bool PASSED [ 81%]
+../tests/tests/test-files/test_database.py::TestNotifications::test_T71_EC_empty_notifications_returns_empty PASSED [ 82%]
+../tests/tests/test-files/test_database.py::TestNotifications::test_T72_BB_mark_read_returns_dict_with_is_read_true PASSED [ 83%]
+../tests/tests/test-files/test_database.py::TestNotifications::test_T73_BB_mark_read_nonexistent_returns_none PASSED [ 84%]
+../tests/tests/test-files/test_database.py::TestNotifications::test_T74_WB_is_read_set_to_1_in_db PASSED [ 86%]
+../tests/tests/test-files/test_database.py::TestNotifications::test_T75_RG_is_read_is_bool_not_int PASSED [ 87%]
+../tests/tests/test-files/test_database.py::TestNotifications::test_T76_BB_mark_all_read_sets_all PASSED [ 88%]
+../tests/tests/test-files/test_database.py::TestNotifications::test_T77_EC_mark_all_empty_table_no_error PASSED [ 89%]
+../tests/tests/test-files/test_database.py::TestSearch::test_T78_WB_empty_query_short_circuits PASSED [ 90%]
+../tests/tests/test-files/test_database.py::TestSearch::test_T79_WB_whitespace_query_treated_as_empty PASSED [ 91%]
+../tests/tests/test-files/test_database.py::TestSearch::test_T80_BB_matches_user_by_name PASSED [ 93%]
+../tests/tests/test-files/test_database.py::TestSearch::test_T81_EP_matches_user_by_headline PASSED [ 94%]
+../tests/tests/test-files/test_database.py::TestSearch::test_T82_BB_matches_job_by_title PASSED [ 95%]
+../tests/tests/test-files/test_database.py::TestSearch::test_T83_BB_matches_company_by_name PASSED [ 96%]
+../tests/tests/test-files/test_database.py::TestSearch::test_T84_BB_matches_post_by_content PASSED [ 97%]
+../tests/tests/test-files/test_database.py::TestSearch::test_T85_GB_case_insensitive_at_boundary PASSED [ 98%]
+../tests/tests/test-files/test_database.py::TestSearch::test_T86_EP_no_match_returns_empty_lists PASSED [100%]
+
+================================ tests coverage ================================
+_______________ coverage: platform darwin, python 3.14.1-final-0 _______________
+
+Name          Stmts   Miss  Cover   Missing
+-------------------------------------------
+database.py     283     49    83%   44-193, 201
+-------------------------------------------
+TOTAL           283     49    83%
+Required test coverage of 80% reached. Total coverage: 82.69%
+============================== 86 passed in 0.29s ==============================
+
+================================================================
+TEST SUITE 2: app.py  (84 tests, 96% coverage)
+================================================================
+============================= test session starts ==============================
+platform darwin -- Python 3.14.1, pytest-9.0.2, pluggy-1.6.0 -- /opt/homebrew/opt/python@3.14/bin/python3.14
+cachedir: .pytest_cache
+rootdir: /Users/krishishah/Desktop/NJIT/CS485/Linkedin Redesign
+plugins: cov-7.1.0
+collecting ... collected 84 items
+
+../tests/tests/test-files/test_app.py::TestLogin::test_T01_BB_valid_credentials_return_user_and_token PASSED [  1%]
+../tests/tests/test-files/test_app.py::TestLogin::test_T02_BB_wrong_password_returns_401 PASSED [  2%]
+../tests/tests/test-files/test_app.py::TestLogin::test_T03_WB_missing_email_returns_400 PASSED [  3%]
+../tests/tests/test-files/test_app.py::TestLogin::test_T04_WB_missing_password_returns_400 PASSED [  4%]
+../tests/tests/test-files/test_app.py::TestLogin::test_T05_EC_empty_body_returns_400 PASSED [  5%]
+../tests/tests/test-files/test_app.py::TestLogin::test_T06_EP_email_normalized_to_lowercase PASSED [  7%]
+../tests/tests/test-files/test_app.py::TestRegister::test_T07_BB_valid_registration_returns_201_with_token PASSED [  8%]
+../tests/tests/test-files/test_app.py::TestRegister::test_T08_WB_missing_name_returns_400 PASSED [  9%]
+../tests/tests/test-files/test_app.py::TestRegister::test_T09_WB_invalid_email_format_returns_400 PASSED [ 10%]
+../tests/tests/test-files/test_app.py::TestRegister::test_T10_GB_password_shorter_than_8_returns_400 PASSED [ 11%]
+../tests/tests/test-files/test_app.py::TestRegister::test_T11_GB_password_exactly_8_chars_accepted PASSED [ 13%]
+../tests/tests/test-files/test_app.py::TestRegister::test_T12_RG_duplicate_email_returns_409 PASSED [ 14%]
+../tests/tests/test-files/test_app.py::TestRegister::test_T13_EC_empty_body_returns_400 PASSED [ 15%]
+../tests/tests/test-files/test_app.py::TestGetMe::test_T14_BB_returns_current_user_json PASSED [ 16%]
+../tests/tests/test-files/test_app.py::TestGetMe::test_T15_WB_no_auth_header_uses_fallback PASSED [ 17%]
+../tests/tests/test-files/test_app.py::TestGetMe::test_T78_WB_bearer_token_passed_to_get_session_user_id PASSED [ 19%]
+../tests/tests/test-files/test_app.py::TestUpdateMe::test_T16_BB_valid_field_update_returns_200 PASSED [ 20%]
+../tests/tests/test-files/test_app.py::TestUpdateMe::test_T17_WB_no_valid_fields_returns_400 PASSED [ 21%]
+../tests/tests/test-files/test_app.py::TestUpdateMe::test_T18_EC_empty_body_returns_400 PASSED [ 22%]
+../tests/tests/test-files/test_app.py::TestUpdateMe::test_T19_WB_non_string_value_filtered_returns_400 PASSED [ 23%]
+../tests/tests/test-files/test_app.py::TestUpdateMe::test_T80_EC_multiple_valid_fields_all_updated PASSED [ 25%]
+../tests/tests/test-files/test_app.py::TestUsers::test_T20_BB_get_users_returns_list PASSED [ 26%]
+../tests/tests/test-files/test_app.py::TestUsers::test_T21_BB_get_user_by_id_found PASSED [ 27%]
+../tests/tests/test-files/test_app.py::TestUsers::test_T22_BB_get_user_not_found_returns_404 PASSED [ 28%]
+../tests/tests/test-files/test_app.py::TestUsers::test_T23_BB_delete_user_success_returns_204 PASSED [ 29%]
+../tests/tests/test-files/test_app.py::TestUsers::test_T24_BB_delete_user_not_found_returns_404 PASSED [ 30%]
+../tests/tests/test-files/test_app.py::TestUsers::test_T25_WB_delete_protected_user_returns_403 PASSED [ 32%]
+../tests/tests/test-files/test_app.py::TestFeed::test_T26_BB_get_feed_returns_list PASSED [ 33%]
+../tests/tests/test-files/test_app.py::TestFeed::test_T27_EC_get_feed_empty_returns_empty_list PASSED [ 34%]
+../tests/tests/test-files/test_app.py::TestFeed::test_T28_BB_create_post_valid_returns_201 PASSED [ 35%]
+../tests/tests/test-files/test_app.py::TestFeed::test_T29_WB_create_post_empty_content_returns_400 PASSED [ 36%]
+../tests/tests/test-files/test_app.py::TestFeed::test_T30_EC_create_post_whitespace_content_returns_400 PASSED [ 38%]
+../tests/tests/test-files/test_app.py::TestFeed::test_T81_RG_create_post_missing_body_returns_400 PASSED [ 39%]
+../tests/tests/test-files/test_app.py::TestJobs::test_T31_BB_get_jobs_returns_list PASSED [ 40%]
+../tests/tests/test-files/test_app.py::TestJobs::test_T32_BB_get_job_found PASSED [ 41%]
+../tests/tests/test-files/test_app.py::TestJobs::test_T33_BB_get_job_not_found_returns_404 PASSED [ 42%]
+../tests/tests/test-files/test_app.py::TestCompanies::test_T34_BB_get_company_found PASSED [ 44%]
+../tests/tests/test-files/test_app.py::TestCompanies::test_T35_BB_get_company_not_found_returns_404 PASSED [ 45%]
+../tests/tests/test-files/test_app.py::TestConversations::test_T36_BB_get_conversations_returns_list PASSED [ 46%]
+../tests/tests/test-files/test_app.py::TestConversations::test_T37_BB_get_conversation_found PASSED [ 47%]
+../tests/tests/test-files/test_app.py::TestConversations::test_T38_BB_get_conversation_not_found_returns_404 PASSED [ 48%]
+../tests/tests/test-files/test_app.py::TestMessages::test_T39_BB_post_message_valid_returns_201 PASSED [ 50%]
+../tests/tests/test-files/test_app.py::TestMessages::test_T40_WB_post_message_empty_text_returns_400 PASSED [ 51%]
+../tests/tests/test-files/test_app.py::TestMessages::test_T41_WB_post_message_conv_not_found_returns_404 PASSED [ 52%]
+../tests/tests/test-files/test_app.py::TestMessages::test_T42_WB_post_message_response_has_is_me_true PASSED [ 53%]
+../tests/tests/test-files/test_app.py::TestMessages::test_T82_EC_post_message_whitespace_text_returns_400 PASSED [ 54%]
+../tests/tests/test-files/test_app.py::TestNotifications::test_T43_BB_get_notifications_returns_list PASSED [ 55%]
+../tests/tests/test-files/test_app.py::TestNotifications::test_T44_BB_mark_notification_read_returns_200 PASSED [ 57%]
+../tests/tests/test-files/test_app.py::TestNotifications::test_T45_BB_mark_notification_read_not_found_returns_404 PASSED [ 58%]
+../tests/tests/test-files/test_app.py::TestNotifications::test_T46_BB_mark_all_read_returns_success PASSED [ 59%]
+../tests/tests/test-files/test_app.py::TestStaticData::test_T47_BB_get_events_returns_list PASSED [ 60%]
+../tests/tests/test-files/test_app.py::TestStaticData::test_T48_BB_get_groups_returns_list PASSED [ 61%]
+../tests/tests/test-files/test_app.py::TestStaticData::test_T49_BB_get_group_found PASSED [ 63%]
+../tests/tests/test-files/test_app.py::TestStaticData::test_T50_BB_get_group_not_found_returns_404 PASSED [ 64%]
+../tests/tests/test-files/test_app.py::TestStaticData::test_T51_BB_get_courses_returns_list PASSED [ 65%]
+../tests/tests/test-files/test_app.py::TestStaticData::test_T52_BB_get_news_returns_list PASSED [ 66%]
+../tests/tests/test-files/test_app.py::TestStaticData::test_T53_BB_get_invitations_returns_list PASSED [ 67%]
+../tests/tests/test-files/test_app.py::TestStaticData::test_T54_BB_get_hashtags_returns_list PASSED [ 69%]
+../tests/tests/test-files/test_app.py::TestSearch::test_T55_BB_search_with_query_returns_categorised_results PASSED [ 70%]
+../tests/tests/test-files/test_app.py::TestSearch::test_T56_WB_empty_query_returns_all_empty_lists PASSED [ 71%]
+../tests/tests/test-files/test_app.py::TestSearch::test_T57_EC_no_q_param_returns_empty_result PASSED [ 72%]
+../tests/tests/test-files/test_app.py::TestProfileReadiness::test_T58_BB_returns_score_sections_fixes PASSED [ 73%]
+../tests/tests/test-files/test_app.py::TestProfileReadiness::test_T59_WB_headline_long_enough_status_done PASSED [ 75%]
+../tests/tests/test-files/test_app.py::TestProfileReadiness::test_T60_GB_partial_headline_status_warn PASSED [ 76%]
+../tests/tests/test-files/test_app.py::TestProfileReadiness::test_T61_GB_empty_headline_status_bad PASSED [ 77%]
+../tests/tests/test-files/test_app.py::TestProfileReadiness::test_T62_WB_avatar_color_set_photo_score_100 PASSED [ 78%]
+../tests/tests/test-files/test_app.py::TestProfileReadiness::test_T63_EC_all_empty_profile_score_near_zero PASSED [ 79%]
+../tests/tests/test-files/test_app.py::TestProfileReadiness::test_T84_WB_score_is_average_not_max PASSED [ 80%]
+../tests/tests/test-files/test_app.py::TestOutreachGenerate::test_T64_BB_valid_recipient_returns_draft PASSED [ 82%]
+../tests/tests/test-files/test_app.py::TestOutreachGenerate::test_T65_WB_missing_recipient_id_returns_400 PASSED [ 83%]
+../tests/tests/test-files/test_app.py::TestOutreachGenerate::test_T66_WB_string_recipient_id_returns_400 PASSED [ 84%]
+../tests/tests/test-files/test_app.py::TestOutreachGenerate::test_T67_WB_float_recipient_id_returns_400 PASSED [ 85%]
+../tests/tests/test-files/test_app.py::TestOutreachGenerate::test_T68_WB_zero_recipient_id_returns_400 PASSED [ 86%]
+../tests/tests/test-files/test_app.py::TestOutreachGenerate::test_T69_BB_unknown_recipient_returns_404 PASSED [ 88%]
+../tests/tests/test-files/test_app.py::TestOutreachGenerate::test_T70_EP_invalid_tone_defaults_to_professional PASSED [ 89%]
+../tests/tests/test-files/test_app.py::TestOutreachGenerate::test_T71_EP_invalid_goal_defaults_to_networking PASSED [ 90%]
+../tests/tests/test-files/test_app.py::TestOutreachGenerate::test_T83_GB_negative_recipient_id_returns_400 PASSED [ 91%]
+../tests/tests/test-files/test_app.py::TestOutreachReadiness::test_T72_BB_no_user_id_uses_current_user PASSED [ 92%]
+../tests/tests/test-files/test_app.py::TestOutreachReadiness::test_T73_BB_valid_user_id_returns_readiness PASSED [ 94%]
+../tests/tests/test-files/test_app.py::TestOutreachReadiness::test_T74_WB_invalid_user_id_returns_400 PASSED [ 95%]
+../tests/tests/test-files/test_app.py::TestOutreachReadiness::test_T75_WB_zero_user_id_returns_400 PASSED [ 96%]
+../tests/tests/test-files/test_app.py::TestOutreachReadiness::test_T76_BB_nonexistent_user_id_returns_404 PASSED [ 97%]
+../tests/tests/test-files/test_app.py::TestErrorHandlers::test_T77_RG_unknown_route_returns_json_404 PASSED [ 98%]
+../tests/tests/test-files/test_app.py::TestErrorHandlers::test_T79_WB_no_auth_header_still_returns_200 PASSED [100%]
+
+================================ tests coverage ================================
+_______________ coverage: platform darwin, python 3.14.1-final-0 _______________
+
+Name     Stmts   Miss  Cover   Missing
+--------------------------------------
+app.py     268     10    96%   56, 145, 159, 162, 219, 291, 493-496
+--------------------------------------
+TOTAL      268     10    96%
+Required test coverage of 80% reached. Total coverage: 96.27%
+============================== 84 passed in 0.12s ==============================
+
+================================================================
+MUTATION ANALYSIS  (18 mutants, 100% killed)
+================================================================
+
+============================================================
+Mutation Testing: database.py
+Test file:        test_database.py
+============================================================
+  [KILLED  ] hash_pw: sha256 -> sha512
+  [KILLED  ] ts: return 0 instead of real timestamp
+  [KILLED  ] verify: return None on valid match
+  [KILLED  ] get_session: return None from cache
+  [KILLED  ] get_session: return None from db
+  [KILLED  ] create_user: skip password hash
+  [KILLED  ] delete_user: wrong protected id guard
+  [KILLED  ] posts: ascending instead of descending
+  [KILLED  ] mark_read: set is_read=0
+  [KILLED  ] mark_all_read: only mark one row
+
+Results: 10 killed / 0 survived / 0 skipped / 10 total
+Mutation score: 100.0%
+
+============================================================
+Mutation Testing: app.py
+Test file:        test_app.py
+============================================================
+  [KILLED  ] login: skip email required check
+  [KILLED  ] register: allow short passwords
+  [KILLED  ] update_me: invert empty-update guard
+  [KILLED  ] create_post: allow blank content
+  [KILLED  ] send_message: allow blank text
+  [KILLED  ] outreach: allow non-positive id
+  [KILLED  ] profile_readiness: break score sum
+  [KILLED  ] 404 handler: return 200 status
+
+Results: 8 killed / 0 survived / 2 skipped / 8 total
+Mutation score: 100.0%
+
+============================================================
+OVERALL MUTATION SUMMARY
+============================================================
+Total mutants tested: 18
+Killed:   18
+Survived: 0
+Overall mutation score: 100.0%

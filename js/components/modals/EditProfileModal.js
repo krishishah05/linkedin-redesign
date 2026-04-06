@@ -3,6 +3,7 @@
    ============================================================ */
 function EditProfileModal() {
   const { closeModal, currentUser, setCurrentUser, showToast } = React.useContext(AppContext);
+  const [saving, setSaving] = React.useState(false);
   const [form, setForm] = React.useState({
     firstName: currentUser ? (currentUser.name || '').split(' ')[0] : '',
     lastName: currentUser ? (currentUser.name || '').split(' ').slice(1).join(' ') : '',
@@ -17,6 +18,12 @@ function EditProfileModal() {
   }
 
   function handleSave() {
+    if (!form.firstName.trim()) { showToast('First name is required', 'error'); return; }
+    if (!form.lastName.trim()) { showToast('Last name is required', 'error'); return; }
+    if (!form.headline.trim()) { showToast('Headline is required', 'error'); return; }
+    if (!form.location.trim()) { showToast('Location is required', 'error'); return; }
+    if (saving) return;
+    setSaving(true);
     const name = (form.firstName + ' ' + form.lastName).trim();
     const updates = { headline: form.headline, location: form.location, pronouns: form.pronouns, industry: form.industry };
     if (name) updates.name = name;
@@ -28,6 +35,7 @@ function EditProfileModal() {
       })
       .catch(() => {
         showToast('Failed to save changes', 'error');
+        setSaving(false);
       });
   }
 
@@ -79,7 +87,7 @@ function EditProfileModal() {
         </div>
         <div className="li-modal__footer">
           <button className="li-btn li-btn--ghost li-btn--sm" onClick={closeModal}>Cancel</button>
-          <button className="li-btn li-btn--primary li-btn--sm" onClick={handleSave}>Save</button>
+          <button className="li-btn li-btn--primary li-btn--sm" onClick={handleSave} disabled={saving}>{saving ? 'Saving…' : 'Save'}</button>
         </div>
       </div>
     </div>

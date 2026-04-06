@@ -1,0 +1,156 @@
+﻿PASS tests/tests/test-files/MessagingPage.test.js
+  MessagingPage Component Tests
+    √ Shows loading spinner while conversations fetch (24 ms)
+    √ Renders participant name when conversations load (45 ms)
+    √ Auto-selects first conversation when selectedId is null (11 ms)
+    √ Does not auto-select if selectedId already set (12 ms)
+    √ Calls setUnreadMessages(0) once on mount (3 ms)
+    √ Scrolls to bottom when messages state changes (11 ms)
+    √ Sets selectedId immediately on call (38 ms)
+    √ Sets msgLoading:true before API resolves (14 ms)
+    √ Sets messages from data.messages on success (14 ms)
+    √ Defaults to [] when data.messages is absent (11 ms)
+    √ Sets messages to [] on API rejection (8 ms)
+    √ No-op for empty string (9 ms)
+    √ No-op for whitespace only (10 ms)
+    √ No-op when selectedId is null (6 ms)
+    √ Clears draft state before API call (12 ms)
+    √ Appends optimistic message with correct shape (12 ms)
+    √ Sends trimmed text to API — not raw draft (13 ms)
+    √ Calls showToast on API rejection (10 ms)
+    √ Sets activePanel to 'score' when null (17 ms)
+    √ Sets activePanel to null when was 'score' (19 ms)
+    √ Sets readinessLoading:true at start (14 ms)
+    √ Sets readiness from API on success (14 ms)
+    √ No showToast when refresh:false and API succeeds (12 ms)
+    √ showToast 'Score refreshed' when refresh:true + success (14 ms)
+    √ Uses mock fallback and sets readinessError on failure (16 ms)
+    √ showToast 'Score refreshed (mock)' when refresh:true + failure (23 ms)
+    √ readinessLoading:false in finally on success (14 ms)
+    √ readinessLoading:false in finally on failure (19 ms)
+    √ Toggles activePanel to 'guide' when null (13 ms)
+    √ Toggles activePanel to null when was 'guide' (13 ms)
+    √ openOutreachGuide returns early safely when selectedId is null (3 ms)
+    √ Initializes fresh state for new conversation in openOutreachGuide (11 ms)
+    √ Does not overwrite existing guide state when reopening (33 ms)
+    √ setGuideState returns early safely when selectedId is null (3 ms)
+    √ setGuideState shallow-merges patch, preserves other keys (33 ms)
+    √ setGuideDetailsPatch returns early safely when selectedId is null (5 ms)
+    √ setGuideDetailsPatch deep-merges into details only, preserves other detail fields (32 ms)
+    √ Returns filled template for valid goal and details (31 ms)
+    √ Uses variantIdx modulo to wrap around variants seamlessly (28 ms)
+    √ selectGoal resets step:2 and variantIdx:0 (54 ms)
+    √ selectGoal computes and stores non-empty preview natively (21 ms)
+    √ nextStep returns early if guideState for selectedId is missing (15 ms)
+    √ nextStep shows info toast on Step 1 with no goal selected (14 ms)
+    √ nextStep advances to step 2 when goal is present (38 ms)
+    √ nextStep advances Step 2 to Step 3 (28 ms)
+    √ nextStep is no-op when already on step 3 (35 ms)
+    √ backStep decrements step from 2 to 1 (21 ms)
+    √ backStep is no-op when step is already 1 (13 ms)
+    √ cycleVariant advances variantIdx from 0 to 1 (19 ms)
+    √ cycleVariant wraps variantIdx to 0 when at last template (21 ms)
+    √ cycleVariant recomputes preview to variant-1 output (25 ms)
+    √ updateGuidePreviewManual returns early safely when selectedId is null (16 ms)
+    √ updateGuidePreviewManual sets preview to the exact string provided (51 ms)
+    √ applyGuideMessage returns early safely when selectedId is null (4 ms)
+    √ applyGuideMessage shows info toast when preview is empty string (31 ms)
+    √ applyGuideMessage shows info toast when preview is whitespace only (28 ms)
+    √ applyGuideMessage sets draft to trimmed preview on success (27 ms)
+    √ applyGuideMessage shows success toast and closes panel (28 ms)
+    √ Search box filters conversation list by participant name (case-insensitive) (12 ms)
+    √ Write button triggers 'New message — coming soon' toast (7 ms)
+    √ Settings button triggers 'Settings — coming soon' toast (5 ms)
+    √ Enter key in composer triggers sendMessage (10 ms)
+    √ Guide close button sets activePanel to null (12 ms)
+    √ Score panel close button sets activePanel to null (13 ms)
+    √ 'Continue messaging' button closes score panel (14 ms)
+    √ Keyboard Enter on goal tile selects the goal (18 ms)
+    √ Renders sent message (isMe:true) with right-aligned bubble (10 ms)
+    √ formatTime renders a non-empty timestamp string for each message (6 ms)
+    √ sendMessage: no-op when draft is empty AND selectedId is null (6 ms)
+    √ selectConversation: reloads messages even if same ID clicked twice (11 ms)
+    √ openOutreachGuide: switches from score panel to guide panel (19 ms)
+    √ nextStep: advances to step 3 from step 2 (28 ms)
+    √ applyGuideMessage: info toast when preview is only whitespace (34 ms)
+    √ ProfileReadinessPanel: score exactly 80 → label 'Ready', badge class 'good' (12 ms)
+    √ ProfileReadinessPanel: score 79 → label 'Almost there', badge class 'warn' (15 ms)
+    √ ProfileReadinessPanel: score exactly 70 → label 'Almost there', badge class 'warn' (12 ms)
+    √ ProfileReadinessPanel: score 69 → label 'Needs improvement', badge class 'bad' (12 ms)
+    √ ProfileReadinessPanel: score 0 → label 'Needs improvement' (13 ms)
+    √ ProfileReadinessPanel: score 100 → label 'Ready' (11 ms)
+    √ ProfileReadinessPanel: fix status 'done' renders 'Done', not 'Fix' (14 ms)
+    √ ProfileReadinessPanel: fix status 'bad' renders 'Fix', not 'Done' (15 ms)
+    √ ProfileReadinessPanel: section bars render correct percentage labels and CSS color classes (20 ms)
+    √ openProfileReadiness does NOT reload score when panel already open (toggle off) (14 ms)
+    √ Search 'ALI' matches 'alice' — both sides lowercased (8 ms)
+    √ Search 'BOB' matches 'bob' — search query lowercased (8 ms)
+    √ Preview auto-updates when details change on step 2 (29 ms)
+    √ Preview auto-updates when details changed and re-advanced to step 3 (54 ms)
+    √ OutreachGuidePanel step 1 shows goal selection, not steps 2 or 3 (15 ms)
+    √ OutreachGuidePanel step 2 shows personalize form after goal selected (21 ms)
+    √ OutreachGuidePanel step 3 shows review after next from step 2 (27 ms)
+    √ Selected goal tile has 'selected' class, unselected tiles do not (24 ms)
+    √ OutreachGuidePanel shows tips after goal selected (29 ms)
+    √ OutreachGuidePanel shows 'Done' on step 3, not 'Next →' (14 ms)
+    √ cycleVariant with single-variant goal wraps back to same text (14 ms)
+    √ Switching from score panel to guide panel closes score, opens guide (12 ms)
+    √ Conversation with no participantName renders 'Unknown', absent lastMessage renders empty not mutant text (5 ms)
+    √ ProfileReadinessPanel: renders 'No score available' when readiness null after API call (6 ms)
+    √ Exercises window.location.hash branches via 'Go to profile' buttons (9 ms)
+  mockBackendGetProfileReadiness() pure function
+    √ Returns object with keys: score, sections, fixes (1 ms)
+    √ Score is clamped 0-100
+    √ Returns exactly 6 sections with correct keys
+    √ Base scores exact without jitter, section labels correct (1 ms)
+    √ Handles null user without throwing (1 ms)
+    √ GB boundary: headline length 34 — stays 'bad'; whitespace headline treated as 0 length after trim (1 ms)
+    √ GB boundary: headline length 35 — upgrades to 'warn' (1 ms)
+    √ GB boundary: headline length 54 — stays 'warn'
+    √ GB boundary: headline length 55 — upgrades to 'done' (1 ms)
+    √ GB boundary: about length 119 — stays 'bad'; whitespace about treated as 0 length after trim (1 ms)
+    √ GB boundary: about length 120 — upgrades to 'warn'
+    √ GB boundary: about length 169 — stays 'warn' (1 ms)
+    √ GB boundary: about length 170 — upgrades to 'done'
+    √ GB boundary: skillCount 7 — stays 'warn' (1 ms)
+    √ GB boundary: skillCount 8 — upgrades to 'done' (1 ms)
+    √ EP bucket: skills is non-array truthy string — skillCount is 1, not done
+    √ EC: skills is 0 (falsy number) -> count is 0
+    √ EC: all thresholds met simultaneously -> headline/about/skills all 'done' (1 ms)
+    √ EC: empty string skills -> count is 0
+    √ Score equals average of section scores (division, not multiplication)
+    √ photo fix: base score 57 < 60 → 'warn'; need score >= 60 for 'done' (both boundary sides)
+    √ Jitter range is ±2: scores deviate by at most 2, and can go both above and below base (26 ms)
+    √ Education fix is always 'done' by default
+    √ Experience fix is always 'warn' by default (1 ms)
+    √ Returns exactly 6 fixes with expected keys and labels in order
+  computeGuidePreview() pure function
+    √ Returns '' when state is null
+    √ Returns '' when state.goal is falsy
+    √ Returns '' when goal has no templates (1 ms)
+    √ EC: state.details is undefined -> uses empty object fallback in template
+    √ EC: variantIdx exactly 0 -> returns first template output
+    √ variantIdx 1 returns second template, distinct from first
+    √ Large variantIdx wraps correctly via modulo
+    √ advice template v1: uses '[Name]', '[your name/major]', '[their field]' fallbacks when empty
+    √ advice template v1: uses all provided details, no fallback placeholders, contains warm phrase (1 ms)
+    √ advice template v2: uses '[Name]', '[your name]', '[field]' fallbacks, contains professional phrase
+    √ job template v1: uses '[role]', '[Company]', '[skill/area]', '[your name/major]' fallbacks (1 ms)
+    √ job template v1: uses all provided details, no fallbacks, contains direct phrase
+    √ job template v2: uses '[Company]' and '[field]' fallbacks, contains warm phrase
+    √ network template v1: uses fallbacks, contains friendly phrase (1 ms)
+    √ network template v1: uses provided details, no fallbacks, contains friendly phrase
+    √ network template v2: professional tone uses fallbacks, contains professional phrase
+    √ mentor template: uses fallbacks, contains warm phrase
+    √ mentor template: uses provided details, no fallbacks, contains warm phrase
+    √ followup template: uses '[topic]' and 'recently' fallbacks, contains polite phrase
+    √ followup template: uses provided context and field, no fallbacks, contains polite phrase
+    √ referral template: uses all fallbacks, contains respectful phrase (1 ms)
+    √ referral template: uses all provided details, no fallbacks, contains respectful phrase
+    √ All goals and all variants produce non-empty string output (1 ms)
+System.Management.Automation.RemoteException
+Test Suites: 1 passed, 1 total
+Tests:       146 passed, 146 total
+Snapshots:   0 total
+Time:        3.679 s, estimated 7 s
+Ran all test suites matching tests/tests/test-files/MessagingPage.test.js.

@@ -242,8 +242,8 @@
       transition: border-color 0.15s, background 0.15s;
     }
     .radio-option:hover { border-color: var(--blue); background: var(--blue-light); }
-    .radio-option input[type="radio"] { accent-color: var(--blue); width: 18px; height: 18px; }
-    .radio-option label { cursor: pointer; font-size: 15px; font-weight: 500; }
+    .radio-option input[type="radio"] { accent-color: var(--blue); width: 18px; height: 18px; flex-shrink: 0; }
+    .radio-option { font-size: 15px; font-weight: 500; }
 
     .yes-no-btns { display: flex; gap: 12px; margin-top: 8px; }
     .yes-no-btns button {
@@ -669,12 +669,12 @@
       <div class="step" id="step-7">
         <h2 class="step-heading">What kind of network do you want to build?</h2>
         <p class="step-sub">We'll personalize your experience based on your goals. <em style="color:rgba(0,0,0,0.45);font-style:normal;">(optional)</em></p>
-        <div class="radio-option"><input type="radio" name="network-goal" id="goal-1" value="job"><label for="goal-1">Find a new job</label></div>
-        <div class="radio-option"><input type="radio" name="network-goal" id="goal-2" value="connect"><label for="goal-2">Connect with colleagues &amp; classmates</label></div>
-        <div class="radio-option"><input type="radio" name="network-goal" id="goal-3" value="clients"><label for="goal-3">Find clients or business partners</label></div>
-        <div class="radio-option"><input type="radio" name="network-goal" id="goal-4" value="skills"><label for="goal-4">Build skills &amp; knowledge</label></div>
-        <div class="radio-option"><input type="radio" name="network-goal" id="goal-5" value="hire"><label for="goal-5">Hire talent</label></div>
-        <div class="radio-option"><input type="radio" name="network-goal" id="goal-6" value="other"><label for="goal-6">Something else</label></div>
+        <label class="radio-option" for="goal-1"><input type="radio" name="network-goal" id="goal-1" value="job">Find a new job</label>
+        <label class="radio-option" for="goal-2"><input type="radio" name="network-goal" id="goal-2" value="connect">Connect with colleagues &amp; classmates</label>
+        <label class="radio-option" for="goal-3"><input type="radio" name="network-goal" id="goal-3" value="clients">Find clients or business partners</label>
+        <label class="radio-option" for="goal-4"><input type="radio" name="network-goal" id="goal-4" value="skills">Build skills &amp; knowledge</label>
+        <label class="radio-option" for="goal-5"><input type="radio" name="network-goal" id="goal-5" value="hire">Hire talent</label>
+        <label class="radio-option" for="goal-6"><input type="radio" name="network-goal" id="goal-6" value="other">Something else</label>
         <span class="error-msg" id="s-goal-err" style="margin-top:4px;">Please select an option.</span>
         <div class="step-actions">
           <button class="btn-primary" onclick="nextStep(7)">Continue</button>
@@ -728,7 +728,7 @@
 <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 
 <script>
-  const API_BASE = 'http://localhost:5000/api';
+  const API_BASE = '/api';
   const TOTAL_STEPS = 9;
   let currentStep = 1;
   let _registered = false;
@@ -941,41 +941,40 @@
         return ok;
       }
       case 4: {
-        let ok = true;
-        if (!document.getElementById('s-country').value) { fieldErr('s-country'); ok = false; } else fieldOk('s-country');
-        if (!document.getElementById('s-postal').value.trim()) { fieldErr('s-postal'); ok = false; } else fieldOk('s-postal');
-        return ok;
+        // Optional step — only validate if partially filled
+        const country = document.getElementById('s-country').value;
+        const postal = document.getElementById('s-postal').value.trim();
+        if (country && !postal) { fieldErr('s-postal'); return false; }
+        if (postal && !country) { fieldErr('s-country'); return false; }
+        fieldOk('s-country'); fieldOk('s-postal'); return true;
       }
       case 5: {
-        let ok = true;
-        ['s-title', 's-emptype', 's-company'].forEach(f => {
-          if (!document.getElementById(f).value.trim()) { fieldErr(f); ok = false; } else fieldOk(f);
-        });
-        return ok;
+        // Optional step — only validate if title/company partially filled
+        const title = document.getElementById('s-title').value.trim();
+        const company = document.getElementById('s-company').value.trim();
+        if (title && !company) { fieldErr('s-company'); return false; }
+        if (company && !title) { fieldErr('s-title'); return false; }
+        fieldOk('s-title'); fieldOk('s-emptype'); fieldOk('s-company'); return true;
       }
       case 6: {
-        const sel = document.querySelectorAll('#industry-grid input:checked');
-        const err = document.getElementById('s-industry-err');
-        if (sel.length === 0) { err.style.display = 'block'; return false; }
-        err.style.display = 'none'; return true;
+        // Optional step — allow proceeding with no industry selected
+        document.getElementById('s-industry-err').style.display = 'none'; return true;
       }
       case 7: {
-        const sel = document.querySelector('input[name="network-goal"]:checked');
-        const err = document.getElementById('s-goal-err');
-        if (!sel) { err.style.display = 'block'; return false; }
-        err.style.display = 'none'; return true;
+        // Optional step — allow proceeding with no goal selected
+        document.getElementById('s-goal-err').style.display = 'none'; return true;
       }
       case 8: {
-        const err = document.getElementById('s-student-err');
-        if (!studentChoice) { err.style.display = 'block'; return false; }
-        err.style.display = 'none'; return true;
+        // Optional step — allow proceeding with no student choice
+        document.getElementById('s-student-err').style.display = 'none'; return true;
       }
       case 9: {
+        // Optional step — only validate if birthday is partially filled
         const m = document.getElementById('s-bday-month').value;
         const d = document.getElementById('s-bday-day').value;
         const y = document.getElementById('s-bday-year').value;
         const err = document.getElementById('s-bday-err');
-        if (!m || !d || !y) { err.style.display = 'block'; return false; }
+        if ((m || d || y) && (!m || !d || !y)) { err.style.display = 'block'; return false; }
         err.style.display = 'none'; return true;
       }
     }

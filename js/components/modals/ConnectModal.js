@@ -8,8 +8,9 @@ function ConnectModal() {
   const MAX = 300;
 
   function handleConnect() {
-    if (user) connect(user.id);
-    showToast(user ? `Invitation sent to ${user.name}` : 'Invitation sent!');
+    if (!user) { showToast('User data not found', 'error'); closeModal(); return; }
+    connect(user.id);
+    showToast(`Invitation sent to ${user.name}`);
     closeModal();
   }
 

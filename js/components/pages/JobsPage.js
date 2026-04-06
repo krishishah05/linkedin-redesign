@@ -47,7 +47,7 @@ function JobsPage({ selectedJobId }) {
               }}
             />
           </div>
-          <button className="li-btn li-btn--primary li-btn--sm">Search</button>
+          <button className="li-btn li-btn--primary li-btn--sm" onClick={() => setSearchQ(searchQ.trim())}>Search</button>
         </div>
       </div>
 
@@ -88,10 +88,10 @@ function JobsPage({ selectedJobId }) {
                   </div>
                   <button
                     onClick={e => { e.stopPropagation(); toggleSaveJob(job.id); }}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, fontSize: 16, color: savedJobs.has(job.id) ? '#b45309' : 'var(--text-3)' }}
-                    title={savedJobs.has(job.id) ? 'Unsave' : 'Save'}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, fontSize: 16, color: savedJobs.has(String(job.id)) ? '#b45309' : 'var(--text-3)' }}
+                    title={savedJobs.has(String(job.id)) ? 'Unsave' : 'Save'}
                   >
-                    {savedJobs.has(job.id) ? '★' : '☆'}
+                    {savedJobs.has(String(job.id)) ? '★' : '☆'}
                   </button>
                 </div>
                 <div style={{ marginTop: 8, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
@@ -190,9 +190,9 @@ function JobDetailPanel({ job, savedJobs, toggleSaveJob, openModal, showToast, i
         </button>
         <button
           className="li-btn li-btn--ghost"
-          onClick={() => { toggleSaveJob(job.id); showToast(savedJobs.has(job.id) ? 'Job unsaved' : 'Job saved!'); }}
+          onClick={() => { toggleSaveJob(job.id); showToast(savedJobs.has(String(job.id)) ? 'Job unsaved' : 'Job saved!'); }}
         >
-          {savedJobs.has(job.id) ? '★ Saved' : '☆ Save'}
+          {savedJobs.has(String(job.id)) ? '★ Saved' : '☆ Save'}
         </button>
       </div>
 

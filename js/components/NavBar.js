@@ -303,7 +303,13 @@ function NavBar() {
                   type="button"
                   className="li-dropdown__item"
                   role="menuitem"
-                  onClick={() => { localStorage.removeItem('nx-token'); localStorage.removeItem('nx-uid'); window.location.href = 'index.html'; }}
+                  onClick={() => {
+                    localStorage.removeItem('nx-token'); localStorage.removeItem('nx-uid');
+                    ['li-liked-posts','li-saved-jobs','li-connections','li-following','li-pending-conn',
+                     'li-dismissed-inv','li-applied-jobs','li-joined-groups','li-settings',
+                     'li-attending-events','li-interested-events'].forEach(k => localStorage.removeItem(k));
+                    window.location.href = 'index.html';
+                  }}
                 >
                   Sign out
                 </button>

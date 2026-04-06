@@ -198,7 +198,32 @@ Coverage: **83%** as of last run.
 
 The test spec is documented in [`tests/test_spec_database.md`](tests/test_spec_database.md).
 
-A GitHub Actions workflow (`.github/workflows/run-backend-tests.yml`) runs these tests automatically on every push and pull request.
+---
+
+### Unit tests — `app.py` (pytest + Flask test client)
+
+No running backend required. All database/outreach calls are mocked via `monkeypatch`.
+
+```bash
+# From the repo root
+pip3 install -r backend/requirements.txt
+
+# Run all unit tests
+cd backend
+pytest tests/test_app.py -v
+
+# Run with coverage report (target: ≥ 80%)
+pytest tests/test_app.py --cov=app --cov-report=term-missing
+```
+
+**83 tests** covering all 35 route functions in `app.py` with 6 test types:
+BB (Black Box), WB (White Box), GB (Gray Box), EP (Equivalence Partitioning), RG (Regression), EC (Edge Case).
+
+Coverage: **96%** as of last run.
+
+The test spec is documented in [`tests/test_spec_app.md`](tests/test_spec_app.md).
+
+A GitHub Actions workflow (`.github/workflows/run-backend-tests.yml`) runs both test suites automatically on every push and pull request.
 
 ---
 

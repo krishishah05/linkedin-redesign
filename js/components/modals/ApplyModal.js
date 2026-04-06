@@ -24,6 +24,12 @@ function ApplyModal() {
   }
 
   function handleNext() {
+    if (step === 1) {
+      if (!form.firstName.trim()) { showToast('First name is required', 'error'); return; }
+      if (!form.lastName.trim()) { showToast('Last name is required', 'error'); return; }
+      if (!form.email.trim()) { showToast('Email address is required', 'error'); return; }
+      if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) { showToast('Please enter a valid email address', 'error'); return; }
+    }
     if (step < TOTAL_STEPS) { setStep(s => s + 1); return; }
     // Final submit
     showToast('Application submitted! Good luck!');

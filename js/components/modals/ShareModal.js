@@ -36,7 +36,15 @@ function ShareModal() {
             </div>
           </div>
           <div className="li-dropdown__divider" />
-          <div className="li-dropdown__item" onClick={() => { navigator.clipboard && navigator.clipboard.writeText(window.location.href); showToast('Link copied!'); closeModal(); }}>
+          <div className="li-dropdown__item" onClick={() => {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              navigator.clipboard.writeText(window.location.href)
+                .then(() => { showToast('Link copied!'); closeModal(); })
+                .catch(() => showToast('Failed to copy link', 'error'));
+            } else {
+              showToast('Copy not supported in this browser', 'error');
+            }
+          }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
               <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
             </svg>

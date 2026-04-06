@@ -4,7 +4,7 @@
    Flask backend must be running on http://localhost:5000
    ============================================================ */
 (function () {
-  const BASE = 'http://localhost:5000/api';
+  const BASE = 'https://linkedin-redesign-z364.onrender.com/api';
 
   function getToken() {
     try { return localStorage.getItem('nx-token') || ''; } catch { return ''; }
@@ -42,6 +42,9 @@
     // ── Feed ──────────────────────────────────────────────────
     getFeed: () => request('GET', '/feed'),
     createPost: (content) => request('POST', '/feed', { content }),
+    likePost: (id) => request('POST', `/feed/${id}/like`),
+    commentOnPost: (id, text) => request('POST', `/feed/${id}/comments`, { text }),
+    deletePost: (id) => request('DELETE', `/feed/${id}`),
 
     // ── Jobs ──────────────────────────────────────────────────
     getJobs: () => request('GET', '/jobs'),
@@ -63,6 +66,8 @@
 
     // ── Events ────────────────────────────────────────────────
     getEvents: () => request('GET', '/events'),
+    createEvent: (data) => request('POST', '/events', data),
+    attendEvent: (id) => request('POST', `/events/${id}/attend`),
 
     // ── Groups ────────────────────────────────────────────────
     getGroups: () => request('GET', '/groups'),
@@ -93,6 +98,8 @@
       request('POST', '/auth/login', { email, password }),
     register: (name, email, password) =>
       request('POST', '/auth/register', { name, email, password }),
+    changePassword: (current, newPassword) =>
+      request('POST', '/auth/change-password', { current, newPassword }),
     deleteUser: (id) =>
       request('DELETE', `/users/${id}`),
   };

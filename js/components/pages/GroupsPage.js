@@ -13,8 +13,8 @@ function GroupsPage() {
   const allGroups = groups || [];
 
   const shown = tab === 'my-groups'
-    ? allGroups.filter(g => joined.has(g.id))
-    : allGroups.filter(g => !joined.has(g.id));
+    ? allGroups.filter(g => joined.has(String(g.id)))
+    : allGroups.filter(g => !joined.has(String(g.id)));
 
   return (
     <div className="li-page-inner" style={{ maxWidth: 900 }}>
@@ -94,7 +94,7 @@ function GroupsPage() {
                 >
                   View
                 </button>
-                {joined.has(group.id) ? (
+                {joined.has(String(group.id)) ? (
                   <button
                     className="li-btn li-btn--ghost li-btn--sm"
                     onClick={() => {

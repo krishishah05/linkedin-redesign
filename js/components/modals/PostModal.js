@@ -4,21 +4,22 @@
 function PostModal() {
   const { currentUser, closeModal, showToast } = React.useContext(AppContext);
   const [text, setText] = React.useState('');
+  const [posting, setPosting] = React.useState(false);
   const MAX = 3000;
 
   function handleSubmit() {
     if (!text.trim()) { showToast('Write something first', 'error'); return; }
+    if (posting) return;
+    setPosting(true);
     API.createPost(text.trim())
       .then(() => {
         showToast('Post published!');
         closeModal();
-        // Navigate to feed to see the new post
         navigate('feed');
       })
       .catch(() => {
-        // Optimistic: still close and show success in demo context
-        showToast('Post published!');
-        closeModal();
+        showToast('Failed to publish post. Try again.', 'error');
+        setPosting(false);
       });
   }
 
@@ -74,7 +75,7 @@ function PostModal() {
             <button
               className="li-btn li-btn--primary"
               onClick={handleSubmit}
-              disabled={!text.trim()}
+              disabled={!text.trim() || posting}
               style={{ padding: '8px 20px', fontSize: 14 }}
             >
               Post

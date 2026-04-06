@@ -89,12 +89,12 @@ function FeedPage() {
           {u.name && (
             <>
               <div className="li-profile-card__banner" style={{ background: u.coverGradient || 'linear-gradient(135deg,#0a66c2,#004182)' }}>
-                <div className="li-profile-card__photo" style={{ cursor: 'pointer' }} onClick={() => navigate('profile')}>
+                <div className="li-profile-card__photo" style={{ cursor: 'pointer' }} onClick={() => navigate(`profile?id=${u.id}`)}>
                   {getInitials(u.name)}
                 </div>
               </div>
               <div className="li-profile-card__info">
-                <div className="li-profile-card__name" onClick={() => navigate('profile')}>
+                <div className="li-profile-card__name" onClick={() => navigate(`profile?id=${u.id}`)}>
                   {u.name}
 
                 </div>
@@ -141,7 +141,10 @@ function FeedPage() {
               openModal={openModal}
               showToast={showToast}
               currentUser={u}
-              onDelete={id => setLocalPosts(prev => prev.filter(p => p.id !== id))}
+              onDelete={id => {
+                setLocalPosts(prev => prev.filter(p => p.id !== id));
+                API.deletePost(id).catch(() => {});
+              }}
             />
             {/* Sponsored posts interspersed */}
             {(i === 1 || i === 3) && (
@@ -386,15 +389,17 @@ function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, followi
   function postComment() {
     if (!commentDraft.trim()) return;
     const u = currentUser || {};
+    const text = commentDraft.trim();
     setLocalComments(prev => [{
       author: u.name || 'You',
       authorHeadline: u.headline,
-      text: commentDraft.trim(),
+      text,
       timestamp: 'Just now',
       likes: 0,
     }, ...prev]);
     setCommentDraft('');
     showToast('Comment posted!');
+    API.commentOnPost(post.id, text).catch(() => {});
   }
 
   const content = post.content || '';

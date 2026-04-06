@@ -201,8 +201,13 @@ def delete_user(user_id):
 
 @app.route("/api/feed")
 def get_feed():
-    """GET /api/feed — all posts, newest first."""
-    return jsonify(dbl.get_all_posts())
+    """GET /api/feed — all posts, newest first, with userLiked flag."""
+    current_user = _auth_user()
+    posts = dbl.get_all_posts()
+    liked_ids = dbl.get_post_likes_for_user(current_user["id"]) if current_user else set()
+    for p in posts:
+        p["userLiked"] = p["id"] in liked_ids
+    return jsonify(posts)
 
 
 @app.route("/api/feed", methods=["POST"])
@@ -219,6 +224,38 @@ def create_post():
 
     post = dbl.create_post(current_user["id"], content)
     return jsonify(post), 201
+
+
+@app.route("/api/feed/<int:post_id>", methods=["DELETE"])
+def delete_post(post_id):
+    """DELETE /api/feed/:id — delete a post (owner only)."""
+    current_user = _auth_user()
+    deleted = dbl.delete_post(post_id, current_user["id"])
+    if not deleted:
+        abort(404, description=f"Post {post_id} not found or not yours")
+    return jsonify({"deleted": True})
+
+
+@app.route("/api/feed/<int:post_id>/like", methods=["POST"])
+def toggle_post_like(post_id):
+    """POST /api/feed/:id/like — toggle like on a post."""
+    current_user = _auth_user()
+    result = dbl.toggle_post_like(post_id, current_user["id"])
+    return jsonify(result)
+
+
+@app.route("/api/feed/<int:post_id>/comments", methods=["POST"])
+def add_post_comment(post_id):
+    """POST /api/feed/:id/comments — add a comment. Body: {text: str}"""
+    body = request.get_json(silent=True) or {}
+    text = (body.get("text") or "").strip()
+    if not text:
+        abort(400, description="text is required")
+    current_user = _auth_user()
+    comment = dbl.add_post_comment(post_id, current_user["id"], text)
+    if comment is None:
+        abort(404, description=f"Post {post_id} not found")
+    return jsonify(comment), 201
 
 
 # ══════════════════════════════════════════════════════════════
@@ -349,7 +386,28 @@ def mark_all_notifications_read():
 
 @app.route("/api/events")
 def get_events():
-    return jsonify(static_data.get_events())
+    current_user = _auth_user()
+    return jsonify(dbl.get_all_events_with_attendance(current_user["id"]))
+
+
+@app.route("/api/events", methods=["POST"])
+def create_event():
+    """POST /api/events — create a new event."""
+    body = request.get_json(silent=True) or {}
+    if not body.get("name"):
+        abort(400, description="name is required")
+    current_user = _auth_user()
+    event = dbl.create_event(current_user["id"], body)
+    return jsonify(event), 201
+
+
+@app.route("/api/events/<event_id>/attend", methods=["POST"])
+def toggle_event_attend(event_id):
+    """POST /api/events/:id/attend — toggle attendance."""
+    current_user = _auth_user()
+    src = "user" if str(event_id).startswith("u") else "static"
+    result = dbl.toggle_event_attend(event_id, src, current_user["id"])
+    return jsonify(result)
 
 
 @app.route("/api/groups")
@@ -524,7 +582,6 @@ def outreach_readiness():
 
 
 if __name__ == "__main__":
-    print("Starting Nexus Backend on http://localhost:5000")
-    print("App: http://localhost:5000/")
-    print("API: http://localhost:5000/api/")
-    app.run(debug=False, port=5000, threaded=True)
+    port = int(os.environ.get("PORT", 5000))
+    print(f"Starting Nexus Backend on http://localhost:{port}")
+    app.run(host="0.0.0.0", debug=False, port=port, threaded=True)

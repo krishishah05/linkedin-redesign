@@ -5,8 +5,9 @@
 /* Sub-component: pulls real users from API for "People also viewed" */
 function PeopleAlsoViewed({ currentUserId }) {
   const { data: users } = useFetch(() => API.getUsers(), []);
-  const { showToast } = React.useContext(AppContext);
-  const shown = (users || []).filter(u => String(u.id) !== String(currentUserId)).slice(0, 3);
+  const { showToast, currentUser } = React.useContext(AppContext);
+  const filterId = currentUserId || (currentUser && currentUser.id);
+  const shown = (users || []).filter(u => !filterId || String(u.id) !== String(filterId)).slice(0, 3);
   if (!shown.length) return null;
   return (
     <div className="li-card" style={{ padding: 20 }}>
@@ -44,10 +45,6 @@ function ProfilePage({ userId }) {
   );
 
   const [expandedSections, setExpandedSections] = React.useState(new Set());
-  const [coverUrl, setCoverUrl] = React.useState(() => {
-    try { return localStorage.getItem('li-cover-photo') || null; } catch { return null; }
-  });
-  const [coverMenuOpen, setCoverMenuOpen] = React.useState(false);
 
   function toggleSection(key) {
     setExpandedSections(prev => {
@@ -75,58 +72,7 @@ function ProfilePage({ userId }) {
           {/* Hero card */}
           <div className="li-card" style={{ padding: 0, overflow: 'hidden' }}>
             {/* Cover photo */}
-            <div style={{ height: 200, background: coverUrl ? `url(${coverUrl}) center/cover no-repeat` : (user.coverGradient || 'linear-gradient(135deg, #0F5DBD 0%, #0A4A9E 100%)'), position: 'relative' }}>
-              {isOwnProfile && (
-                <div style={{ position: 'absolute', top: 12, right: 12 }}>
-                  <button
-                    style={{ background: 'rgba(0,0,0,0.3)', border: 'none', borderRadius: 4, padding: '6px 10px', color: '#fff', cursor: 'pointer', fontSize: 12 }}
-                    onClick={() => setCoverMenuOpen(o => !o)}
-                  >
-                    Edit cover
-                  </button>
-                  {coverMenuOpen && (
-                    <div style={{ position: 'absolute', top: '110%', right: 0, background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 6, boxShadow: '0 4px 12px rgba(0,0,0,0.15)', minWidth: 160, zIndex: 10 }}>
-                      <button
-                        style={{ display: 'block', width: '100%', padding: '10px 16px', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, color: 'var(--text)' }}
-                        onClick={() => {
-                          setCoverMenuOpen(false);
-                          const input = document.createElement('input');
-                          input.type = 'file';
-                          input.accept = 'image/*';
-                          input.onchange = (e) => {
-                            const file = e.target.files[0];
-                            if (!file) return;
-                            const reader = new FileReader();
-                            reader.onload = (ev) => {
-                              const dataUrl = ev.target.result;
-                              setCoverUrl(dataUrl);
-                              try { localStorage.setItem('li-cover-photo', dataUrl); } catch {}
-                              showToast('Cover photo updated!', 'success');
-                            };
-                            reader.readAsDataURL(file);
-                          };
-                          input.click();
-                        }}
-                      >
-                        Upload photo
-                      </button>
-                      {coverUrl && (
-                        <button
-                          style={{ display: 'block', width: '100%', padding: '10px 16px', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, color: 'var(--red)' }}
-                          onClick={() => {
-                            setCoverMenuOpen(false);
-                            setCoverUrl(null);
-                            try { localStorage.removeItem('li-cover-photo'); } catch {}
-                            showToast('Cover photo removed', 'success');
-                          }}
-                        >
-                          Delete photo
-                        </button>
-                      )}
-                    </div>
-                  )}
-                </div>
-              )}
+            <div style={{ height: 200, background: user.coverGradient || 'linear-gradient(135deg, #0F5DBD 0%, #0A4A9E 100%)', position: 'relative' }}>
             </div>
             {/* Profile info */}
             <div style={{ padding: '0 24px 20px', position: 'relative' }}>

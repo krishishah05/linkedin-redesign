@@ -2,9 +2,15 @@
    SETTINGSPAGE.JS — Account settings
    ============================================================ */
 function SettingsPage() {
-  const { settings, setSettings, darkMode, setDarkMode, showToast, currentUser } = React.useContext(AppContext);
+  const { settings, setSettings, darkMode, setDarkMode, showToast, currentUser, setCurrentUser } = React.useContext(AppContext);
   const [tab, setTab] = React.useState('notifications');
   const [passwordData, setPasswordData] = React.useState({ current: '', newPw: '', confirm: '' });
+  const [accountForm, setAccountForm] = React.useState(() => ({
+    firstName: currentUser ? (currentUser.name || '').split(' ')[0] : '',
+    lastName: currentUser ? (currentUser.name || '').split(' ').slice(1).join(' ') : '',
+    email: currentUser ? (currentUser.email || '') : '',
+    phone: currentUser ? (currentUser.phone || '') : '',
+  }));
 
   const tabs = [
     { key: 'notifications', label: 'Notifications' },
@@ -90,14 +96,14 @@ function SettingsPage() {
                 <Toggle
                   label="Job alerts"
                   desc="Get notified about new job matches"
-                  value={true}
-                  onChange={() => showToast('Job alerts updated')}
+                  value={settings.jobAlerts !== false}
+                  onChange={v => { setSettings(s => ({ ...s, jobAlerts: v })); showToast('Job alerts ' + (v ? 'enabled' : 'disabled')); }}
                 />
                 <Toggle
                   label="Network updates"
                   desc="New connections and birthday reminders"
-                  value={true}
-                  onChange={() => showToast('Network updates updated')}
+                  value={settings.networkUpdates !== false}
+                  onChange={v => { setSettings(s => ({ ...s, networkUpdates: v })); showToast('Network updates ' + (v ? 'enabled' : 'disabled')); }}
                 />
               </div>
             )}
@@ -126,8 +132,8 @@ function SettingsPage() {
                 <Toggle
                   label="Profile views"
                   desc="Show when you've viewed someone's profile"
-                  value={true}
-                  onChange={() => showToast('Profile view setting updated')}
+                  value={settings.profileViews !== false}
+                  onChange={v => { setSettings(s => ({ ...s, profileViews: v })); showToast('Profile view setting updated'); }}
                 />
               </div>
             )}
@@ -138,32 +144,38 @@ function SettingsPage() {
                 <div style={{ marginBottom: 24 }}>
                   <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 12 }}>Name & URL</h3>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                    {[
-                      ['First name', currentUser ? currentUser.name.split(' ')[0] : ''],
-                      ['Last name', currentUser ? currentUser.name.split(' ').slice(1).join(' ') : ''],
-                      ['Nexus URL', `nexus.io/in/${currentUser ? currentUser.name.toLowerCase().replace(/\s+/g, '') : ''}`],
-                    ].map(([label, val]) => (
-                      <div key={label}>
-                        <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 4 }}>{label}</label>
-                        <input
-                          className="li-settings-input"
-                          defaultValue={val}
-                          style={{ width: '100%', boxSizing: 'border-box' }}
-                        />
-                      </div>
-                    ))}
+                    <div>
+                      <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 4 }}>First name</label>
+                      <input className="li-settings-input" value={accountForm.firstName} onChange={e => setAccountForm(f => ({ ...f, firstName: e.target.value }))} style={{ width: '100%', boxSizing: 'border-box' }} />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 4 }}>Last name</label>
+                      <input className="li-settings-input" value={accountForm.lastName} onChange={e => setAccountForm(f => ({ ...f, lastName: e.target.value }))} style={{ width: '100%', boxSizing: 'border-box' }} />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 4 }}>Nexus URL</label>
+                      <input className="li-settings-input" readOnly value={`nexus.io/in/${currentUser?.name?.toLowerCase().replace(/\s+/g, '') || ''}`} style={{ width: '100%', boxSizing: 'border-box', color: 'var(--text-2)' }} />
+                    </div>
                   </div>
                 </div>
                 <div style={{ borderTop: '1px solid var(--border)', paddingTop: 20 }}>
                   <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 12 }}>Contact info</h3>
-                  {[['Email', currentUser ? currentUser.email || 'alex.johnson@gmail.com' : ''], ['Phone', currentUser ? currentUser.phone || '+1 (415) 234-5678' : '']].map(([label, val]) => (
-                    <div key={label} style={{ marginBottom: 12 }}>
-                      <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 4 }}>{label}</label>
-                      <input className="li-settings-input" defaultValue={val} style={{ width: '100%', boxSizing: 'border-box' }} />
-                    </div>
-                  ))}
+                  <div style={{ marginBottom: 12 }}>
+                    <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 4 }}>Email</label>
+                    <input className="li-settings-input" value={accountForm.email} onChange={e => setAccountForm(f => ({ ...f, email: e.target.value }))} style={{ width: '100%', boxSizing: 'border-box' }} />
+                  </div>
+                  <div style={{ marginBottom: 12 }}>
+                    <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 4 }}>Phone</label>
+                    <input className="li-settings-input" value={accountForm.phone} onChange={e => setAccountForm(f => ({ ...f, phone: e.target.value }))} style={{ width: '100%', boxSizing: 'border-box' }} />
+                  </div>
                 </div>
-                <button className="li-btn li-btn--primary li-btn--sm" style={{ marginTop: 8 }} onClick={() => showToast('Account settings saved!')}>
+                <button className="li-btn li-btn--primary li-btn--sm" style={{ marginTop: 8 }} onClick={() => {
+                  if (!accountForm.firstName.trim()) { showToast('First name is required', 'error'); return; }
+                  const name = (accountForm.firstName + ' ' + accountForm.lastName).trim();
+                  API.updateMe({ name, email: accountForm.email, phone: accountForm.phone })
+                    .then(updated => { setCurrentUser(updated); showToast('Account settings saved!'); })
+                    .catch(() => showToast('Failed to save account settings', 'error'));
+                }}>
                   Save changes
                 </button>
               </div>
@@ -219,7 +231,15 @@ function SettingsPage() {
                         value={passwordData.confirm} onChange={e => setPasswordData(p => ({ ...p, confirm: e.target.value }))} />
                     </div>
                     <button className="li-btn li-btn--primary li-btn--sm" style={{ alignSelf: 'flex-start' }}
-                      onClick={() => { showToast('Password updated successfully!'); setPasswordData({ current: '', newPw: '', confirm: '' }); }}>
+                      onClick={() => {
+                        if (!passwordData.current) { showToast('Current password is required', 'error'); return; }
+                        if (!passwordData.newPw) { showToast('New password is required', 'error'); return; }
+                        if (passwordData.newPw.length < 8) { showToast('Password must be at least 8 characters', 'error'); return; }
+                        if (passwordData.newPw !== passwordData.confirm) { showToast('Passwords do not match', 'error'); return; }
+                        API.changePassword(passwordData.current, passwordData.newPw)
+                          .then(() => { showToast('Password updated successfully!'); setPasswordData({ current: '', newPw: '', confirm: '' }); })
+                          .catch(err => showToast(err.message || 'Failed to update password', 'error'));
+                      }}>
                       Update password
                     </button>
                   </div>
@@ -233,14 +253,14 @@ function SettingsPage() {
                 <Toggle
                   label="Allow personalized ads"
                   desc="Nexus uses your data to show relevant content"
-                  value={false}
-                  onChange={() => showToast('Ad preference updated')}
+                  value={settings.personalizedAds === true}
+                  onChange={v => { setSettings(s => ({ ...s, personalizedAds: v })); showToast('Ad preference updated'); }}
                 />
                 <Toggle
                   label="Share data with third parties"
                   desc="Allow Nexus partners to use your data"
-                  value={false}
-                  onChange={() => showToast('Data sharing preference updated')}
+                  value={settings.shareData === true}
+                  onChange={v => { setSettings(s => ({ ...s, shareData: v })); showToast('Data sharing preference updated'); }}
                 />
                 <div style={{ marginTop: 24, padding: 16, background: 'var(--bg-2)', borderRadius: 8 }}>
                   <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 8 }}>Download your data</h3>

@@ -15,14 +15,14 @@ function NotificationsPage() {
 
   function markRead(id) {
     API.markRead(id).then(() => {
-      setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
+      setNotifications(prev => (prev || []).map(n => n.id === id ? { ...n, isRead: true } : n));
       setUnreadNotifications(prev => Math.max(0, prev - 1));
     }).catch(() => {});
   }
 
   function markAllRead() {
     API.markAllRead().then(() => {
-      setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+      setNotifications(prev => (prev || []).map(n => ({ ...n, isRead: true })));
       setUnreadNotifications(0);
       showToast('All notifications marked as read');
     }).catch(() => {});

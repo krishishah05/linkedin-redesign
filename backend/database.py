@@ -192,6 +192,35 @@ def init_db():
         )
     """)
 
+    # -- Post likes (per-user) ------------------------------------------------
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS post_likes (
+            post_id INTEGER NOT NULL,
+            user_id INTEGER NOT NULL,
+            PRIMARY KEY (post_id, user_id)
+        )
+    """)
+
+    # -- User-created events --------------------------------------------------
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS user_events (
+            id         INTEGER PRIMARY KEY AUTOINCREMENT,
+            creator_id INTEGER NOT NULL,
+            created_at INTEGER NOT NULL,
+            data       TEXT NOT NULL
+        )
+    """)
+
+    # -- Event attendance (covers both static and user-created events) --------
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS event_attendance (
+            event_id   INTEGER NOT NULL,
+            event_src  TEXT NOT NULL DEFAULT 'static',
+            user_id    INTEGER NOT NULL,
+            PRIMARY KEY (event_id, event_src, user_id)
+        )
+    """)
+
     conn.commit()
     conn.close()
 
@@ -711,3 +740,176 @@ def search(q: str, exclude_user_id: int = 1):
         "posts": posts,
         "query": q,
     }
+
+
+# ---------------------------------------------------------------------------
+# Post likes
+# ---------------------------------------------------------------------------
+def toggle_post_like(post_id: int, user_id: int):
+    """Toggle a like on a post. Returns {liked: bool, likeCount: int}."""
+    conn = _connect()
+    c = conn.cursor()
+
+    existing = c.execute(
+        "SELECT 1 FROM post_likes WHERE post_id=? AND user_id=?",
+        (int(post_id), int(user_id))
+    ).fetchone()
+
+    if existing:
+        c.execute("DELETE FROM post_likes WHERE post_id=? AND user_id=?",
+                  (int(post_id), int(user_id)))
+        liked = False
+    else:
+        c.execute("INSERT INTO post_likes (post_id, user_id) VALUES (?, ?)",
+                  (int(post_id), int(user_id)))
+        liked = True
+
+    count = c.execute(
+        "SELECT COUNT(*) FROM post_likes WHERE post_id=?", (int(post_id),)
+    ).fetchone()[0]
+
+    conn.commit()
+    conn.close()
+    return {"liked": liked, "likeCount": count}
+
+
+def add_post_comment(post_id: int, author_id: int, text: str):
+    """Append a comment to a post's commentsList blob. Returns the new comment."""
+    conn = _connect()
+    c = conn.cursor()
+
+    row = c.execute("SELECT data FROM posts WHERE id=?", (int(post_id),)).fetchone()
+    if not row:
+        conn.close()
+        return None
+
+    user_row = c.execute("SELECT data FROM users WHERE id=?", (int(author_id),)).fetchone()
+    user = json.loads(user_row["data"]) if user_row else {}
+
+    blob = json.loads(row["data"])
+    comment = {
+        "author": user.get("name", "User"),
+        "authorHeadline": user.get("headline", ""),
+        "text": text,
+        "timestamp": "Just now",
+        "likes": 0,
+    }
+    comments = blob.get("commentsList", [])
+    comments.insert(0, comment)
+    blob["commentsList"] = comments
+
+    c.execute("UPDATE posts SET data=? WHERE id=?",
+              (json.dumps(blob), int(post_id)))
+    conn.commit()
+    conn.close()
+    return comment
+
+
+def delete_post(post_id: int, user_id: int):
+    """Delete a post if it belongs to user_id. Returns True if deleted."""
+    conn = _connect()
+    row = conn.execute("SELECT author_id FROM posts WHERE id=?", (int(post_id),)).fetchone()
+    if not row or row["author_id"] != int(user_id):
+        conn.close()
+        return False
+    conn.execute("DELETE FROM posts WHERE id=?", (int(post_id),))
+    conn.commit()
+    conn.close()
+    return True
+
+
+def get_post_likes_for_user(user_id: int):
+    """Return set of post IDs liked by user."""
+    conn = _connect()
+    rows = conn.execute(
+        "SELECT post_id FROM post_likes WHERE user_id=?", (int(user_id),)
+    ).fetchall()
+    conn.close()
+    return {r["post_id"] for r in rows}
+
+
+# ---------------------------------------------------------------------------
+# Events
+# ---------------------------------------------------------------------------
+def get_all_events_with_attendance(user_id: int):
+    """Return static events + user-created events, each with isAttending flag."""
+    from data.events import get_events as _get_static_events
+
+    conn = _connect()
+
+    # Attended event keys for this user
+    attended = set()
+    rows = conn.execute(
+        "SELECT event_id, event_src FROM event_attendance WHERE user_id=?",
+        (int(user_id),)
+    ).fetchall()
+    for r in rows:
+        attended.add((r["event_id"], r["event_src"]))
+
+    # Static events
+    static_events = _get_static_events()
+    result = []
+    for e in static_events:
+        ev = dict(e)
+        ev["isAttending"] = (ev.get("id", 0), "static") in attended
+        ev["source"] = "static"
+        result.append(ev)
+
+    # User-created events
+    ue_rows = conn.execute(
+        "SELECT id, creator_id, created_at, data FROM user_events ORDER BY created_at DESC"
+    ).fetchall()
+    for r in ue_rows:
+        ev = json.loads(r["data"])
+        ev["id"] = f"u{r['id']}"
+        ev["creatorId"] = r["creator_id"]
+        ev["isAttending"] = (r["id"], "user") in attended
+        ev["source"] = "user"
+        result.append(ev)
+
+    conn.close()
+    return result
+
+
+def create_event(creator_id: int, data: dict):
+    """Insert a user-created event. Returns the event dict with its new id."""
+    now = _ts()
+    conn = _connect()
+    c = conn.cursor()
+    c.execute(
+        "INSERT INTO user_events (creator_id, created_at, data) VALUES (?, ?, ?)",
+        (int(creator_id), now, json.dumps(data))
+    )
+    new_id = c.lastrowid
+    conn.commit()
+    conn.close()
+    return {**data, "id": f"u{new_id}", "creatorId": creator_id, "source": "user", "isAttending": False}
+
+
+def toggle_event_attend(event_id, event_src: str, user_id: int):
+    """Toggle attendance for an event. Returns {attending: bool}."""
+    raw_id = int(str(event_id).lstrip("u"))
+    conn = _connect()
+    c = conn.cursor()
+
+    existing = c.execute(
+        "SELECT 1 FROM event_attendance WHERE event_id=? AND event_src=? AND user_id=?",
+        (raw_id, event_src, int(user_id))
+    ).fetchone()
+
+    if existing:
+        c.execute(
+            "DELETE FROM event_attendance WHERE event_id=? AND event_src=? AND user_id=?",
+            (raw_id, event_src, int(user_id))
+        )
+        attending = False
+    else:
+        c.execute(
+            "INSERT INTO event_attendance (event_id, event_src, user_id) VALUES (?, ?, ?)",
+            (raw_id, event_src, int(user_id))
+        )
+        attending = True
+
+    conn.commit()
+    conn.close()
+    return {"attending": attending}

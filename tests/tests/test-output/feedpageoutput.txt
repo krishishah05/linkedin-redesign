@@ -1,0 +1,97 @@
+console.log
+    FeedPage loaded: function
+
+      at Object.log (tests/tests/test-files/FeedPage.test.js:93:9)
+
+  console.log
+    PostCreator mock calls: 2
+
+      at Object.log (tests/tests/test-files/FeedPage.test.js:155:13)
+
+  console.log                                                                     
+    PostCreator is mock: true                                                     
+
+      at Object.log (tests/tests/test-files/FeedPage.test.js:156:13)
+
+ PASS  tests/tests/test-files/FeedPage.test.js (6.473 s)
+  FeedPage — handleNewPost
+    √ Creates post and prepends to feed with correct author and content (186 ms)
+    √ Shows success toast when API.createPost resolves (62 ms)                    
+    √ Rolls back post and shows error toast when API.createPost rejects (18 ms)   
+    √ Passes whitespace content as-is to API.createPost (no guard in handleNewPost) (17 ms)                                                                         
+  FeedPage — toggleCommentsFor
+    √ Adds postId to expandedComments when not already in set (25 ms)             
+    √ Removes postId from expandedComments when already in set (33 ms)            
+    √ Does not affect other postIds when toggling (49 ms)                         
+  FeedPage — Feed Sort                                                            
+    √ Sorts posts by timestamp descending when feedSort is Recent (64 ms)         
+    √ Sorts posts by total reactions descending when feedSort is Top (37 ms)      
+    √ Uses totalReactions field when reactions object is absent (20 ms)           
+  FeedPage — Render States                                                        
+    √ Shows loading spinner while posts fetch (9 ms)                              
+    √ Shows error message when feed fetch fails (9 ms)                            
+    √ Shows empty feed message when no posts exist (12 ms)                        
+  PostCreator — submit()                                                          
+    √ Calls onPost with trimmed content and resets state (60 ms)                  
+    √ Does nothing when draft is empty string (24 ms)                             
+    √ Does nothing when draft is whitespace only (22 ms)                          
+  SponsoredPost                                                                   
+    √ Renders company name and CTA button (39 ms)                                 
+    √ Calls showToast with Ad hidden when X button clicked (17 ms)
+    √ Calls showToast with Opening company name when CTA button clicked (18 ms)   
+  FeedPost — selectReaction                                                       
+    √ Sets reaction, triggers like, and shows toast (53 ms)                       
+  FeedPost — postComment()                                                        
+    √ Adds comment to list and clears draft (47 ms)                               
+    √ Does nothing when comment draft is empty string (14 ms)                     
+    √ Does nothing when comment draft is whitespace only (23 ms)                  
+    √ Falls back to 'You' as author when currentUser has no name (48 ms)          
+  FeedPost — handleLikeHover and handleLikeLeave                                  
+    √ Shows reaction picker after 500ms hover (48 ms)                             
+    √ Cancels timer and hides reaction picker on mouse leave (35 ms)              
+    √ Does not crash when mouseLeave fires before mouseEnter (21 ms)              
+  TruncatedText                                                                   
+    √ Shows full text when under limit (4 ms)                                     
+    √ Truncates text and shows see more button when over limit (6 ms)             
+    √ Expands to full text and shows see less button on see more click (5 ms)     
+    √ Collapses back to truncated text on see less click (8 ms)                   
+    √ Shows full text when length is exactly at limit (3 ms)                      
+    √ Truncates text when length is one over limit (4 ms)                         
+  FeedPost — Options Menu                                                         
+    √ Shows Delete post option when currentUser is the author (35 ms)             
+    √ Hides Delete post option when currentUser is not the author (19 ms)         
+    √ Calls onDelete and shows toast when Delete post is clicked (32 ms)          
+  FeedPage — sidebar and inline handlers                                          
+    √ Renders suggested users and Follow button when users are returned (17 ms)   
+    √ Clicking Follow in sidebar calls follow and showToast (27 ms)               
+    √ onLike prop passed to FeedPost calls toggleLike with post id (18 ms)        
+    √ onDelete prop passed to FeedPost removes the post from the feed (19 ms)     
+  PostCreator — action buttons                                                    
+    √ Clicking Photo button in collapsed composer expands it (23 ms)              
+    √ Clicking Event button in collapsed composer calls navigate (8 ms)           
+    √ Clicking Write article button calls showToast (6 ms)                        
+    √ Clicking Photo in expanded toolbar calls showToast (14 ms)                  
+    √ Clicking Event in expanded toolbar calls navigate (25 ms)                   
+    √ Clicking Cancel in expanded composer collapses it (19 ms)                   
+  FeedPost — render variants and action buttons                                   
+    √ Calculates totalReactions from reactions object (17 ms)                     
+    √ Renders reactions count bar when totalReactions > 0 (13 ms)                 
+    √ Renders hashtag links when post has tags (13 ms)                            
+    √ + Follow button on post calls onFollow and showToast (14 ms)                
+    √ Clicking Repost calls openModal with share (25 ms)                          
+    √ Clicking Send calls showToast with Link copied (20 ms)                      
+    √ Clicking author photo navigates to the author profile (34 ms)               
+    √ Clicking Report post in menu calls openModal with report (29 ms)            
+    √ Clicking Save post in menu calls showToast (27 ms)                          
+    √ Clicking a hashtag tag navigates to search (25 ms)                          
+    √ Renders post image and shows toast on image click (13 ms)                   
+    √ Clicking reactions bar shows Reactions coming soon toast (13 ms)            
+    √ Clicking Like on a comment shows Liked comment toast (122 ms)               
+    √ Clicking Reply on a comment shows Reply coming soon toast (15 ms)           
+    √ Clicking View all comments shows loading toast (23 ms)                      
+                                                                                  
+Test Suites: 1 passed, 1 total                                                    
+Tests:       61 passed, 61 total                                                  
+Snapshots:   0 total
+Time:        7.947 s
+Ran all test suites matching FeedPage.

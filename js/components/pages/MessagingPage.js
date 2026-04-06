@@ -13,14 +13,11 @@ function MessagingPage() {
   const [messages, setMessages] = React.useState([]);
   const [msgLoading, setMsgLoading] = React.useState(false);
   const [draft, setDraft] = React.useState('');
-  const [lastMsgOverrides, setLastMsgOverrides] = React.useState({});
   const [search, setSearch] = React.useState('');
   const [composing, setComposing] = React.useState(false);
   const [composeSearch, setComposeSearch] = React.useState('');
   const [networkUsers, setNetworkUsers] = React.useState([]);
   const messagesEndRef = React.useRef(null);
-  const currentUserRef = React.useRef(currentUser);
-  React.useEffect(() => { currentUserRef.current = currentUser; }, [currentUser]);
 
   // Panels (user stories live in Messaging like your original requirement)
   const [activePanel, setActivePanel] = React.useState(null); // 'guide' | 'score' | null
@@ -67,12 +64,11 @@ function MessagingPage() {
     setMsgLoading(true);
     API.getConversation(id)
       .then(data => {
-        const myId = currentUserRef.current?.id;
-        const msgs = (data.messages || []).map(m => ({
+        const myId = currentUser ? currentUser.id : null;
+        setMessages((data.messages || []).map(m => ({
           ...m,
-          isMe: myId != null && String(m.senderId) === String(myId),
-        }));
-        setMessages(msgs);
+          isMe: myId !== null && m.senderId === myId,
+        })));
         setMsgLoading(false);
       })
       .catch(() => {
@@ -114,7 +110,6 @@ function MessagingPage() {
       isMe: true,
     };
     setMessages(prev => [...prev, newMsg]);
-    setLastMsgOverrides(prev => ({ ...prev, [selectedId]: text }));
 
     API.sendMessage(selectedId, text).catch(() => {
       showToast('Failed to send message', 'error');
@@ -139,46 +134,19 @@ function MessagingPage() {
     setReadinessLoading(true);
     setReadinessError(null);
     try {
-      // Story #7 (Outreach Readiness Check) — primary: outreach readiness endpoint
-      const data = await API.getOutreachReadiness();
-      setReadiness(_transformOutreachReadiness(data));
+      // Backend call (P4-ready)
+      const data = await API.getProfileReadiness();
+      setReadiness(data);
       if (refresh) showToast('Score refreshed', 'success');
-    } catch (_e1) {
-      try {
-        // Secondary fallback: profile-readiness endpoint
-        const data = await API.getProfileReadiness();
-        setReadiness(data);
-        if (refresh) showToast('Score refreshed', 'success');
-      } catch (_e2) {
-        // Final fallback: local mock
-        const mock = mockBackendGetProfileReadiness(currentUser, { jitter: refresh });
-        setReadiness(mock);
-        setReadinessError('Backend not running — using mocked score');
-        if (refresh) showToast('Score refreshed (mock)', 'info');
-      }
+    } catch (e) {
+      // Fallback mock so P3 works even if backend isn’t running
+      const mock = mockBackendGetProfileReadiness(currentUser, { jitter: refresh });
+      setReadiness(mock);
+      setReadinessError('Backend not running — using mocked score');
+      if (refresh) showToast('Score refreshed (mock)', 'info');
     } finally {
       setReadinessLoading(false);
     }
-  }
-
-  function _transformOutreachReadiness(data) {
-    const sections = (data.breakdown || []).map(item => ({
-      key: item.key,
-      label: item.label,
-      score: item.met ? 100 : 0,
-    }));
-    const fixes = (data.breakdown || []).map(item => ({
-      key: item.key,
-      label: item.tip || item.label,
-      status: item.met ? 'done' : (item.weight >= 15 ? 'bad' : 'warn'),
-    }));
-    return {
-      score: data.score,
-      sections,
-      fixes,
-      level: data.level,
-      can_message: data.can_message,
-    };
   }
 
   // ────────────────────────────────────────────────────────────
@@ -186,8 +154,8 @@ function MessagingPage() {
   // React version of your old step-by-step guide logic
   // ────────────────────────────────────────────────────────────
   function openOutreachGuide() {
+    if (!selectedId) { showToast('Select a conversation first', 'info'); return; }
     setActivePanel(prev => (prev === 'guide' ? null : 'guide'));
-    if (!selectedId) return;
 
     // Close readiness if open
     if (activePanel === 'score') setActivePanel('guide');
@@ -199,13 +167,8 @@ function MessagingPage() {
           step: 1,
           goal: null,
           variantIdx: 0,
-          generating: false,
-          backendVariants: [],   // [draft, ...alternatives] from API
-          backendTips: null,     // tips[] from API
-          backendTone: null,     // tone string from API
           details: {
             recipient: '',
-            senderFirstName: (currentUser?.name || '').split(' ')[0] || '',
             yourRole: '',
             field: '',
             company: '',
@@ -238,17 +201,17 @@ function MessagingPage() {
     }));
   }
 
-  function computeGuidePreview(state) {
-    if (!state || !state.goal) return '';
-    const variants = _OUTREACH_TEMPLATES[state.goal] || [];
-    if (!variants.length) return '';
-    const variant = variants[state.variantIdx % variants.length];
-    return variant.template(state.details || {});
-  }
 
   function selectGoal(goalKey) {
-    // Just highlight the goal, stay on step 1 — user clicks Next to advance
-    setGuideState({ goal: goalKey });
+    const cur = guideStateByConv[selectedId] || {};
+    const updated = {
+      ...cur,
+      goal: goalKey,
+      step: 2,
+      variantIdx: 0,
+    };
+    updated.preview = computeGuidePreview(updated);
+    setGuideState(updated);
   }
 
   function nextStep() {
@@ -265,47 +228,9 @@ function MessagingPage() {
     }
 
     if (s.step === 2) {
-      // Move to step 3 immediately (show loading), then fetch from backend
-      setGuideState({ step: 3, generating: true, preview: '', backendVariants: [], backendTips: null, backendTone: null });
-
-      const mapping = _GOAL_BACKEND_MAP[s.goal] || { goal: 'networking', tone: 'professional' };
-      const d = s.details || {};
-      const noteParts = [d.context].filter(Boolean);
-      const customNote = noteParts.join(' — ');
-      const details = {
-        recipient: d.recipient || '',
-        yourRole: d.yourRole || '',
-        field: d.field || '',
-        company: d.company || '',
-        role: d.role || '',
-        context: d.context || '',
-      };
-
-      const conv = (conversations || []).find(c => c.id === selectedId);
-      const recipientId = conv?.participant?.id ?? null;
-      if (!recipientId) {
-        setGuideState({ generating: false, step: 2, backendVariants: [] });
-        showToast('Could not identify recipient — try again', 'error');
-        return;
-      }
-
-      API.generateOutreachMessage(recipientId, mapping.tone, mapping.goal, customNote, details)
-        .then(data => {
-          const variants = [data.draft, ...(data.alternatives || [])].filter(Boolean);
-          setGuideState({
-            generating: false,
-            preview: variants[0] || '',
-            backendVariants: variants,
-            backendTips: data.tips || null,
-            backendTone: data.tone || null,
-            variantIdx: 0,
-          });
-        })
-        .catch(() => {
-          // Fallback to local template
-          const fallback = computeGuidePreview({ ...s, step: 3 });
-          setGuideState({ generating: false, preview: fallback, backendVariants: [] });
-        });
+      const updated = { ...s, step: 3 };
+      updated.preview = computeGuidePreview(updated);
+      setGuideState(updated);
       return;
     }
   }
@@ -319,16 +244,9 @@ function MessagingPage() {
   function cycleVariant() {
     const s = guideStateByConv[selectedId];
     if (!s || !s.goal) return;
-
-    if (s.backendVariants && s.backendVariants.length > 1) {
-      const nextIdx = (s.variantIdx + 1) % s.backendVariants.length;
-      setGuideState({ variantIdx: nextIdx, preview: s.backendVariants[nextIdx] });
-      return;
-    }
-
-    // Fallback: local templates
     const variants = _OUTREACH_TEMPLATES[s.goal] || [];
     if (!variants.length) return;
+
     const updated = { ...s, variantIdx: (s.variantIdx + 1) % variants.length };
     updated.preview = computeGuidePreview(updated);
     setGuideState(updated);
@@ -353,21 +271,21 @@ function MessagingPage() {
     setActivePanel(null);
   }
 
-  // Keep preview synced when details change (local-template mode only — not when using backend)
+  // Keep preview synced when details change (when in step 2/3)
   React.useEffect(() => {
     if (!selectedId) return;
     const s = guideStateByConv[selectedId];
     if (!s) return;
     if (!s.goal) return;
-    // Don't touch preview when backend has generated content or is generating
-    if (s.backendVariants?.length > 0 || s.generating) return;
     if (s.step === 2 || s.step === 3) {
+      const fresh = computeGuidePreview(s);
+      // Only overwrite preview automatically if user hasn’t manually edited it heavily
+      // (Simple rule: if preview still matches computed prefix-ish)
       setGuideStateByConv(prev => {
         const cur = prev[selectedId];
         if (!cur) return prev;
-        if (cur.backendVariants?.length > 0 || cur.generating) return prev;
         const computed = computeGuidePreview(cur);
-        // If user manually edited in step 3, keep their version
+        // If user edited, keep their version
         if (cur.step === 3 && cur.preview && cur.preview !== computed) return prev;
         return { ...prev, [selectedId]: { ...cur, preview: computed } };
       });
@@ -378,7 +296,7 @@ function MessagingPage() {
 
   const allConversations = localConversations || conversations || [];
   const filteredConvs = search
-    ? allConversations.filter(c => (c.participant?.name || c.participantName || '').toLowerCase().includes(search.toLowerCase()))
+    ? allConversations.filter(c => (c.participantName || '').toLowerCase().includes(search.toLowerCase()))
     : allConversations;
   const selectedConv = allConversations.find(c => c.id === selectedId);
   const filteredNetworkUsers = composeSearch
@@ -397,14 +315,26 @@ function MessagingPage() {
           <div style={{ padding: '16px 16px 12px', borderBottom: '1px solid var(--border)' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
               <h2 style={{ fontSize: 18, fontWeight: 700 }}>Messaging</h2>
-              <button
-                className="li-btn li-btn--ghost"
-                style={{ padding: '4px 8px', fontSize: 12 }}
-                onClick={() => { setComposing(v => !v); setComposeSearch(''); }}
-                title="New message"
-              >
-                {composing ? '✕ Cancel' : '✏ New'}
-              </button>
+              <div style={{ display: 'flex', gap: 4 }}>
+  {/* The functional button from Current Change */}
+  <button
+    className="li-btn li-btn--ghost"
+    style={{ padding: '4px 8px', fontSize: 12 }}
+    onClick={() => { setComposing(v => !v); setComposeSearch(''); }}
+    title="New message"
+  >
+    {composing ? '✕ Cancel' : '✏ New'}
+  </button>
+
+  {/* The extra buttons from Incoming Change */}
+  <button 
+    className="li-btn li-btn--ghost" 
+    style={{ padding: 4 }}
+    onClick={() => showToast('Settings — coming soon')}
+  >
+    Settings
+  </button>
+</div>
             </div>
 
             {/* Compose picker */}
@@ -475,8 +405,8 @@ function MessagingPage() {
                   borderBottom: '1px solid rgba(0,0,0,0.06)',
                 }}
               >
-                <div style={{ fontWeight: 700, fontSize: 14 }}>{c.participant?.name || c.participantName || 'Unknown'}</div>
-                <div style={{ color: 'var(--text-3)', fontSize: 12, marginTop: 2 }}>{lastMsgOverrides[c.id] !== undefined ? lastMsgOverrides[c.id] : (c.lastMessage || '')}</div>
+                <div style={{ fontWeight: 700, fontSize: 14 }}>{c.participantName || 'Unknown'}</div>
+                <div style={{ color: 'var(--text-3)', fontSize: 12, marginTop: 2 }}>{c.lastMessage || ''}</div>
               </button>
             ))}
           </div>
@@ -507,19 +437,20 @@ function MessagingPage() {
               className="li-btn li-btn--ghost"
               onClick={openOutreachGuide}
               disabled={!selectedId}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13 }}
-              title="User Story 1 — Get a personalised outreach draft"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+              title="Outreach Guide"
             >
-              ✍️ Outreach Guide
+              Guide
             </button>
 
             <button
               className="li-btn li-btn--ghost"
               onClick={openProfileReadiness}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13 }}
-              title="User Story 7 — Check how ready your profile is before messaging"
+              disabled={!selectedId}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+              title="Profile Readiness"
             >
-              📊 Readiness Score
+              Score
             </button>
           </div>}
 
@@ -625,21 +556,11 @@ function OutreachGuidePanel({
 }) {
   if (!state) return null;
 
-  // Tips: prefer backend-sourced tips, fall back to local lookup
-  const tips = state.goal
-    ? (state.backendTips || _OUTREACH_TIPS[state.goal] || [])
-    : [];
+  const tips = state.goal ? (_OUTREACH_TIPS[state.goal] || []) : [];
 
-  // Tone + variant label
-  const localVariants = state.goal ? (_OUTREACH_TEMPLATES[state.goal] || []) : [];
-  const usingBackend = state.backendVariants && state.backendVariants.length > 0;
-  const totalVariants = usingBackend ? state.backendVariants.length : localVariants.length;
-  const tone = usingBackend
-    ? (state.backendTone || 'professional')
-    : (localVariants.length ? localVariants[state.variantIdx % localVariants.length].tone : '—');
-  const variantLabel = totalVariants > 1
-    ? `v${(state.variantIdx % totalVariants) + 1} of ${totalVariants}`
-    : '';
+  const variants = state.goal ? (_OUTREACH_TEMPLATES[state.goal] || []) : [];
+  const tone = variants.length ? variants[state.variantIdx % variants.length].tone : '—';
+  const variantLabel = variants.length ? `v${state.variantIdx + 1} of ${variants.length}` : '';
 
   return (
     <div className="li-msg-guide" role="complementary" aria-label="Outreach message guide">
@@ -662,7 +583,7 @@ function OutreachGuidePanel({
         <div className="li-msg-guide__steps">
           {state.step === 1 && (
             <div className="li-msg-guide__step">
-              <div className="li-msg-guide__step-label">What's the purpose of your message?</div>
+              <div className="li-msg-guide__step-label">What’s the purpose of your message?</div>
               <div className="li-msg-guide__goals">
                 {_OUTREACH_GOALS.map(g => (
                   <div
@@ -687,7 +608,7 @@ function OutreachGuidePanel({
               <div className="li-msg-guide__step-label">Personalize your message</div>
               <div className="li-msg-guide__fields">
                 <Field label="Their first name" value={state.details.recipient} onChange={(v) => onDetailsChange({ recipient: v })} />
-                <Field label="Your major / role" placeholder="e.g. CS student" value={state.details.yourRole} onChange={(v) => onDetailsChange({ yourRole: v })} />
+                <Field label="Your name / major" value={state.details.yourRole} onChange={(v) => onDetailsChange({ yourRole: v })} />
                 <Field label="Their field / industry" value={state.details.field} onChange={(v) => onDetailsChange({ field: v })} />
                 <Field label="Company (optional)" value={state.details.company} onChange={(v) => onDetailsChange({ company: v })} />
                 <Field label="Role (optional)" value={state.details.role} onChange={(v) => onDetailsChange({ role: v })} />
@@ -700,36 +621,23 @@ function OutreachGuidePanel({
             <div className="li-msg-guide__step">
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 8 }}>
                 <div className="li-msg-guide__step-label" style={{ margin: 0 }}>Review & edit your message</div>
-                {!state.generating && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span className="li-msg-guide__tone-badge">{tone}</span>
-                    <span style={{ fontSize: 11, color: 'var(--text-3)' }}>{variantLabel}</span>
-                    {totalVariants > 1 && (
-                      <button className="li-msg-guide__cycle-btn" onClick={onCycle} title="Try another version">Try another</button>
-                    )}
-                  </div>
-                )}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span className="li-msg-guide__tone-badge">{tone}</span>
+                  <span style={{ fontSize: 11, color: 'var(--text-3)' }}>{variantLabel}</span>
+                  <button className="li-msg-guide__cycle-btn" onClick={onCycle} title="Try another version">Try another</button>
+                </div>
               </div>
 
-              {state.generating ? (
-                <div style={{ padding: '28px 0', textAlign: 'center', color: 'var(--text-3)', fontSize: 13 }}>
-                  <div style={{ marginBottom: 8, fontSize: 20 }}>✍️</div>
-                  Generating your message…
-                </div>
-              ) : (
-                <>
-                  <textarea
-                    className="li-msg-guide__preview"
-                    value={state.preview || ''}
-                    onChange={(e) => onPreviewChange(e.target.value)}
-                    rows={6}
-                    placeholder="Your message will appear here…"
-                  />
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
-                    <button className="li-msg-guide__insert-btn" onClick={onInsert}>Use this message →</button>
-                  </div>
-                </>
-              )}
+              <textarea
+                className="li-msg-guide__preview"
+                value={state.preview || ''}
+                onChange={(e) => onPreviewChange(e.target.value)}
+                rows={6}
+                placeholder="Your message will appear here…"
+              />
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
+                <button className="li-msg-guide__insert-btn" onClick={onInsert}>Use this message →</button>
+              </div>
             </div>
           )}
         </div>
@@ -761,11 +669,12 @@ function OutreachGuidePanel({
   );
 }
 
-function Field({ label, value, onChange, placeholder }) {
+function Field({ label, value, onChange }) {
+  const id = React.useMemo(() => 'field-' + Math.random().toString(36).substr(2, 9), []);
   return (
     <div className="li-msg-guide__field-row">
-      <label>{label}</label>
-      <input className="li-msg-guide__input" value={value || ''} onChange={(e) => onChange(e.target.value)} placeholder={placeholder || ''} />
+      <label htmlFor={id}>{label}</label>
+      <input id={id} className="li-msg-guide__input" value={value || ''} onChange={(e) => onChange(e.target.value)} />
     </div>
   );
 }
@@ -777,9 +686,8 @@ function ProfileReadinessPanel({ readiness, loading, error, onClose, onRefresh }
   const s = readiness;
 
   const score = s?.score ?? 0;
-  const canMessage = s?.can_message ?? (score >= 60);
-  const status = score >= 75 ? 'good' : score >= 50 ? 'warn' : 'bad';
-  const statusLabel = score >= 75 ? 'Ready to reach out' : score >= 50 ? 'Almost ready' : 'Needs improvement';
+  const status = score >= 80 ? 'good' : score >= 70 ? 'warn' : 'bad';
+  const statusLabel = score >= 80 ? 'Ready' : score >= 70 ? 'Almost there' : 'Needs improvement';
 
   // Ring math
   const r = 44;
@@ -879,9 +787,7 @@ function ProfileReadinessPanel({ readiness, loading, error, onClose, onRefresh }
                 </div>
 
                 <div className="li-msg-score__note">
-                  {canMessage
-                    ? 'Your profile is ready to message — these fixes will boost reply rates.'
-                    : 'Complete these items (score ≥ 60) to unlock outreach messaging.'}
+                  You can message now — but these fixes usually boost response rates.
                 </div>
               </div>
             </div>
@@ -910,23 +816,23 @@ function mockBackendGetProfileReadiness(user, opts = {}) {
   const clamp = (n) => Math.max(0, Math.min(100, Math.round(n)));
 
   const sections = [
-    { key: 'photo',    label: 'Photo',      score: 67 },
-    { key: 'headline', label: 'Headline',   score: 42 },
-    { key: 'about',    label: 'About',      score: 30 },
-    { key: 'exp',      label: 'Experience', score: 60 },
-    { key: 'edu',      label: 'Education',  score: 90 },
-    { key: 'skills',   label: 'Skills',     score: 55 },
+    { key: 'photo', label: 'Photo', score: 67 },
+    { key: 'headline', label: 'Headline', score: 42 },
+    { key: 'about', label: 'About', score: 30 },
+    { key: 'exp', label: 'Experience', score: 60 },
+    { key: 'edu', label: 'Education', score: 90 },
+    { key: 'skills', label: 'Skills', score: 55 },
   ].map(s => ({ ...s, score: clamp(s.score + jitter) }));
 
   const score = clamp(sections.reduce((a, b) => a + b.score, 0) / sections.length);
 
   const fixes = [
-    { key: 'photo',    label: 'Profile photo',             status: score >= 60 ? 'done' : 'warn' },
-    { key: 'headline', label: 'Improve headline',          status: 'bad' },
-    { key: 'about',    label: 'Expand About section',      status: 'bad' },
-    { key: 'skills',   label: 'Add 5+ skills',             status: 'warn' },
-    { key: 'exp',      label: 'Add metrics in experience', status: 'warn' },
-    { key: 'edu',      label: 'Education complete',        status: 'done' },
+    { key: 'photo', label: 'Profile photo', status: score >= 60 ? 'done' : 'warn' },
+    { key: 'headline', label: 'Improve headline', status: 'bad' },
+    { key: 'about', label: 'Expand About section', status: 'bad' },
+    { key: 'skills', label: 'Add 5+ skills', status: 'warn' },
+    { key: 'exp', label: 'Add metrics in experience', status: 'warn' },
+    { key: 'edu', label: 'Education complete', status: 'done' },
   ];
 
   const u = user || {};
@@ -938,33 +844,28 @@ function mockBackendGetProfileReadiness(user, opts = {}) {
   if (headlineLen >= 55) fixes.find(f => f.key === 'headline').status = 'done';
   if (aboutLen >= 120) fixes.find(f => f.key === 'about').status = 'warn';
   if (aboutLen >= 170) fixes.find(f => f.key === 'about').status = 'done';
-  if (skillCount >= 8)  fixes.find(f => f.key === 'skills').status = 'done';
+  if (skillCount >= 8) fixes.find(f => f.key === 'skills').status = 'done';
 
   return { score, sections, fixes };
 }
 
-/* ─────────────────────────────────────────────────────────────
-   Backend goal/tone mapping (Story #1 — Outreach Message Guidance)
-   Maps frontend goal keys → backend goal enum + tone enum
-   ───────────────────────────────────────────────────────────── */
-const _GOAL_BACKEND_MAP = {
-  advice:   { goal: 'advice',       tone: 'friendly'      },
-  job:      { goal: 'job_inquiry',  tone: 'professional'  },
-  network:  { goal: 'networking',   tone: 'friendly'      },
-  mentor:   { goal: 'advice',       tone: 'friendly'      },
-  followup: { goal: 'networking',   tone: 'professional'  },
-  referral: { goal: 'job_inquiry',  tone: 'formal'        },
-};
+function computeGuidePreview(state) {
+  if (!state || !state.goal) return '';
+  const variants = _OUTREACH_TEMPLATES[state.goal] || [];
+  if (!variants.length) return '';
+  const variant = variants[state.variantIdx % variants.length];
+  return variant.template(state.details || {});
+}
 
 /* ─────────────────────────────────────────────────────────────
-   Outreach guide templates (local fallback)
+   Outreach guide templates (from your old app.js)
    ───────────────────────────────────────────────────────────── */
 const _OUTREACH_GOALS = [
-  { key: 'advice',   icon: '', label: 'Ask for Advice',   desc: 'Career guidance from a pro' },
-  { key: 'job',      icon: '', label: 'Job / Internship', desc: 'Express interest in a role' },
-  { key: 'network',  icon: '', label: 'Build Network',    desc: 'Connect in your field' },
-  { key: 'mentor',   icon: '', label: 'Find a Mentor',    desc: 'Request ongoing guidance' },
-  { key: 'followup', icon: '', label: 'Follow Up',        desc: 'After meeting or applying' },
+  { key: 'advice', icon: '', label: 'Ask for Advice', desc: 'Career guidance from a pro' },
+  { key: 'job', icon: '', label: 'Job / Internship', desc: 'Express interest in a role' },
+  { key: 'network', icon: '', label: 'Build Network', desc: 'Connect in your field' },
+  { key: 'mentor', icon: '', label: 'Find a Mentor', desc: 'Request ongoing guidance' },
+  { key: 'followup', icon: '', label: 'Follow Up', desc: 'After meeting or applying' },
   { key: 'referral', icon: '', label: 'Ask for Referral', desc: 'Request a job referral' },
 ];
 
@@ -975,14 +876,14 @@ const _OUTREACH_TIPS = {
     'End with an easy yes/no question.',
   ],
   job: [
-    "Mention the role + why you're excited (1 line).",
+    'Mention the role + why you’re excited (1 line).',
     'Add a quick signal (project/skill) to show fit.',
     'Ask for next step: “open to a quick chat?”',
   ],
   network: [
     'Be specific about why you reached out.',
     'Reference something from their profile if possible.',
-    "Don't ask for too much — ask to connect first.",
+    'Don’t ask for too much — ask to connect first.',
   ],
   mentor: [
     'Be respectful with time (20 minutes).',
@@ -996,67 +897,74 @@ const _OUTREACH_TIPS = {
   ],
   referral: [
     'Ask only after showing fit (skill/project).',
-    "Make it easy: if you're open to referring.",
+    'Make it easy: “If you’re open to referring…”',
     'Respect a “no” and thank them anyway.',
   ],
-};
-
-const _senderIntro = (d) => {
-  const name = d.senderFirstName || '';
-  const role = d.yourRole || '';
-  if (name && role) return `I'm ${name}, a ${role}`;
-  if (name) return `I'm ${name}`;
-  if (role) return `I'm a ${role}`;
-  return 'I';
 };
 
 const _OUTREACH_TEMPLATES = {
   advice: [
     {
       tone: 'Warm',
-      template: (d) => `Hi ${d.recipient || '[Name]'},\n\n${_senderIntro(d)} and I've been following your work in ${d.field || '[their field]'}. I'd love to learn from your experience — would you have 15–20 minutes for a quick chat sometime?\n\nThanks so much for considering it!`,
+      template: (d) => `Hi ${d.recipient || '[Name]'},\n\nI'm ${d.yourRole || '[your name/major]'} and I've been following your work in ${d.field || '[their field]'}. I'd love to learn from your experience — would you have 15–20 minutes for a quick chat sometime?\n\nThanks so much for considering it!`,
     },
     {
       tone: 'Professional',
-      template: (d) => `Hello ${d.recipient || '[Name]'},\n\nMy name is ${d.senderFirstName || '[your name]'}${d.yourRole ? ` and I'm a ${d.yourRole}` : ''} currently studying ${d.field || '[field]'}. I came across your profile and was impressed by your background. I'd greatly appreciate any insights you could share about your career path.\n\nWould you be open to a brief informational chat?`,
+      template: (d) => `Hello ${d.recipient || '[Name]'},\n\nMy name is ${d.yourRole || '[your name]'} and I'm currently studying ${d.field || '[field]'}. I came across your profile and was impressed by your background. I'd greatly appreciate any insights you could share about your career path.\n\nWould you be open to a brief informational chat?`,
     },
   ],
   job: [
     {
       tone: 'Direct',
-      template: (d) => `Hi ${d.recipient || '[Name]'},\n\nI saw the ${d.role || '[role]'} opening at ${d.company || '[Company]'} and I'm really interested. ${_senderIntro(d)} with experience in ${d.field || '[skill/area]'}.\n\nWould you be open to a quick chat about the team and what you look for in candidates?`,
+      template: (d) => `Hi ${d.recipient || '[Name]'},\n\nI saw the ${d.role || '[role]'} opening at ${d.company || '[Company]'} and I’m really interested. I’m ${d.yourRole || '[your name/major]'} with experience in ${d.field || '[skill/area]'}.\n\nWould you be open to a quick chat about the team and what you look for in candidates?`,
     },
     {
       tone: 'Warm',
-      template: (d) => `Hi ${d.recipient || '[Name]'},\n\nHope you're doing well! ${_senderIntro(d)} and I'm exploring opportunities in ${d.field || '[field]'}.\n\nIf you have 10–15 minutes, I'd love to hear what your experience has been like at ${d.company || '[Company]'}.`,
+      template: (d) => `Hi ${d.recipient || '[Name]'},\n\nHope you’re doing well! I’m ${d.yourRole || '[your name/major]'} and I’m exploring opportunities in ${d.field || '[field]'}.\n\nIf you have 10–15 minutes, I’d love to hear what your experience has been like at ${d.company || '[Company]'}.`,
     },
   ],
   network: [
     {
       tone: 'Friendly',
-      template: (d) => `Hi ${d.recipient || '[Name]'},\n\n${_senderIntro(d)} and I'm trying to learn more about ${d.field || '[field]'}.\n\nYour path really stood out to me — would you be open to connecting?`,
+      template: (d) => `Hi ${d.recipient || '[Name]'},\n\nI’m ${d.yourRole || '[your name/major]'} and I’m trying to learn more about ${d.field || '[field]'}.\n\nYour path really stood out to me — would you be open to connecting?`,
     },
     {
       tone: 'Professional',
-      template: (d) => `Hello ${d.recipient || '[Name]'},\n\n${_senderIntro(d)} and I'm building my network in ${d.field || '[field]'}. I'd love to connect and follow your work.\n\nThanks!`,
+      template: (d) => `Hello ${d.recipient || '[Name]'},\n\nI’m ${d.yourRole || '[your name/major]'} and I’m building my network in ${d.field || '[field]'}. I’d love to connect and follow your work.\n\nThanks!`,
     },
   ],
   mentor: [
     {
       tone: 'Warm',
-      template: (d) => `Hi ${d.recipient || '[Name]'},\n\n${_senderIntro(d)} and I'm trying to grow in ${d.field || '[field]'}. I'd love to learn from your experience.\n\nWould you be open to a quick 15–20 minute chat sometime?`,
+      template: (d) => `Hi ${d.recipient || '[Name]'},\n\nI’m ${d.yourRole || '[your name/major]'} and I’m trying to grow in ${d.field || '[field]'}. I’d love to learn from your experience.\n\nWould you be open to a quick 15–20 minute chat sometime?`,
     },
   ],
   followup: [
     {
       tone: 'Polite',
-      template: (d) => `Hi ${d.recipient || '[Name]'},\n\nIt was great connecting ${d.context ? `(${d.context})` : 'recently'}. Thanks again for your time.\n\nIf you have a moment, I'd love to follow up on ${d.field || '[topic]'} and ask one quick question.`,
+      template: (d) => `Hi ${d.recipient || '[Name]'},\n\nIt was great connecting ${d.context ? `(${d.context})` : 'recently'}. Thanks again for your time.\n\nIf you have a moment, I’d love to follow up on ${d.field || '[topic]'} and ask one quick question.`,
     },
   ],
   referral: [
     {
       tone: 'Respectful',
-      template: (d) => `Hi ${d.recipient || '[Name]'},\n\nI'm applying to ${d.company || '[Company]'} for the ${d.role || '[role]'} position. ${_senderIntro(d)} and I've been working on ${d.field || '[relevant project/skill]'}.\n\nIf you're open to it, would you consider referring me? Totally understand if not — I appreciate your time either way.`,
+      template: (d) => `Hi ${d.recipient || '[Name]'},\n\nI’m applying to ${d.company || '[Company]'} for the ${d.role || '[role]'} position. I’m ${d.yourRole || '[your name/major]'} and I’ve been working on ${d.field || '[relevant project/skill]'}.\n\nIf you’re open to it, would you consider referring me? Totally understand if not — I appreciate your time either way.`,
     },
   ],
 };
+
+// =============================================================
+// TEST EXPORTS (Only active in Node.js/Jest environment)
+// =============================================================
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    MessagingPage,
+    OutreachGuidePanel,
+    ProfileReadinessPanel,
+    mockBackendGetProfileReadiness,
+    computeGuidePreview,
+    _OUTREACH_GOALS,
+    _OUTREACH_TIPS,
+    _OUTREACH_TEMPLATES
+  };
+}

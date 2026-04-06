@@ -17,7 +17,7 @@ import time
 
 import pytest
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "..", "backend"))
 import database
 
 
@@ -63,6 +63,23 @@ def _create_schema(db_path: str):
             token      TEXT PRIMARY KEY,
             user_id    INTEGER NOT NULL,
             created_at INTEGER NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS post_likes (
+            post_id INTEGER NOT NULL,
+            user_id INTEGER NOT NULL,
+            PRIMARY KEY (post_id, user_id)
+        );
+        CREATE TABLE IF NOT EXISTS user_events (
+            id         INTEGER PRIMARY KEY AUTOINCREMENT,
+            creator_id INTEGER NOT NULL,
+            created_at INTEGER NOT NULL,
+            data       TEXT NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS event_attendance (
+            event_id   INTEGER NOT NULL,
+            event_src  TEXT NOT NULL DEFAULT 'static',
+            user_id    INTEGER NOT NULL,
+            PRIMARY KEY (event_id, event_src, user_id)
         );
     """)
     conn.commit()
@@ -833,3 +850,192 @@ class TestSearch:
         assert result["companies"] == []
         assert result["posts"] == []
         assert result["query"] == "zzzzznotfound"
+
+
+# ===========================================================================
+# Post likes
+# ===========================================================================
+
+class TestPostLikes:
+    def test_T87_BB_toggle_like_adds_like(self, isolated_db):
+        """BB: Toggling like on a post returns liked=True and likeCount=1."""
+        seed_user(isolated_db, uid=1, email="a@a.com")
+        seed_post(isolated_db, uid=1, post_id=10)
+        result = database.toggle_post_like(10, 1)
+        assert result["liked"] is True
+        assert result["likeCount"] == 1
+
+    def test_T88_BB_toggle_like_removes_like(self, isolated_db):
+        """BB: Toggling twice removes the like and returns liked=False."""
+        seed_user(isolated_db, uid=1, email="a@a.com")
+        seed_post(isolated_db, uid=1, post_id=10)
+        database.toggle_post_like(10, 1)
+        result = database.toggle_post_like(10, 1)
+        assert result["liked"] is False
+        assert result["likeCount"] == 0
+
+    def test_T89_BB_get_post_likes_for_user_returns_set(self, isolated_db):
+        """BB: get_post_likes_for_user returns a set of liked post IDs."""
+        seed_user(isolated_db, uid=1, email="a@a.com")
+        seed_post(isolated_db, uid=1, post_id=10)
+        seed_post(isolated_db, uid=1, post_id=11)
+        database.toggle_post_like(10, 1)
+        liked = database.get_post_likes_for_user(1)
+        assert 10 in liked
+        assert 11 not in liked
+
+    def test_T90_EC_get_post_likes_empty_returns_empty_set(self, isolated_db):
+        """EC: No likes returns empty set."""
+        seed_user(isolated_db, uid=1, email="a@a.com")
+        liked = database.get_post_likes_for_user(1)
+        assert liked == set()
+
+    def test_T91_BB_add_post_comment_returns_comment(self, isolated_db):
+        """BB: add_post_comment returns comment dict with author and text."""
+        seed_user(isolated_db, uid=1, email="a@a.com")
+        seed_post(isolated_db, uid=1, post_id=5)
+        comment = database.add_post_comment(5, 1, "Great post!")
+        assert comment is not None
+        assert comment["text"] == "Great post!"
+        assert comment["author"] == "Alex Johnson"
+
+    def test_T92_WB_add_comment_appended_to_blob(self, isolated_db):
+        """WB: Comment is prepended to post's commentsList in DB."""
+        seed_user(isolated_db, uid=1, email="a@a.com")
+        seed_post(isolated_db, uid=1, post_id=5)
+        database.add_post_comment(5, 1, "First!")
+        conn = sqlite3.connect(isolated_db)
+        row = conn.execute("SELECT data FROM posts WHERE id=5").fetchone()
+        conn.close()
+        blob = json.loads(row[0])
+        assert len(blob["commentsList"]) == 1
+        assert blob["commentsList"][0]["text"] == "First!"
+
+    def test_T93_EC_add_comment_nonexistent_post_returns_none(self, isolated_db):
+        """EC: Adding comment to non-existent post returns None."""
+        seed_user(isolated_db, uid=1, email="a@a.com")
+        result = database.add_post_comment(9999, 1, "Hi")
+        assert result is None
+
+
+# ===========================================================================
+# Events
+# ===========================================================================
+
+class TestEvents:
+    def test_T94_BB_create_event_returns_dict(self, isolated_db):
+        """BB: create_event returns event dict with id and source."""
+        seed_user(isolated_db, uid=1, email="a@a.com")
+        ev = database.create_event(1, {"name": "Hackathon", "type": "online"})
+        assert ev["name"] == "Hackathon"
+        assert ev["source"] == "user"
+        assert str(ev["id"]).startswith("u")
+
+    def test_T95_BB_create_event_persisted_in_db(self, isolated_db):
+        """BB: Created event is stored in user_events table."""
+        seed_user(isolated_db, uid=1, email="a@a.com")
+        database.create_event(1, {"name": "Meetup"})
+        conn = sqlite3.connect(isolated_db)
+        rows = conn.execute("SELECT * FROM user_events").fetchall()
+        conn.close()
+        assert len(rows) == 1
+
+    def test_T96_BB_toggle_event_attend_returns_attending_true(self, isolated_db):
+        """BB: First attend call returns attending=True."""
+        seed_user(isolated_db, uid=1, email="a@a.com")
+        result = database.toggle_event_attend(1, "static", 1)
+        assert result["attending"] is True
+
+    def test_T97_BB_toggle_event_attend_twice_returns_false(self, isolated_db):
+        """BB: Attending then un-attending returns attending=False."""
+        seed_user(isolated_db, uid=1, email="a@a.com")
+        database.toggle_event_attend(1, "static", 1)
+        result = database.toggle_event_attend(1, "static", 1)
+        assert result["attending"] is False
+
+    def test_T98_WB_attend_persisted_in_db(self, isolated_db):
+        """WB: Attendance row exists in event_attendance after attend."""
+        seed_user(isolated_db, uid=1, email="a@a.com")
+        database.toggle_event_attend(2, "static", 1)
+        conn = sqlite3.connect(isolated_db)
+        row = conn.execute(
+            "SELECT * FROM event_attendance WHERE event_id=2 AND user_id=1"
+        ).fetchone()
+        conn.close()
+        assert row is not None
+
+    def test_T99_WB_unattend_removes_db_row(self, isolated_db):
+        """WB: Un-attending removes the row from event_attendance."""
+        seed_user(isolated_db, uid=1, email="a@a.com")
+        database.toggle_event_attend(2, "static", 1)
+        database.toggle_event_attend(2, "static", 1)
+        conn = sqlite3.connect(isolated_db)
+        row = conn.execute(
+            "SELECT * FROM event_attendance WHERE event_id=2 AND user_id=1"
+        ).fetchone()
+        conn.close()
+        assert row is None
+
+    def test_T100_BB_get_all_events_includes_user_created(self, isolated_db):
+        """BB: get_all_events_with_attendance includes user-created events."""
+        seed_user(isolated_db, uid=1, email="a@a.com")
+        database.create_event(1, {"name": "My Event"})
+        events = database.get_all_events_with_attendance(1)
+        sources = [e.get("source") for e in events]
+        assert "user" in sources
+
+    def test_T101_WB_attended_event_has_is_attending_true(self, isolated_db):
+        """WB: Attended static event has isAttending=True in results."""
+        seed_user(isolated_db, uid=1, email="a@a.com")
+        events = database.get_all_events_with_attendance(1)
+        if not events:
+            pytest.skip("No static events seeded")
+        first_id = events[0]["id"]
+        database.toggle_event_attend(first_id, "static", 1)
+        events2 = database.get_all_events_with_attendance(1)
+        first = next(e for e in events2 if e["id"] == first_id)
+        assert first["isAttending"] is True
+
+    def test_T102_EC_get_events_no_attendance_all_false(self, isolated_db):
+        """EC: With no attendance records all events have isAttending=False."""
+        seed_user(isolated_db, uid=1, email="a@a.com")
+        events = database.get_all_events_with_attendance(1)
+        for e in events:
+            assert e["isAttending"] is False
+
+
+# ===========================================================================
+# delete_post
+# ===========================================================================
+
+class TestDeletePost:
+    def test_T103_BB_owner_can_delete_post(self, isolated_db):
+        """BB: Post owner can delete their post."""
+        seed_user(isolated_db, uid=1, email="a@a.com")
+        pid = seed_post(isolated_db, uid=1)
+        result = database.delete_post(pid, 1)
+        assert result is True
+
+    def test_T104_WB_deleted_post_gone_from_db(self, isolated_db):
+        """WB: After delete, post no longer exists in posts table."""
+        seed_user(isolated_db, uid=1, email="a@a.com")
+        pid = seed_post(isolated_db, uid=1)
+        database.delete_post(pid, 1)
+        conn = sqlite3.connect(isolated_db)
+        row = conn.execute("SELECT id FROM posts WHERE id=?", (pid,)).fetchone()
+        conn.close()
+        assert row is None
+
+    def test_T105_BB_non_owner_cannot_delete(self, isolated_db):
+        """BB: Non-owner user_id returns False and post is kept."""
+        seed_user(isolated_db, uid=1, email="a@a.com")
+        seed_user(isolated_db, uid=2, email="b@b.com")
+        pid = seed_post(isolated_db, uid=1)
+        result = database.delete_post(pid, 2)
+        assert result is False
+
+    def test_T106_EC_delete_nonexistent_post_returns_false(self, isolated_db):
+        """EC: Deleting a post that does not exist returns False."""
+        seed_user(isolated_db, uid=1, email="a@a.com")
+        result = database.delete_post(9999, 1)
+        assert result is False

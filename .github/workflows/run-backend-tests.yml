@@ -25,4 +25,14 @@ jobs:
       - name: Run database unit tests with coverage
         run: |
           cd backend
-          pytest tests/test_database.py --cov=database --cov-report=term-missing --cov-fail-under=80 -v
+          pytest ../tests/tests/test-files/test_database.py --cov=database --cov-report=term-missing --cov-fail-under=80 -v
+
+      - name: Run app unit tests with coverage
+        run: |
+          cd backend
+          pytest ../tests/tests/test-files/test_app.py --cov=app --cov-report=term-missing --cov-fail-under=80 -v
+
+      - name: Run mutation analysis
+        run: |
+          cd backend
+          python run_mutation_tests.py

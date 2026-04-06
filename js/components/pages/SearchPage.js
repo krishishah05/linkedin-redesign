@@ -14,7 +14,7 @@ function SearchPage({ query }) {
     setLoading(true);
     API.search(query)
       .then(data => { setResults(data); setLoading(false); })
-      .catch(() => { setLoading(false); });
+      .catch(() => { setLoading(false); showToast('Search failed. Please try again.', 'error'); });
   }, [query]);
 
   function doSearch(q) {

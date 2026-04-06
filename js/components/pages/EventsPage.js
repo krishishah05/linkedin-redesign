@@ -8,13 +8,20 @@ function EventsPage() {
   const [attending, setAttending] = React.useState(() => new Set());
   const [interested, setInterested] = React.useState(() => new Set());
 
-  // Seed from API on first load
+  // Seed from API on first load; fall back to localStorage
   React.useEffect(() => {
-    if (events && events.length > 0) {
-      const att = new Set(events.filter(e => e.isAttending).map(e => e.id));
-      const int_ = new Set(events.filter(e => e.isInterested).map(e => e.id));
-      if (att.size > 0) setAttending(att);
-      if (int_.size > 0) setInterested(int_);
+    if (events) {
+      const apiAttending = new Set(events.filter(e => e.isAttending).map(e => String(e.id)));
+      const apiInterested = new Set(events.filter(e => e.isInterested).map(e => String(e.id)));
+      // Merge with any locally-stored state (covers events created before backend had attendance)
+      try {
+        const storedA = JSON.parse(localStorage.getItem('li-attending-events') || '[]');
+        storedA.forEach(id => apiAttending.add(String(id)));
+        const storedI = JSON.parse(localStorage.getItem('li-interested-events') || '[]');
+        storedI.forEach(id => apiInterested.add(String(id)));
+      } catch (_) {}
+      setAttending(apiAttending);
+      setInterested(apiInterested);
     }
   }, [events]);
 
@@ -24,9 +31,9 @@ function EventsPage() {
   const allEvents = events || [];
 
   const shown = tab === 'attending'
-    ? allEvents.filter(e => attending.has(e.id))
+    ? allEvents.filter(e => attending.has(String(e.id)))
     : tab === 'interested'
-      ? allEvents.filter(e => interested.has(e.id))
+      ? allEvents.filter(e => interested.has(String(e.id)))
       : allEvents;
 
   function formatDate(ts) {
@@ -113,30 +120,35 @@ function EventsPage() {
                 )}
                 <div style={{ display: 'flex', gap: 8 }}>
                   <button
-                    className={attending.has(event.id) ? 'li-btn li-btn--primary li-btn--sm' : 'li-btn li-btn--outline li-btn--sm'}
+                    className={attending.has(String(event.id)) ? 'li-btn li-btn--primary li-btn--sm' : 'li-btn li-btn--outline li-btn--sm'}
                     onClick={() => {
+                      const key = String(event.id);
                       setAttending(prev => {
                         const next = new Set(prev);
-                        if (next.has(event.id)) { next.delete(event.id); showToast('Removed from attending'); }
-                        else { next.add(event.id); showToast('Marked as attending!'); }
+                        if (next.has(key)) { next.delete(key); showToast('Removed from attending'); }
+                        else { next.add(key); showToast('Marked as attending!'); }
+                        try { localStorage.setItem('li-attending-events', JSON.stringify([...next])); } catch (_) {}
                         return next;
                       });
+                      API.attendEvent(event.id).catch(() => showToast('Failed to update attendance', 'error'));
                     }}
                   >
-                    {attending.has(event.id) ? '✓ Attending' : 'Attend'}
+                    {attending.has(String(event.id)) ? '✓ Attending' : 'Attend'}
                   </button>
                   <button
                     className="li-btn li-btn--ghost li-btn--sm"
                     onClick={() => {
+                      const key = String(event.id);
                       setInterested(prev => {
                         const next = new Set(prev);
-                        if (next.has(event.id)) next.delete(event.id);
-                        else { next.add(event.id); showToast('Marked as interested!'); }
+                        if (next.has(key)) { next.delete(key); showToast('Removed from interested'); }
+                        else { next.add(key); showToast('Marked as interested!'); }
+                        try { localStorage.setItem('li-interested-events', JSON.stringify([...next])); } catch (_) {}
                         return next;
                       });
                     }}
                   >
-                    {interested.has(event.id) ? '★ Interested' : '☆ Interested'}
+                    {interested.has(String(event.id)) ? '★ Interested' : '☆ Interested'}
                   </button>
                 </div>
               </div>
