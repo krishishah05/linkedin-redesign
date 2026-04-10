@@ -42,7 +42,7 @@ def restore(source_path, original):
     # Clear bytecode cache so pytest uses fresh source, not stale .pyc
     pycache = os.path.join(os.path.dirname(source_path), "__pycache__")
     if os.path.isdir(pycache):
-        shutil.rmtree(pycache)
+        shutil.rmtree(pycache, ignore_errors=True)
 
 def run_mutation_suite(source_file, test_file, cov_module, mutations):
     source_path = os.path.join(BASE_DIR, source_file)
