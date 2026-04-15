@@ -279,17 +279,19 @@ def get_feed():
 
 @app.route("/api/feed", methods=["POST"])
 def create_post():
-    """POST /api/feed — create a new post. Body: {content: str}"""
+    """POST /api/feed — create a new post. Body: {content: str, imageUrl?: str}"""
     body = request.get_json(silent=True) or {}
     content = (body.get("content") or "").strip()
     if not content:
         abort(400, description="content is required and must not be empty")
 
+    image_url = (body.get("imageUrl") or "").strip() or None
+
     current_user = _auth_user()
     if not current_user:
         abort(401, description="Authentication required")
 
-    post = dbl.create_post(current_user["id"], content)
+    post = dbl.create_post(current_user["id"], content, image_url)
     return jsonify(post), 201
 
 

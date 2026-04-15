@@ -329,7 +329,7 @@ function MessagingPage() {
   <button
     className="li-btn li-btn--ghost"
     style={{ padding: 4 }}
-    onClick={() => showToast('Settings \u2014 coming soon')}
+    onClick={() => navigate('settings')}
   >
     Settings
   </button>

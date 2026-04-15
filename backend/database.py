@@ -584,7 +584,7 @@ def get_all_posts():
     return result
 
 
-def create_post(author_id: int, content: str):
+def create_post(author_id: int, content: str, image_url: str = None):
     user = get_user_by_id(author_id)
     author_blob = {
         "id":          user["id"],
@@ -607,6 +607,8 @@ def create_post(author_id: int, content: str):
         "tags":           [],
         "commentsList":   [],
     }
+    if image_url:
+        blob["image"] = image_url
     conn   = _connect()
     new_id = _insert_id(conn,
         "INSERT INTO posts (author_id, content, created_at, data) VALUES (%s, %s, %s, %s)",

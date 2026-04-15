@@ -41,7 +41,7 @@
 
     // ── Feed ──────────────────────────────────────────────────
     getFeed: () => request('GET', '/feed'),
-    createPost: (content) => request('POST', '/feed', { content }),
+    createPost: (content, imageUrl) => request('POST', '/feed', { content, imageUrl: imageUrl || null }),
     likePost: (id) => request('POST', `/feed/${id}/like`),
     commentOnPost: (id, text) => request('POST', `/feed/${id}/comments`, { text }),
     deletePost: (id) => request('DELETE', `/feed/${id}`),

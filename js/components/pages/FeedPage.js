@@ -40,13 +40,14 @@ function FeedPage() {
       });
   const u = currentUser || {};
 
-  function handleNewPost(content) {
+  function handleNewPost(content, imageUrl) {
     const newPost = {
       id: Date.now(),
       author: u.name,
       authorId: u.id,
       authorTitle: u.headline,
       content,
+      image: imageUrl || null,
       createdAt: Date.now(),
       timestamp: Date.now(),
       likeCount: 0,
@@ -56,7 +57,7 @@ function FeedPage() {
     };
     setLocalPosts(prev => [newPost, ...(prev || [])]);
     setFeedSort('Recent');
-    API.createPost(content)
+    API.createPost(content, imageUrl)
       .then(() => showToast('Post shared!', 'success'))
       .catch(() => {
         setLocalPosts(prev => (prev || []).filter(p => p.id !== newPost.id));
@@ -218,13 +219,22 @@ function FeedPage() {
 function PostCreator({ user, onPost, openModal, showToast }) {
   const [draft, setDraft] = React.useState('');
   const [expanded, setExpanded] = React.useState(false);
+  const [imageUrl, setImageUrl] = React.useState('');
+  const [showImageInput, setShowImageInput] = React.useState(false);
   const MAX = 3000;
 
   function submit() {
     if (!draft.trim()) return;
-    onPost(draft.trim());
+    onPost(draft.trim(), imageUrl.trim() || null);
     setDraft('');
+    setImageUrl('');
+    setShowImageInput(false);
     setExpanded(false);
+  }
+
+  function handleImageBtn() {
+    setShowImageInput(v => !v);
+    setExpanded(true);
   }
 
   return (
@@ -252,15 +262,37 @@ function PostCreator({ user, onPost, openModal, showToast }) {
           />
         )}
       </div>
+      {expanded && showImageInput && (
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 8, padding: '8px 0' }}>
+          <input
+            className="li-input"
+            placeholder="Paste image URL…"
+            value={imageUrl}
+            onChange={e => setImageUrl(e.target.value)}
+            style={{ flex: 1, fontSize: 13 }}
+          />
+          {imageUrl && (
+            <button onClick={() => setImageUrl('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-3)', fontSize: 18, lineHeight: 1 }}>×</button>
+          )}
+        </div>
+      )}
+      {expanded && imageUrl && (
+        <img src={imageUrl} alt="preview" style={{ maxHeight: 180, borderRadius: 8, objectFit: 'cover', width: '100%', marginTop: 4 }}
+          onError={e => { e.target.style.display = 'none'; }} />
+      )}
       {expanded && (
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--border)' }}>
           <div style={{ display: 'flex', gap: 4 }}>
             {[['Photo','Photo'],['Video','Video'],['Event','Event'],['Article','Article']].map(([icon, label]) => (
               <button key={label} title={label}
-                onClick={() => { if (label === 'Event') navigate('events'); else showToast(`${label} upload — coming soon`); }}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '6px 8px', borderRadius: 6, display: 'flex', alignItems: 'center', gap: 4, fontSize: 13, fontWeight: 600, color: 'var(--text-2)' }}
+                onClick={() => {
+                  if (label === 'Event') navigate('events');
+                  else if (label === 'Article') setExpanded(true);
+                  else handleImageBtn();
+                }}
+                style={{ background: showImageInput && (label === 'Photo' || label === 'Video') ? 'var(--bg)' : 'none', border: 'none', cursor: 'pointer', padding: '6px 8px', borderRadius: 6, display: 'flex', alignItems: 'center', gap: 4, fontSize: 13, fontWeight: 600, color: 'var(--text-2)' }}
                 onMouseEnter={e => e.currentTarget.style.background = 'var(--bg)'}
-                onMouseLeave={e => e.currentTarget.style.background = 'none'}>
+                onMouseLeave={e => e.currentTarget.style.background = showImageInput && (label === 'Photo' || label === 'Video') ? 'var(--bg)' : 'none'}>
                 <span style={{ fontSize: 13 }}>{icon}</span>
               </button>
             ))}
@@ -290,7 +322,7 @@ function PostCreator({ user, onPost, openModal, showToast }) {
             { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="#378FE9"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>, label: 'Photo', action: () => setExpanded(true) },
             { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="#5F9B41"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/></svg>, label: 'Video', action: () => setExpanded(true) },
             { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="#E06847"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>, label: 'Event', action: () => navigate('events') },
-            { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="#E06847"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>, label: 'Write article', action: () => showToast('Article editor — coming soon') },
+            { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="#E06847"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>, label: 'Write article', action: () => setExpanded(true) },
           ].map(item => (
             <button key={item.label} className="li-post-creator__action" onClick={item.action}>
               {item.icon}
@@ -349,6 +381,8 @@ function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, followi
   const [localReaction, setLocalReaction] = React.useState(null);
   const [commentDraft, setCommentDraft] = React.useState('');
   const [localComments, setLocalComments] = React.useState(post.comments || post.commentsList || []);
+  const [replyingTo, setReplyingTo] = React.useState(null); // index of comment being replied to
+  const [replyDraft, setReplyDraft] = React.useState('');
 
   const authorId = post.authorId || (post.author && post.author.id) || 2;
   const authorName = post.author?.name || post.author || post.authorName || 'User';
@@ -487,13 +521,14 @@ function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, followi
       </div>
       {post.image && (
         <img src={post.image} alt="" className="li-post__image"
-          onClick={() => showToast('Image viewer — coming soon')} />
+          style={{ cursor: 'zoom-in' }}
+          onClick={() => openModal('image-viewer', { src: post.image })} />
       )}
 
       {/* Reactions count row */}
       {(totalReactions > 0 || commentCount > 0 || repostCount > 0) && (
         <div className="li-post__reactions">
-          <div className="li-post__reaction-icons" onClick={() => showToast('Reactions — coming soon')} style={{ cursor: 'pointer' }}>
+          <div className="li-post__reaction-icons" style={{ cursor: 'default' }}>
             {topReactLabels.length > 0 && (
               <span style={{ display: 'flex', marginRight: 4 }}>
                 {topReactLabels.map((e, i) => (
@@ -617,8 +652,34 @@ function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, followi
                     <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-2)', fontSize: 12, fontWeight: 600, padding: 0 }}
                       onClick={() => showToast('Liked comment!')}>Like</button>
                     <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-2)', fontSize: 12, fontWeight: 600, padding: 0 }}
-                      onClick={() => showToast('Reply — coming soon')}>Reply</button>
+                      onClick={() => { setReplyingTo(replyingTo === ci ? null : ci); setReplyDraft(''); }}>Reply</button>
                   </div>
+                  {replyingTo === ci && (
+                    <div style={{ display: 'flex', gap: 8, marginTop: 6, marginLeft: 40 }}>
+                      <input
+                        autoFocus
+                        className="li-input"
+                        placeholder={`Reply to ${cName}…`}
+                        value={replyDraft}
+                        onChange={e => setReplyDraft(e.target.value)}
+                        onKeyDown={e => {
+                          if (e.key === 'Enter' && replyDraft.trim()) {
+                            const reply = { author: currentUser?.name || 'You', text: `@${cName} ${replyDraft.trim()}`, timestamp: 'Just now', likes: 0 };
+                            setLocalComments(prev => { const next = [...prev]; next.splice(ci + 1, 0, reply); return next; });
+                            setReplyDraft(''); setReplyingTo(null);
+                          } else if (e.key === 'Escape') { setReplyingTo(null); }
+                        }}
+                        style={{ flex: 1, fontSize: 12, padding: '4px 8px' }}
+                      />
+                      <button className="li-btn li-btn--primary" style={{ fontSize: 12, padding: '4px 10px' }}
+                        onClick={() => {
+                          if (!replyDraft.trim()) return;
+                          const reply = { author: currentUser?.name || 'You', text: `@${cName} ${replyDraft.trim()}`, timestamp: 'Just now', likes: 0 };
+                          setLocalComments(prev => { const next = [...prev]; next.splice(ci + 1, 0, reply); return next; });
+                          setReplyDraft(''); setReplyingTo(null);
+                        }}>Reply</button>
+                    </div>
+                  )}
                 </div>
               </div>
             );
