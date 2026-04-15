@@ -320,7 +320,7 @@ function MessagingPage() {
   <button
     className="li-btn li-btn--ghost"
     style={{ padding: '4px 8px', fontSize: 12 }}
-    onClick={() => showToast('New message \u2014 coming soon')}
+    onClick={() => setComposing(c => !c)}
     title="New message"
   >
     Write
