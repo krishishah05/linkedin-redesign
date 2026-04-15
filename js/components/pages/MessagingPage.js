@@ -65,11 +65,7 @@ function MessagingPage() {
     setMsgLoading(true);
     API.getConversation(id)
       .then(data => {
-        const myId = currentUser ? currentUser.id : null;
-        setMessages((data.messages || []).map(m => ({
-          ...m,
-          isMe: myId !== null && m.senderId === myId,
-        })));
+        setMessages(data.messages || []);
         setMsgLoading(false);
       })
       .catch(() => {
@@ -106,10 +102,9 @@ function MessagingPage() {
     // Optimistic update
     const newMsg = {
       id: Date.now(),
-      senderId: 'me',
+      senderId: currentUser ? currentUser.id : -1,
       text,
       timestamp: Date.now(),
-      isMe: true,
     };
     setMessages(prev => [...prev, newMsg]);
 
@@ -490,22 +485,24 @@ function MessagingPage() {
               <div style={{ color: 'var(--text-3)' }}>Loading conversation…</div>
             ) : (
               <>
-                {(messages || []).map(m => (
+                {(messages || []).map(m => {
+                  const isMe = currentUser != null && m.senderId === currentUser.id;
+                  return (
                   <div
                     key={m.id}
                     style={{
                       display: 'flex',
-                      justifyContent: m.isMe ? 'flex-end' : 'flex-start',
+                      justifyContent: isMe ? 'flex-end' : 'flex-start',
                       marginTop: 8,
                     }}
                   >
                     <div
                       style={{
                         maxWidth: '70%',
-                        background: m.isMe ? 'var(--blue)' : 'var(--white)',
-                        color: m.isMe ? 'white' : 'var(--text)',
+                        background: isMe ? 'var(--blue)' : 'var(--white)',
+                        color: isMe ? 'white' : 'var(--text)',
                         padding: '10px 12px',
-                        borderRadius: m.isMe ? '18px 4px 18px 18px' : '4px 18px 18px 18px',
+                        borderRadius: isMe ? '18px 4px 18px 18px' : '4px 18px 18px 18px',
                         boxShadow: '0 1px 2px rgba(0,0,0,0.08)',
                         fontSize: 14,
                         lineHeight: 1.5,
@@ -517,7 +514,8 @@ function MessagingPage() {
                       </div>
                     </div>
                   </div>
-                ))}
+                  );
+                })}
                 <div ref={messagesEndRef} />
               </>
             )}

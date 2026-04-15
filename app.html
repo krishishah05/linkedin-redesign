@@ -51,6 +51,13 @@
       if (!token) { window.location.href = 'index.html'; }
     } catch(_) {}
   })();
+
+  // Cross-tab logout: if another tab removes nx-token, redirect here too
+  window.addEventListener('storage', function(e) {
+    if (e.key === 'nx-token' && !e.newValue) {
+      window.location.href = 'index.html';
+    }
+  });
 </script>
 
 <!-- ── Shared utilities & context ──────────────────────────── -->

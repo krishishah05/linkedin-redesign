@@ -98,6 +98,16 @@
     getOutreachReadiness: (userId) =>
       request('GET', userId ? `/outreach/readiness?userId=${encodeURIComponent(userId)}` : '/outreach/readiness'),
 
+    // ── Social state ──────────────────────────────────────────
+    getSocialState: () => request('GET', '/me/social'),
+    toggleSavedJob: (id) => request('POST', `/me/saved-jobs/${id}`),
+    connectUser: (id) => request('POST', `/me/connections/${id}`),
+    acceptConnection: (id) => request('POST', `/me/connections/${id}/accept`),
+    toggleFollow: (id) => request('POST', `/me/following/${id}`),
+    applyToJob: (id) => request('POST', `/me/applied-jobs/${id}`),
+    toggleGroup: (id) => request('POST', `/me/groups/${id}/toggle`),
+    dismissInvitation: (key) => request('POST', '/me/invitations/dismiss', { key }),
+
     // ── Account ───────────────────────────────────────────────
     login: (email, password) =>
       request('POST', '/auth/login', { email, password }),

@@ -646,6 +646,70 @@ def outreach_readiness():
     return jsonify(outreach_mod.compute_outreach_readiness(user)), 200
 
 
+# ══════════════════════════════════════════════════════════════
+# Social State Endpoints
+# ══════════════════════════════════════════════════════════════
+
+@app.route("/api/me/social")
+def get_social_state():
+    """GET /api/me/social — all social state for the current user."""
+    user = _auth_user()
+    return jsonify(dbl.get_social_state(user["id"]))
+
+
+@app.route("/api/me/saved-jobs/<int:job_id>", methods=["POST"])
+def toggle_saved_job(job_id):
+    """POST /api/me/saved-jobs/:id — toggle saved job."""
+    user = _auth_user()
+    return jsonify(dbl.toggle_saved_job(user["id"], job_id))
+
+
+@app.route("/api/me/connections/<int:target_id>", methods=["POST"])
+def connect_user(target_id):
+    """POST /api/me/connections/:id — send a connection request."""
+    user = _auth_user()
+    return jsonify(dbl.connect_user(user["id"], target_id))
+
+
+@app.route("/api/me/connections/<int:target_id>/accept", methods=["POST"])
+def accept_connection(target_id):
+    """POST /api/me/connections/:id/accept — confirm a connection."""
+    user = _auth_user()
+    return jsonify(dbl.accept_connection(user["id"], target_id))
+
+
+@app.route("/api/me/following/<int:target_id>", methods=["POST"])
+def toggle_following(target_id):
+    """POST /api/me/following/:id — toggle follow."""
+    user = _auth_user()
+    return jsonify(dbl.toggle_following(user["id"], target_id))
+
+
+@app.route("/api/me/applied-jobs/<int:job_id>", methods=["POST"])
+def apply_to_job(job_id):
+    """POST /api/me/applied-jobs/:id — mark a job as applied."""
+    user = _auth_user()
+    return jsonify(dbl.apply_to_job(user["id"], job_id))
+
+
+@app.route("/api/me/groups/<int:group_id>/toggle", methods=["POST"])
+def toggle_group(group_id):
+    """POST /api/me/groups/:id/toggle — join or leave a group."""
+    user = _auth_user()
+    return jsonify(dbl.toggle_group(user["id"], group_id))
+
+
+@app.route("/api/me/invitations/dismiss", methods=["POST"])
+def dismiss_invitation():
+    """POST /api/me/invitations/dismiss — dismiss an invitation. Body: {key: str}"""
+    body = request.get_json(silent=True) or {}
+    key = str(body.get("key") or "").strip()
+    if not key:
+        abort(400, description="key is required")
+    user = _auth_user()
+    return jsonify(dbl.dismiss_invitation(user["id"], key))
+
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     print(f"Starting Nexus Backend on http://localhost:{port}")

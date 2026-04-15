@@ -133,13 +133,6 @@
     }
     .pw-toggle:hover { text-decoration: underline; }
 
-    .forgot-link {
-      display: block; text-align: right; font-size: 14px;
-      color: var(--blue); text-decoration: none;
-      margin-top: -8px; margin-bottom: 16px;
-    }
-    .forgot-link:hover { text-decoration: underline; }
-
     .btn-primary {
       width: 100%; height: 48px;
       background: var(--blue); color: #fff;
@@ -264,21 +257,6 @@
     }
     .bday-selects select:focus { border-color: var(--blue); box-shadow: 0 0 0 2px rgba(10,102,194,0.25); }
 
-    #view-forgot { min-height: 100vh; background: var(--bg-page); }
-    .forgot-container { max-width: 500px; margin: 0 auto; padding: 32px 24px; }
-    .forgot-card {
-      background: var(--bg-white); border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15); padding: 32px;
-    }
-    .back-link {
-      display: inline-flex; align-items: center; gap: 6px;
-      color: var(--text-secondary); text-decoration: none; font-size: 14px;
-      margin-bottom: 24px;
-    }
-    .back-link:hover { color: var(--text-primary); }
-    .forgot-card h2 { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
-    .forgot-card p { font-size: 14px; color: var(--text-secondary); margin-bottom: 20px; }
-
     .industry-grid {
       display: grid; grid-template-columns: 1fr 1fr;
       gap: 8px; max-height: 300px; overflow-y: auto; padding-right: 4px;
@@ -314,8 +292,7 @@
       .login-card { box-shadow: none; border-radius: 0; padding: 20px 16px; }
       .hero { padding: 16px 16px 0; }
       .signup-card { padding: 20px 16px; }
-      .forgot-card { padding: 20px 16px; }
-      .bday-selects { flex-direction: column; }
+.bday-selects { flex-direction: column; }
     }
   </style>
 </head>
@@ -372,8 +349,7 @@
           </div>
           <span class="error-msg" id="login-pw-err">Please enter your password.</span>
         </div>
-        <a href="#" class="forgot-link" onclick="showView('forgot'); return false;">Forgot password?</a>
-        <button class="btn-primary" id="login-btn" onclick="handleLogin()">Sign in</button>
+<button class="btn-primary" id="login-btn" onclick="handleLogin()">Sign in</button>
         <div class="join-link" style="margin-top:16px;">
           New to Nexus? <a href="#" onclick="startSignup(); return false;">Join now</a>
         </div>
@@ -472,39 +448,6 @@
       <div class="footer-copy">Nexus Corp &copy; 2026</div>
     </div>
   </footer>
-</div>
-
-<!-- VIEW: FORGOT PASSWORD -->
-<div id="view-forgot" class="view">
-  <nav>
-    <div class="nav-inner">
-      <a class="nav-logo" href="#" onclick="return false;">
-        <svg width="84" height="21" viewBox="0 0 84 21" fill="none">
-          <rect width="21" height="21" rx="4" fill="#0F5DBD"/>
-          <text x="5.5" y="15.5" font-family="Arial,Helvetica,sans-serif" font-size="13" font-weight="bold" fill="#fff">N</text>
-          <text x="26" y="15.5" font-family="sans-serif" font-size="14" font-weight="700" fill="#0F5DBD">Nexus</text>
-        </svg>
-      </a>
-    </div>
-  </nav>
-  <div class="forgot-container">
-    <div class="forgot-card">
-      <a href="#" class="back-link" onclick="showView('login'); return false;">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
-        Back to sign in
-      </a>
-      <h2>Forgot password</h2>
-      <p>Enter the email address associated with your Nexus account. We'll send you a link to reset your password.</p>
-      <div class="form-group">
-        <label for="forgot-email">Email</label>
-        <input type="email" id="forgot-email" placeholder="Enter your email address" />
-        <span class="error-msg" id="forgot-email-err">Please enter a valid email address.</span>
-      </div>
-      <div class="step-actions">
-        <button class="btn-primary" onclick="handleForgotPw()">Send verification code</button>
-      </div>
-    </div>
-  </div>
 </div>
 
 <!-- VIEW: SIGNUP WIZARD -->
@@ -842,19 +785,6 @@
     }
   }
 
-  // ── Forgot password ───────────────────────────────────────────────────────
-
-  function handleForgotPw() {
-    const email = document.getElementById('forgot-email').value.trim();
-    if (!isValidEmail(email)) {
-      fieldErr('forgot-email', 'Please enter a valid email address.');
-    } else {
-      fieldOk('forgot-email');
-      showToast('If that account exists, a reset link has been sent.');
-      setTimeout(() => showView('login'), 2500);
-    }
-  }
-
   // ── Signup wizard ─────────────────────────────────────────────────────────
 
   function startSignup() { showView('signup'); goToStep(1); }
@@ -1028,7 +958,6 @@
     const view = document.querySelector('.view.active');
     if (!view) return;
     if (view.id === 'view-login') handleLogin();
-    else if (view.id === 'view-forgot') handleForgotPw();
     else if (view.id === 'view-signup') nextStep(currentStep);
   });
 </script>

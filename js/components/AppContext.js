@@ -117,6 +117,41 @@ function AppProvider({ children }) {
       });
   }, []);
 
+  // ── Load social state from server (overrides localStorage) ─
+  React.useEffect(() => {
+    if (!appLoading && !appError) {
+      API.getSocialState()
+        .then(social => {
+          const toSet = (arr) => new Set((arr || []).map(String));
+          const savedJ   = toSet(social.savedJobs);
+          const conns    = toSet(social.connections);
+          const foll     = toSet(social.following);
+          const pend     = toSet(social.pendingConnections);
+          const applied  = toSet(social.appliedJobs);
+          const groups   = toSet(social.joinedGroups);
+          const dismissed = new Set(social.dismissedInvitations || []);
+          setSavedJobs(savedJ);
+          setConnections(conns);
+          setFollowing(foll);
+          setPendingConnections(pend);
+          setAppliedJobs(applied);
+          setJoinedGroups(groups);
+          setDismissedInvitations(dismissed);
+          // Sync back to localStorage so offline fallback stays fresh
+          try {
+            localStorage.setItem('li-saved-jobs',    JSON.stringify([...savedJ]));
+            localStorage.setItem('li-connections',   JSON.stringify([...conns]));
+            localStorage.setItem('li-following',     JSON.stringify([...foll]));
+            localStorage.setItem('li-pending-conn',  JSON.stringify([...pend]));
+            localStorage.setItem('li-applied-jobs',  JSON.stringify([...applied]));
+            localStorage.setItem('li-joined-groups', JSON.stringify([...groups]));
+            localStorage.setItem('li-dismissed-inv', JSON.stringify([...dismissed]));
+          } catch {}
+        })
+        .catch(() => { /* silently keep localStorage values already in state */ });
+    }
+  }, [appLoading, appError]);
+
   // Fetch unread counts and invitations on mount
   React.useEffect(() => {
     Promise.all([
@@ -173,6 +208,7 @@ function AppProvider({ children }) {
       try { localStorage.setItem('li-saved-jobs', JSON.stringify([...next])); } catch {}
       return next;
     });
+    API.toggleSavedJob(jobId).catch(() => {});
   }
 
   function connect(userId) {
@@ -181,6 +217,7 @@ function AppProvider({ children }) {
       try { localStorage.setItem('li-pending-conn', JSON.stringify([...next])); } catch {}
       return next;
     });
+    API.connectUser(userId).catch(() => {});
   }
 
   function acceptConnection(userId) {
@@ -195,6 +232,7 @@ function AppProvider({ children }) {
       try { localStorage.setItem('li-pending-conn', JSON.stringify([...next])); } catch {}
       return next;
     });
+    API.acceptConnection(userId).catch(() => {});
   }
 
   function dismissInvitation(key) {
@@ -203,6 +241,7 @@ function AppProvider({ children }) {
       try { localStorage.setItem('li-dismissed-inv', JSON.stringify([...next])); } catch {}
       return next;
     });
+    API.dismissInvitation(key).catch(() => {});
   }
 
   function resolveInvitation(invName) {
@@ -220,17 +259,19 @@ function AppProvider({ children }) {
       try { localStorage.setItem('li-applied-jobs', JSON.stringify([...next])); } catch {}
       return next;
     });
+    API.applyToJob(jobId).catch(() => {});
   }
 
   function follow(userId) {
+    const key = String(userId);
     setFollowing(prev => {
       const next = new Set(prev);
-      const key = String(userId);
       if (next.has(key)) next.delete(key);
       else next.add(key);
       _save('li-following', next);
       return next;
     });
+    API.toggleFollow(userId).catch(() => {});
   }
 
   function joinGroup(groupId) {
@@ -239,6 +280,7 @@ function AppProvider({ children }) {
       try { localStorage.setItem('li-joined-groups', JSON.stringify([...next])); } catch {}
       return next;
     });
+    API.toggleGroup(groupId).catch(() => {});
   }
 
   function leaveGroup(groupId) {
@@ -248,6 +290,7 @@ function AppProvider({ children }) {
       try { localStorage.setItem('li-joined-groups', JSON.stringify([...next])); } catch {}
       return next;
     });
+    API.toggleGroup(groupId).catch(() => {});
   }
 
   function openModal(name, data) {
