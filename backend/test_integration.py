@@ -3,10 +3,10 @@ Nexus Integration Tests  (backend/test_integration.py)
 CS485 AI-Assisted Software Engineering — Spring 2026
 
 Run locally (seed DB required):
-  BASE_URL=http://localhost:5000/api SKIP_CLOUD_ONLY=true pytest backend/test_integration.py -v
+  BASE_URL=http://localhost:5000/api pytest backend/test_integration.py -v
 
 Run against deployed app:
-  BASE_URL=https://linkedin-redesign-z364.onrender.com/api SKIP_CLOUD_ONLY=false pytest backend/test_integration.py -v
+  BASE_URL=https://linkedin-redesign-z364.onrender.com/api pytest backend/test_integration.py -v
 """
 
 import os
