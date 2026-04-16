@@ -63,4 +63,4 @@ backend/test_integration.py::test_IT_R01_fetch_readiness_current_user PASSED [ 9
 backend/test_integration.py::test_IT_R02_fetch_readiness_specific_user PASSED [ 98%]
 backend/test_integration.py::test_IT_R03_fetch_readiness_nonexistent_user PASSED [100%]
 
-======================= 57 passed in 194.98s (0:03:14) ========================
+======================= 57 passed in 180.89s (0:03:00) ========================

@@ -1014,7 +1014,7 @@ class TestDeletePost:
         seed_user(isolated_db, uid=1, email="a@a.com")
         pid = seed_post(isolated_db, uid=1)
         result = database.delete_post(pid, 1)
-        assert result is True
+        assert result == "deleted"
 
     def test_T104_WB_deleted_post_gone_from_db(self, isolated_db):
         """WB: After delete, post no longer exists in posts table."""
@@ -1027,18 +1027,18 @@ class TestDeletePost:
         assert row is None
 
     def test_T105_BB_non_owner_cannot_delete(self, isolated_db):
-        """BB: Non-owner user_id returns False and post is kept."""
+        """BB: Non-owner user_id returns 'forbidden' and post is kept."""
         seed_user(isolated_db, uid=1, email="a@a.com")
         seed_user(isolated_db, uid=2, email="b@b.com")
         pid = seed_post(isolated_db, uid=1)
         result = database.delete_post(pid, 2)
-        assert result is False
+        assert result == "forbidden"
 
     def test_T106_EC_delete_nonexistent_post_returns_false(self, isolated_db):
-        """EC: Deleting a post that does not exist returns False."""
+        """EC: Deleting a post that does not exist returns 'not_found'."""
         seed_user(isolated_db, uid=1, email="a@a.com")
         result = database.delete_post(9999, 1)
-        assert result is False
+        assert result == "not_found"
 
 
 # ===========================================================================
