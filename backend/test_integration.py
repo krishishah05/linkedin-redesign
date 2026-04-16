@@ -473,11 +473,8 @@ def test_IT_M01_fetch_all_conversations(base_url, auth_headers):
 
 
 @pytest.mark.cloud_only
-def test_IT_M02_fetch_single_conversation(base_url, auth_headers, skip_cloud):
+def test_IT_M02_fetch_single_conversation(base_url, auth_headers):
     """IT-M02: Fetch single conversation with messages (requires seed conversation id=1)."""
-    if skip_cloud:
-        pytest.skip("SKIP_CLOUD_ONLY=true: skipping cloud-dependent test")
-
     resp = requests.get(_url(base_url, "/conversations/1"), headers=auth_headers, timeout=TIMEOUT)
     assert resp.status_code == 200
     body = resp.json()
