@@ -94,6 +94,62 @@ def _hash_pw(pw: str) -> str:
 # Schema + seed
 # ---------------------------------------------------------------------------
 
+def _pg_reset_sequence(conn, table: str) -> None:
+    """
+    Advance the PostgreSQL BIGSERIAL sequence for `table`.id past its current
+    maximum row id.  Handles three edge-cases that silently break the naive
+    pg_get_serial_sequence approach:
+
+      1. pg_get_serial_sequence returns NULL  — the column was created without
+         BIGSERIAL on an older deploy.  We find the sequence via pg_class and
+         attach it, then reset.
+      2. The table is empty (MAX(id) = NULL) — we floor at 1 so the sequence
+         stays valid.
+      3. Unfetched cursor results — we always call fetchone() so psycopg2
+         never leaves the connection with pending server-side results before
+         commit().
+    """
+    c = conn.cursor()
+
+    # Step 1 — try the fast path via pg_get_serial_sequence
+    c.execute("SELECT pg_get_serial_sequence(%s, 'id')", (table,))
+    row = c.fetchone()
+    seq = row[0] if row else None
+    c.close()
+
+    # Step 2 — fallback: find sequence by naming convention or pg_class
+    if not seq:
+        c = conn.cursor()
+        c.execute("""
+            SELECT s.relname
+            FROM   pg_class s
+            JOIN   pg_depend d ON d.objid = s.oid
+            JOIN   pg_class t ON t.oid   = d.refobjid
+            JOIN   pg_attribute a ON a.attrelid = t.oid
+                                 AND a.attnum   = d.refobjsubid
+            WHERE  s.relkind = 'S'
+            AND    t.relname = %s
+            AND    a.attname = 'id'
+            LIMIT  1
+        """, (table,))
+        row = c.fetchone()
+        seq = row[0] if row else None
+        c.close()
+
+    if not seq:
+        # No sequence found — column is a plain INTEGER; skip reset.
+        return
+
+    # Step 3 — advance the sequence to MAX(id), floor 1, and consume result
+    c = conn.cursor()
+    c.execute(
+        f"SELECT setval(%s, GREATEST((SELECT COALESCE(MAX(id), 0) FROM {table}), 1))",
+        (seq,)
+    )
+    c.fetchone()   # must consume so psycopg2 doesn't leave pending results
+    c.close()
+
+
 def init_db():
     """Create tables and seed from data/*.py. Safe to call multiple times."""
     from data import users as users_data
@@ -337,15 +393,8 @@ def init_db():
 
     # ---- Reset PG sequences after explicit-ID seed inserts -----------------
     if _USE_PG:
-        _execute(conn,
-            "SELECT setval(pg_get_serial_sequence('users', 'id'), "
-            "       GREATEST((SELECT COALESCE(MAX(id), 0) FROM users), 1))")
-        _execute(conn,
-            "SELECT setval(pg_get_serial_sequence('posts', 'id'), "
-            "       GREATEST((SELECT COALESCE(MAX(id), 0) FROM posts), 1))")
-        _execute(conn,
-            "SELECT setval(pg_get_serial_sequence('conversations', 'id'), "
-            "       GREATEST((SELECT COALESCE(MAX(id), 0) FROM conversations), 1))")
+        for _tbl in ('users', 'posts', 'conversations'):
+            _pg_reset_sequence(conn, _tbl)
 
     conn.commit()
     conn.close()
