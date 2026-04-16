@@ -137,7 +137,17 @@ def _pg_reset_sequence(conn, table: str) -> None:
         c.close()
 
     if not seq:
-        # No sequence found — column is a plain INTEGER; skip reset.
+        # No sequence exists — create one and attach it so INSERTs work.
+        seq = f"{table}_id_seq"
+        c = conn.cursor()
+        c.execute(f"CREATE SEQUENCE IF NOT EXISTS {seq}")
+        c.execute(
+            f"SELECT setval('{seq}', GREATEST((SELECT COALESCE(MAX(id), 0) FROM {table}), 1))"
+        )
+        c.fetchone()
+        c.execute(f"ALTER TABLE {table} ALTER COLUMN id SET DEFAULT nextval('{seq}')")
+        c.execute(f"ALTER SEQUENCE {seq} OWNED BY {table}.id")
+        c.close()
         return
 
     # Step 3 — advance the sequence to MAX(id), floor 1, and consume result
