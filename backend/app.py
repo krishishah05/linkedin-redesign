@@ -77,6 +77,12 @@ def conflict(e):
     return jsonify({"error": str(e)}), 409
 
 
+@app.errorhandler(500)
+def internal_error(e):
+    import traceback
+    return jsonify({"error": str(e), "detail": traceback.format_exc()}), 500
+
+
 # ══════════════════════════════════════════════════════════════
 # Auth / Account Endpoints
 # ══════════════════════════════════════════════════════════════
