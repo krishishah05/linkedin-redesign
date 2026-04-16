@@ -405,7 +405,7 @@ class TestFeed:
         assert _json(resp)["deleted"] is True
 
     def test_T86_BB_delete_post_not_found_returns_404(self, client, monkeypatch):
-        monkeypatch.setattr(flask_app.dbl, "delete_post", lambda pid, uid: False)
+        monkeypatch.setattr(flask_app.dbl, "delete_post", lambda pid, uid: "not_found")
         resp = client.delete("/api/feed/9999")
         assert resp.status_code == 404
 
