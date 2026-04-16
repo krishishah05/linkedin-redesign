@@ -494,7 +494,7 @@ def test_IT_M03_create_conversation(base_url, auth_headers):
         json={"participantId": target_user["id"]},
         timeout=TIMEOUT,
     )
-    assert resp.status_code in (200, 201)
+    assert resp.status_code in (200, 201), resp.text
     body = resp.json()
     assert "id" in body
 
@@ -509,7 +509,7 @@ def test_IT_M04_send_message(base_url, auth_headers):
         json={"participantId": target_user["id"]},
         timeout=TIMEOUT,
     )
-    assert conv_resp.status_code in (200, 201)
+    assert conv_resp.status_code in (200, 201), conv_resp.text
     conv_id = conv_resp.json()["id"]
 
     resp = requests.post(
@@ -533,7 +533,7 @@ def test_IT_M05_send_empty_message(base_url, auth_headers):
         json={"participantId": target_user["id"]},
         timeout=TIMEOUT,
     )
-    assert conv_resp.status_code in (200, 201)
+    assert conv_resp.status_code in (200, 201), conv_resp.text
     conv_id = conv_resp.json()["id"]
 
     resp = requests.post(
