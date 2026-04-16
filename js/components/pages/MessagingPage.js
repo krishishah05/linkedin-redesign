@@ -320,7 +320,7 @@ function MessagingPage() {
   <button
     className="li-btn li-btn--ghost"
     style={{ padding: '4px 8px', fontSize: 12 }}
-    onClick={() => setComposing(c => !c)}
+    onClick={() => showToast('New message — coming soon')}
     title="New message"
   >
     Write
@@ -329,7 +329,7 @@ function MessagingPage() {
   <button
     className="li-btn li-btn--ghost"
     style={{ padding: 4 }}
-    onClick={() => navigate('settings')}
+    onClick={() => showToast('Settings — coming soon')}
   >
     Settings
   </button>

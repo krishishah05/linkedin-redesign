@@ -57,7 +57,7 @@ function FeedPage() {
     };
     setLocalPosts(prev => [newPost, ...(prev || [])]);
     setFeedSort('Recent');
-    API.createPost(content, imageUrl)
+    API.createPost(content)
       .then(() => showToast('Post shared!', 'success'))
       .catch(() => {
         setLocalPosts(prev => (prev || []).filter(p => p.id !== newPost.id));
@@ -225,7 +225,7 @@ function PostCreator({ user, onPost, openModal, showToast }) {
 
   function submit() {
     if (!draft.trim()) return;
-    onPost(draft.trim(), imageUrl.trim() || null);
+    onPost(draft.trim());
     setDraft('');
     setImageUrl('');
     setShowImageInput(false);
@@ -287,7 +287,8 @@ function PostCreator({ user, onPost, openModal, showToast }) {
               <button key={label} title={label}
                 onClick={() => {
                   if (label === 'Event') navigate('events');
-                  else if (label === 'Article') setExpanded(true);
+                  else if (label === 'Article') showToast('Article editor — coming soon');
+                  else if (label === 'Photo') showToast('Photo upload — coming soon');
                   else handleImageBtn();
                 }}
                 style={{ background: showImageInput && (label === 'Photo' || label === 'Video') ? 'var(--bg)' : 'none', border: 'none', cursor: 'pointer', padding: '6px 8px', borderRadius: 6, display: 'flex', alignItems: 'center', gap: 4, fontSize: 13, fontWeight: 600, color: 'var(--text-2)' }}
@@ -322,7 +323,7 @@ function PostCreator({ user, onPost, openModal, showToast }) {
             { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="#378FE9"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>, label: 'Photo', action: () => setExpanded(true) },
             { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="#5F9B41"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/></svg>, label: 'Video', action: () => setExpanded(true) },
             { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="#E06847"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>, label: 'Event', action: () => navigate('events') },
-            { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="#E06847"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>, label: 'Write article', action: () => setExpanded(true) },
+            { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="#E06847"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>, label: 'Write article', action: () => showToast('Article editor — coming soon') },
           ].map(item => (
             <button key={item.label} className="li-post-creator__action" onClick={item.action}>
               {item.icon}
@@ -522,13 +523,13 @@ function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, followi
       {post.image && (
         <img src={post.image} alt="" className="li-post__image"
           style={{ cursor: 'zoom-in' }}
-          onClick={() => openModal('image-viewer', { src: post.image })} />
+          onClick={() => showToast('Image viewer — coming soon')} />
       )}
 
       {/* Reactions count row */}
       {(totalReactions > 0 || commentCount > 0 || repostCount > 0) && (
         <div className="li-post__reactions">
-          <div className="li-post__reaction-icons" style={{ cursor: 'default' }}>
+          <div className="li-post__reaction-icons" style={{ cursor: 'pointer' }} onClick={() => showToast('Reactions — coming soon')}>
             {topReactLabels.length > 0 && (
               <span style={{ display: 'flex', marginRight: 4 }}>
                 {topReactLabels.map((e, i) => (
@@ -652,9 +653,9 @@ function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, followi
                     <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-2)', fontSize: 12, fontWeight: 600, padding: 0 }}
                       onClick={() => showToast('Liked comment!')}>Like</button>
                     <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-2)', fontSize: 12, fontWeight: 600, padding: 0 }}
-                      onClick={() => { setReplyingTo(replyingTo === ci ? null : ci); setReplyDraft(''); }}>Reply</button>
+                      onClick={() => showToast('Reply — coming soon')}>Reply</button>
                   </div>
-                  {replyingTo === ci && (
+                  {replyingTo === i && (
                     <div style={{ display: 'flex', gap: 8, marginTop: 6, marginLeft: 40 }}>
                       <input
                         autoFocus
