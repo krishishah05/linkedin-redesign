@@ -275,8 +275,7 @@ def test_IT_F03_create_post_without_content(base_url, auth_headers):
 
 
 def test_IT_F04_like_post_toggles_count(base_url, auth_headers):
-    """IT-F04: Like a post toggles like count."""
-    # Create a post to like
+    """IT-F04: Like a post increments count; liking again (toggle) decrements it."""
     create = requests.post(
         _url(base_url, "/feed"),
         headers=auth_headers,
@@ -286,22 +285,29 @@ def test_IT_F04_like_post_toggles_count(base_url, auth_headers):
     assert create.status_code == 201
     post_id = create.json()["id"]
 
-    # Get initial like count
-    feed = requests.get(_url(base_url, "/feed"), headers=auth_headers, timeout=TIMEOUT)
-    posts_map = {p["id"]: p for p in feed.json()}
-    p = posts_map[post_id]
-    initial_likes = p.get("likeCount", p.get("likes", p.get("likesCount", 0)))
+    def get_likes(pid):
+        feed = requests.get(_url(base_url, "/feed"), headers=auth_headers, timeout=TIMEOUT)
+        posts_map = {p["id"]: p for p in feed.json()}
+        assert pid in posts_map, f"Post {pid} not found in feed"
+        p = posts_map[pid]
+        return p.get("likeCount", p.get("likes", p.get("likesCount", 0)))
 
-    # Like the post
-    like_resp = requests.post(
-        _url(base_url, f"/feed/{post_id}/like"),
-        headers=auth_headers,
-        timeout=TIMEOUT,
+    initial = get_likes(post_id)
+    assert initial == 0, f"Freshly created post should have 0 likes, got {initial}"
+
+    # First like — should increment to 1
+    r1 = requests.post(
+        _url(base_url, f"/feed/{post_id}/like"), headers=auth_headers, timeout=TIMEOUT
     )
-    assert like_resp.status_code == 200
-    body = like_resp.json()
-    new_likes = body.get("likeCount", body.get("likes", body.get("likesCount", -1)))
-    assert abs(new_likes - initial_likes) == 1
+    assert r1.status_code == 200
+    assert get_likes(post_id) == 1, "Like count should be 1 after first like"
+
+    # Second like (toggle off) — should return to 0
+    r2 = requests.post(
+        _url(base_url, f"/feed/{post_id}/like"), headers=auth_headers, timeout=TIMEOUT
+    )
+    assert r2.status_code == 200
+    assert get_likes(post_id) == 0, "Like count should return to 0 after unliking"
 
 
 def test_IT_F05_comment_on_post(base_url, auth_headers):
@@ -352,8 +358,7 @@ def test_IT_F06_delete_own_post(base_url, auth_headers):
 
 
 def test_IT_F07_delete_other_users_post_forbidden(base_url, auth_headers):
-    """IT-F07: Delete another user's post returns 403 (or 401)."""
-    # Register a second user and have them create a post
+    """IT-F07: Delete another user's post returns 403."""
     _, other_token = _register_temp_user(base_url)
     other_headers = {"Authorization": f"Bearer {other_token}"}
 
@@ -366,15 +371,13 @@ def test_IT_F07_delete_other_users_post_forbidden(base_url, auth_headers):
     assert create.status_code == 201
     post_id = create.json()["id"]
 
-    # Try to delete it as the main user
     del_resp = requests.delete(
         _url(base_url, f"/feed/{post_id}"),
         headers=auth_headers,
         timeout=TIMEOUT,
     )
-    # Spec expects 403 or 401; backend currently returns 404 (post not found for this user)
-    assert del_resp.status_code in (401, 403, 404), (
-        f"Expected 403/401/404 when deleting another user's post, got {del_resp.status_code}"
+    assert del_resp.status_code in (401, 403), (
+        f"Expected 403 (forbidden) when deleting another user's post, got {del_resp.status_code}"
     )
 
 
@@ -472,7 +475,6 @@ def test_IT_M01_fetch_all_conversations(base_url, auth_headers):
     assert isinstance(body, list)
 
 
-@pytest.mark.cloud_only
 def test_IT_M02_fetch_single_conversation(base_url, auth_headers):
     """IT-M02: Fetch single conversation with messages (requires seed conversation id=1)."""
     resp = requests.get(_url(base_url, "/conversations/1"), headers=auth_headers, timeout=TIMEOUT)
@@ -567,13 +569,22 @@ def test_IT_J02_fetch_specific_job(base_url, auth_headers):
 
 
 def test_IT_J03_save_job_toggles_state(base_url, auth_headers):
-    """IT-J03: Save a job toggles saved state."""
+    """IT-J03: Save a job toggles saved state and persists to social."""
+    social_before = requests.get(
+        _url(base_url, "/me/social"), headers=auth_headers, timeout=TIMEOUT
+    ).json()
+    was_saved = 1 in social_before.get("savedJobs", [])
+
     resp = requests.post(
-        _url(base_url, "/me/saved-jobs/1"),
-        headers=auth_headers,
-        timeout=TIMEOUT,
+        _url(base_url, "/me/saved-jobs/1"), headers=auth_headers, timeout=TIMEOUT
     )
     assert resp.status_code == 200
+
+    social_after = requests.get(
+        _url(base_url, "/me/social"), headers=auth_headers, timeout=TIMEOUT
+    ).json()
+    is_saved_now = 1 in social_after.get("savedJobs", [])
+    assert is_saved_now != was_saved, "Save job toggle did not change saved state in /me/social"
 
 
 def test_IT_J04_apply_to_job(base_url, auth_headers):
@@ -626,16 +637,23 @@ def test_IT_NT02_mark_single_notification_read(base_url, auth_headers):
 
 def test_IT_NT03_mark_all_notifications_read(base_url, auth_headers):
     """IT-NT03: Mark all notifications as read."""
+    notifs_before = requests.get(
+        _url(base_url, "/notifications"), headers=auth_headers, timeout=TIMEOUT
+    ).json()
+    if not notifs_before:
+        pytest.skip("No notifications exist — cannot verify read-all behavior")
+
     resp = requests.patch(
-        _url(base_url, "/notifications/read-all"),
-        headers=auth_headers,
-        timeout=TIMEOUT,
+        _url(base_url, "/notifications/read-all"), headers=auth_headers, timeout=TIMEOUT
     )
     assert resp.status_code == 200
 
-    # Verify all are read
-    notifs = requests.get(_url(base_url, "/notifications"), headers=auth_headers, timeout=TIMEOUT).json()
-    assert all(n.get("isRead") is True or n.get("read") is True for n in notifs)
+    notifs_after = requests.get(
+        _url(base_url, "/notifications"), headers=auth_headers, timeout=TIMEOUT
+    ).json()
+    assert len(notifs_after) > 0, "Notifications disappeared after read-all"
+    unread = [n for n in notifs_after if not (n.get("isRead") is True or n.get("read") is True)]
+    assert not unread, f"Expected all notifications read, still unread: {unread}"
 
 
 # ---------------------------------------------------------------------------
@@ -761,8 +779,11 @@ def test_IT_O01_generate_outreach_valid(base_url, auth_headers):
         timeout=TIMEOUT,
     )
     assert resp.status_code == 200
-    # Backend returns "draft"; spec says "message"
-    assert "draft" in resp.json() or "message" in resp.json()
+    body = resp.json()
+    draft = body.get("draft") or body.get("message")
+    assert draft and isinstance(draft, str) and draft.strip(), (
+        f"Expected non-empty generated message in 'draft' or 'message', got: {body}"
+    )
 
 
 def test_IT_O02_generate_outreach_all_optional_fields(base_url, auth_headers):
@@ -780,8 +801,11 @@ def test_IT_O02_generate_outreach_all_optional_fields(base_url, auth_headers):
         timeout=TIMEOUT,
     )
     assert resp.status_code == 200
-    # Backend returns "draft"; spec says "message"
-    assert "draft" in resp.json() or "message" in resp.json()
+    body = resp.json()
+    draft = body.get("draft") or body.get("message")
+    assert draft and isinstance(draft, str) and draft.strip(), (
+        f"Expected non-empty generated message in 'draft' or 'message', got: {body}"
+    )
 
 
 def test_IT_O03_generate_outreach_missing_recipient_id(base_url, auth_headers):

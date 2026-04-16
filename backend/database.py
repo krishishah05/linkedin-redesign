@@ -688,18 +688,27 @@ def create_post(author_id: int, content: str, image_url: str = None):
 
 
 def delete_post(post_id: int, user_id: int):
-    """Delete a post if it belongs to user_id. Returns True if deleted."""
+    """Delete a post owned by user_id.
+
+    Returns:
+        "deleted"     — success
+        "forbidden"   — post exists but belongs to another user
+        "not_found"   — post does not exist
+    """
     conn = _connect()
-    row  = _execute(conn,
-        "SELECT author_id FROM posts WHERE id=%s", (int(post_id),)
+    row = _execute(
+        conn, "SELECT author_id FROM posts WHERE id=%s", (int(post_id),)
     ).fetchone()
-    if not row or row["author_id"] != int(user_id):
+    if not row:
         conn.close()
-        return False
+        return "not_found"
+    if row["author_id"] != int(user_id):
+        conn.close()
+        return "forbidden"
     _execute(conn, "DELETE FROM posts WHERE id=%s", (int(post_id),))
     conn.commit()
     conn.close()
-    return True
+    return "deleted"
 
 
 def toggle_post_like(post_id: int, user_id: int):
@@ -718,11 +727,20 @@ def toggle_post_like(post_id: int, user_id: int):
             "INSERT INTO post_likes (post_id, user_id) VALUES (%s, %s)",
             (int(post_id), int(user_id)))
         liked = True
-    row   = _execute(conn,
+    row = _execute(conn,
         "SELECT COUNT(*) AS cnt FROM post_likes WHERE post_id=%s",
         (int(post_id),)
     ).fetchone()
     count = row["cnt"] if _USE_PG else row[0]
+
+    # Keep the data blob's totalReactions in sync so get_all_posts reflects the correct count
+    post_row = _execute(conn, "SELECT data FROM posts WHERE id=%s", (int(post_id),)).fetchone()
+    if post_row:
+        blob = json.loads(post_row["data"])
+        blob["totalReactions"] = count
+        blob["reactions"]["like"] = count
+        _execute(conn, "UPDATE posts SET data=%s WHERE id=%s", (json.dumps(blob), int(post_id)))
+
     conn.commit()
     conn.close()
     return {"liked": liked, "likeCount": count}

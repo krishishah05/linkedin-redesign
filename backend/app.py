@@ -301,9 +301,11 @@ def create_post():
 def delete_post(post_id):
     """DELETE /api/feed/:id — delete a post (owner only)."""
     current_user = _auth_user()
-    deleted = dbl.delete_post(post_id, current_user["id"])
-    if not deleted:
-        abort(404, description=f"Post {post_id} not found or not yours")
+    result = dbl.delete_post(post_id, current_user["id"])
+    if result == "not_found":
+        abort(404, description=f"Post {post_id} not found")
+    if result == "forbidden":
+        abort(403, description="You do not own this post")
     return jsonify({"deleted": True})
 
 
