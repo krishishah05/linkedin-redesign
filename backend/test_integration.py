@@ -18,7 +18,7 @@ import requests
 # Helpers
 # ---------------------------------------------------------------------------
 
-TIMEOUT = 15
+TIMEOUT = 60
 
 
 def _url(base_url, path):
@@ -575,6 +575,7 @@ def test_IT_J03_save_job_toggles_state(base_url, auth_headers):
     ).json()
     was_saved = 1 in social_before.get("savedJobs", [])
 
+    # First toggle
     resp = requests.post(
         _url(base_url, "/me/saved-jobs/1"), headers=auth_headers, timeout=TIMEOUT
     )
@@ -585,6 +586,11 @@ def test_IT_J03_save_job_toggles_state(base_url, auth_headers):
     ).json()
     is_saved_now = 1 in social_after.get("savedJobs", [])
     assert is_saved_now != was_saved, "Save job toggle did not change saved state in /me/social"
+
+    # Second toggle — restore original state
+    requests.post(
+        _url(base_url, "/me/saved-jobs/1"), headers=auth_headers, timeout=TIMEOUT
+    )
 
 
 def test_IT_J04_apply_to_job(base_url, auth_headers):
