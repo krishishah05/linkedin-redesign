@@ -11,9 +11,8 @@ A LinkedIn-style professional networking SPA built with vanilla JavaScript + Rea
 The app is deployed and publicly accessible — no setup required.
 
 1. Open [https://linkedin-redesign-z364.onrender.com](https://linkedin-redesign-z364.onrender.com) in your browser
-2. Sign in with the demo account: `alex.johnson@gmail.com` / `password123`
-3. Or click **Join now** to register your own account
-4. The backend may take ~30 seconds to wake up on first visit (free tier cold start)
+2. Sign in with the demo account: `alex.johnson@gmail.com` / `password123`or click **Join now** to register your own account
+3. The backend may take ~30 seconds to wake up on first visit (free tier cold start)
 
 ---
 
