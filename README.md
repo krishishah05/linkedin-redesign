@@ -6,7 +6,46 @@ A LinkedIn-style professional networking SPA built with vanilla JavaScript + Rea
 
 ---
 
-## Running the App
+## Using the Live App
+
+The app is deployed and publicly accessible — no setup required.
+
+1. Open [https://linkedin-redesign-z364.onrender.com](https://linkedin-redesign-z364.onrender.com) in your browser
+2. Sign in with the demo account: `alex.johnson@gmail.com` / `password123`
+3. Or click **Join now** to register your own account
+4. The backend may take ~30 seconds to wake up on first visit (free tier cold start)
+
+---
+
+## Deploying Your Own Instance (Render)
+
+If you fork this repo and want to deploy your own instance:
+
+### Backend (Render Web Service)
+
+1. Go to [dashboard.render.com](https://dashboard.render.com) → **New → Web Service**
+2. Connect your forked GitHub repository
+3. Set the following:
+   - **Runtime**: Python 3
+   - **Build command**: `pip install -r backend/requirements.txt`
+   - **Start command**: `gunicorn --chdir backend app:app`
+   - **Branch**: `main`
+4. Click **Create Web Service**
+5. Once deployed, copy your service URL (e.g. `https://your-app.onrender.com`)
+6. Update `const BASE` in `js/api.js` to your new backend URL
+
+### Continuous Deployment
+
+The repo includes `.github/workflows/deploy-render-backend.yml` which redeploys the backend automatically on every push to `main`. To enable it:
+
+1. Render dashboard → your service → **Settings → Deploy Hook** → copy the URL
+2. GitHub repo → **Settings → Secrets → Actions → New secret**
+   - Name: `RENDER_BACKEND_DEPLOY_HOOK`
+   - Value: your deploy hook URL
+
+---
+
+## Running the App Locally
 
 ### 1. Install dependencies
 
