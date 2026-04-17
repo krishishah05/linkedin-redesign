@@ -22,6 +22,21 @@ jobs:
       - name: Install dependencies
         run: pip install -r backend/requirements.txt requests
 
+      - name: Wake up Render backend
+        run: |
+          echo "Waiting for backend to be ready..."
+          for i in $(seq 1 24); do
+            status=$(curl -s -o /dev/null -w "%{http_code}" https://linkedin-redesign-z364.onrender.com/api/me)
+            if [ "$status" = "200" ]; then
+              echo "Backend is ready (attempt $i)"
+              exit 0
+            fi
+            echo "Attempt $i: got $status, retrying in 10s..."
+            sleep 10
+          done
+          echo "Backend did not become ready in time"
+          exit 1
+
       - name: Run integration tests against deployed backend
         env:
           BASE_URL: https://linkedin-redesign-z364.onrender.com/api
