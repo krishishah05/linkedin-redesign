@@ -1,6 +1,6 @@
 """
 Nexus — Flask Backend  (backend/app.py)
-CS485 Project
+CS485 Project — Spring 2026
 
 All mutable data (users, posts, conversations, messages, notifications,
 jobs, companies) lives in SQLite via database.py.
