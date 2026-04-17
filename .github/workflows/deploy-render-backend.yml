@@ -1,0 +1,12 @@
+name: deploy-render-backend
+
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Render backend deploy
+        run: curl -fsSL "${{ secrets.RENDER_BACKEND_DEPLOY_HOOK }}"
