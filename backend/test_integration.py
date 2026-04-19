@@ -575,9 +575,14 @@ def test_IT_J03_save_job_toggles_state(base_url, auth_headers):
         _url(base_url, "/me/social"), headers=auth_headers, timeout=TIMEOUT
     ).json()
     if 1 in social_initial.get("savedJobs", []):
-        requests.post(
+        resp = requests.post(
             _url(base_url, "/me/saved-jobs/1"), headers=auth_headers, timeout=TIMEOUT
         )
+        assert resp.status_code == 200, f"Setup: failed to unsave job 1 ({resp.status_code})"
+        social_check = requests.get(
+            _url(base_url, "/me/social"), headers=auth_headers, timeout=TIMEOUT
+        ).json()
+        assert 1 not in social_check.get("savedJobs", []), "Setup: job 1 still saved after unsave attempt"
 
     social_before = requests.get(
         _url(base_url, "/me/social"), headers=auth_headers, timeout=TIMEOUT
