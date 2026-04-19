@@ -28,7 +28,7 @@ jobs:
           python app.py &
           echo "Waiting for local backend to be ready..."
           for i in $(seq 1 30); do
-            status=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:5000/api/jobs)
+            status=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:5000/api/jobs || echo "000")
             if [ "$status" = "200" ]; then
               echo "Backend is ready (attempt $i)"
               exit 0
