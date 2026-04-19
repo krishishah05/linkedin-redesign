@@ -1162,6 +1162,28 @@ def toggle_saved_job(user_id: int, job_id: int):  # pragma: no cover
     return {"saved": saved}
 
 
+def save_job(user_id: int, job_id: int):  # pragma: no cover
+    """Idempotent save — no-op if already saved."""
+    conn = _connect()
+    _execute(conn,
+        "INSERT INTO user_saved_jobs (user_id, job_id) VALUES (%s, %s) ON CONFLICT DO NOTHING",
+        (user_id, job_id))
+    conn.commit()
+    conn.close()
+    return {"saved": True}
+
+
+def unsave_job(user_id: int, job_id: int):  # pragma: no cover
+    """Idempotent unsave — no-op if not saved."""
+    conn = _connect()
+    _execute(conn,
+        "DELETE FROM user_saved_jobs WHERE user_id=%s AND job_id=%s",
+        (user_id, job_id))
+    conn.commit()
+    conn.close()
+    return {"saved": False}
+
+
 def connect_user(user_id: int, target_id: int):  # pragma: no cover
     conn = _connect()
     _execute(conn, """

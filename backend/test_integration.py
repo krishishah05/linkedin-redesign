@@ -570,27 +570,19 @@ def test_IT_J02_fetch_specific_job(base_url, auth_headers):
 
 def test_IT_J03_save_job_toggles_state(base_url, auth_headers):
     """IT-J03: Save a job toggles saved state and persists to social."""
-    # Ensure job 1 starts in a known unsaved state regardless of prior test runs
-    social_initial = requests.get(
-        _url(base_url, "/me/social"), headers=auth_headers, timeout=TIMEOUT
-    ).json()
-    if 1 in social_initial.get("savedJobs", []):
-        resp = requests.post(
-            _url(base_url, "/me/saved-jobs/1"), headers=auth_headers, timeout=TIMEOUT
-        )
-        assert resp.status_code == 200, f"Setup: failed to unsave job 1 ({resp.status_code})"
-        social_check = requests.get(
-            _url(base_url, "/me/social"), headers=auth_headers, timeout=TIMEOUT
-        ).json()
-        assert 1 not in social_check.get("savedJobs", []), "Setup: job 1 still saved after unsave attempt"
+    # Ensure job 1 starts unsaved — idempotent DELETE, safe regardless of prior state
+    resp = requests.delete(
+        _url(base_url, "/me/saved-jobs/1"), headers=auth_headers, timeout=TIMEOUT
+    )
+    assert resp.status_code == 200, f"Setup: failed to unsave job 1 ({resp.status_code})"
 
     social_before = requests.get(
         _url(base_url, "/me/social"), headers=auth_headers, timeout=TIMEOUT
     ).json()
     assert 1 not in social_before.get("savedJobs", []), "Job 1 should be unsaved"
 
-    # Toggle job 1 to saved
-    resp = requests.post(
+    # Explicitly save job 1
+    resp = requests.put(
         _url(base_url, "/me/saved-jobs/1"), headers=auth_headers, timeout=TIMEOUT
     )
     assert resp.status_code == 200
@@ -601,7 +593,7 @@ def test_IT_J03_save_job_toggles_state(base_url, auth_headers):
     assert 1 in social_after.get("savedJobs", []), "Job 1 should now be saved"
 
     # Restore job 1 to unsaved
-    resp = requests.post(
+    resp = requests.delete(
         _url(base_url, "/me/saved-jobs/1"), headers=auth_headers, timeout=TIMEOUT
     )
     assert resp.status_code == 200
