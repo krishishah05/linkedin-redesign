@@ -1,6 +1,6 @@
 # Nexus — LinkedIn Redesign
 **CS485 AI-Assisted Software Engineering — Spring 2026**
-Team: Krishi Shah, Dhyani Shah, Saanvi Elaty, Victor Jimenez 
+Team: Krishi Shah, Dhyani Soni, Saanvi Elaty, Victor Jimenez 
 
 A LinkedIn-style professional networking SPA built with vanilla JavaScript + React (CDN), backed by a Flask + SQLite REST API.
 
