@@ -570,13 +570,19 @@ def test_IT_J02_fetch_specific_job(base_url, auth_headers):
 
 def test_IT_J03_save_job_toggles_state(base_url, auth_headers):
     """IT-J03: Save a job toggles saved state and persists to social."""
+    # Ensure job 1 starts unsaved — idempotent DELETE, safe regardless of prior state
+    resp = requests.delete(
+        _url(base_url, "/me/saved-jobs/1"), headers=auth_headers, timeout=TIMEOUT
+    )
+    assert resp.status_code == 200, f"Setup: failed to unsave job 1 ({resp.status_code})"
+
     social_before = requests.get(
         _url(base_url, "/me/social"), headers=auth_headers, timeout=TIMEOUT
     ).json()
-    was_saved = 1 in social_before.get("savedJobs", [])
+    assert 1 not in social_before.get("savedJobs", []), "Job 1 should be unsaved"
 
-    # First toggle
-    resp = requests.post(
+    # Explicitly save job 1
+    resp = requests.put(
         _url(base_url, "/me/saved-jobs/1"), headers=auth_headers, timeout=TIMEOUT
     )
     assert resp.status_code == 200
@@ -584,13 +590,18 @@ def test_IT_J03_save_job_toggles_state(base_url, auth_headers):
     social_after = requests.get(
         _url(base_url, "/me/social"), headers=auth_headers, timeout=TIMEOUT
     ).json()
-    is_saved_now = 1 in social_after.get("savedJobs", [])
-    assert is_saved_now != was_saved, "Save job toggle did not change saved state in /me/social"
+    assert 1 in social_after.get("savedJobs", []), "Job 1 should now be saved"
 
-    # Second toggle — restore original state
-    requests.post(
+    # Restore job 1 to unsaved
+    resp = requests.delete(
         _url(base_url, "/me/saved-jobs/1"), headers=auth_headers, timeout=TIMEOUT
     )
+    assert resp.status_code == 200
+
+    social_final = requests.get(
+        _url(base_url, "/me/social"), headers=auth_headers, timeout=TIMEOUT
+    ).json()
+    assert 1 not in social_final.get("savedJobs", []), "Job 1 should be unsaved again"
 
 
 def test_IT_J04_apply_to_job(base_url, auth_headers):

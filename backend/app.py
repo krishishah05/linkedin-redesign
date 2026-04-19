@@ -670,6 +670,20 @@ def toggle_saved_job(job_id):  # pragma: no cover
     return jsonify(dbl.toggle_saved_job(user["id"], job_id))
 
 
+@app.route("/api/me/saved-jobs/<int:job_id>", methods=["PUT"])
+def save_job(job_id):  # pragma: no cover
+    """PUT /api/me/saved-jobs/:id — explicitly save a job (idempotent)."""
+    user = _auth_user()
+    return jsonify(dbl.save_job(user["id"], job_id))
+
+
+@app.route("/api/me/saved-jobs/<int:job_id>", methods=["DELETE"])
+def unsave_job(job_id):  # pragma: no cover
+    """DELETE /api/me/saved-jobs/:id — explicitly unsave a job (idempotent)."""
+    user = _auth_user()
+    return jsonify(dbl.unsave_job(user["id"], job_id))
+
+
 @app.route("/api/me/connections/<int:target_id>", methods=["POST"])
 def connect_user(target_id):  # pragma: no cover
     """POST /api/me/connections/:id — send a connection request."""
