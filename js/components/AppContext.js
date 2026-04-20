@@ -44,6 +44,50 @@ function AppProvider({ children }) {
     () => localStorage.getItem('li-dark-mode') === '1'
   );
 
+  // ── Recruiter mode ────────────────────────────────────────
+  const [recruiterMode, setRecruiterModeState] = React.useState(
+    () => localStorage.getItem('li-recruiter-mode') === '1'
+  );
+  const [recruiterPanelOpen, setRecruiterPanelOpen] = React.useState(false);
+  const [shortlisted, setShortlisted] = React.useState(() => {
+    try {
+      const s = localStorage.getItem('li-shortlisted');
+      return s ? new Map(JSON.parse(s)) : new Map();
+    } catch { return new Map(); }
+  });
+
+  function toggleRecruiterMode() {
+    setRecruiterModeState(prev => {
+      const next = !prev;
+      localStorage.setItem('li-recruiter-mode', next ? '1' : '0');
+      if (!next) setRecruiterPanelOpen(false);
+      return next;
+    });
+  }
+
+  function addToShortlist(user) {
+    setShortlisted(prev => {
+      const next = new Map(prev);
+      next.set(String(user.id), user);
+      try { localStorage.setItem('li-shortlisted', JSON.stringify([...next])); } catch {}
+      return next;
+    });
+  }
+
+  function removeFromShortlist(userId) {
+    setShortlisted(prev => {
+      const next = new Map(prev);
+      next.delete(String(userId));
+      try { localStorage.setItem('li-shortlisted', JSON.stringify([...next])); } catch {}
+      return next;
+    });
+  }
+
+  function clearShortlist() {
+    setShortlisted(new Map());
+    try { localStorage.removeItem('li-shortlisted'); } catch {}
+  }
+
   const [settings, setSettings] = React.useState(() => {
     try {
       const s = localStorage.getItem('li-settings');
@@ -351,6 +395,15 @@ function AppProvider({ children }) {
     follow,
     setDarkMode,
     setSettings,
+    // Recruiter mode
+    recruiterMode,
+    toggleRecruiterMode,
+    recruiterPanelOpen,
+    setRecruiterPanelOpen,
+    shortlisted,
+    addToShortlist,
+    removeFromShortlist,
+    clearShortlist,
     setUnreadMessages,
     setUnreadNotifications,
     openModal,

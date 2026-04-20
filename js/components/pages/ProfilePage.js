@@ -31,7 +31,10 @@ function PeopleAlsoViewed({ currentUserId }) {
 }
 
 function ProfilePage({ userId }) {
-  const { currentUser, connections, connect, pendingConnections, following, follow, openModal, showToast } = React.useContext(AppContext);
+  const {
+    currentUser, connections, connect, pendingConnections, following, follow, openModal, showToast,
+    recruiterMode, shortlisted, addToShortlist, removeFromShortlist,
+  } = React.useContext(AppContext);
   const isOwnProfile = !userId || (currentUser && String(userId) === String(currentUser.id));
 
   const { data: profileData, loading, error } = useFetch(
@@ -45,6 +48,18 @@ function ProfilePage({ userId }) {
   );
 
   const [expandedSections, setExpandedSections] = React.useState(new Set());
+  const [aiTips, setAiTips] = React.useState(null);
+  const [aiLoading, setAiLoading] = React.useState(false);
+  const [aiError, setAiError] = React.useState(null);
+
+  function fetchAiTips() {
+    setAiLoading(true);
+    setAiError(null);
+    setAiTips(null);
+    API.getProfileImprovementTips()
+      .then(res => { setAiTips(res.tips); setAiLoading(false); })
+      .catch(err => { setAiError(err.message || 'Failed to load tips'); setAiLoading(false); });
+  }
 
   function toggleSection(key) {
     setExpandedSections(prev => {
@@ -96,6 +111,15 @@ function ProfilePage({ userId }) {
                         const url = window.location.href.split('#')[0] + '#profile?id=' + user.id;
                         navigator.clipboard?.writeText(url).then(() => showToast('Profile link copied!', 'success')).catch(() => showToast('Failed to copy profile link', 'error'));
                       }}>Share</button>
+                      <button
+                        className="li-btn li-btn--ghost li-btn--sm"
+                        style={{ display: 'flex', alignItems: 'center', gap: 4 }}
+                        onClick={fetchAiTips}
+                        disabled={aiLoading}
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 15h-2v-6h2zm0-8h-2V7h2z"/></svg>
+                        {aiLoading ? 'Loading…' : '✦ AI Tips'}
+                      </button>
                     </>
                   ) : (
                     <>
@@ -117,6 +141,32 @@ function ProfilePage({ userId }) {
                         {isFollowing ? 'Following' : 'Follow'}
                       </button>
                       <button className="li-btn li-btn--ghost li-btn--sm" onClick={() => showToast('More options')}>···</button>
+                      {recruiterMode && (() => {
+                        const inPipeline = shortlisted.has(String(user.id));
+                        return (
+                          <button
+                            className="li-btn li-btn--sm"
+                            style={{
+                              fontSize: 13, padding: '5px 14px',
+                              background: inPipeline ? '#E6F4EA' : 'transparent',
+                              border: `1px solid ${inPipeline ? '#057642' : 'var(--border)'}`,
+                              color: inPipeline ? '#057642' : 'var(--text-2)',
+                              borderRadius: 14, cursor: 'pointer', fontWeight: 600,
+                            }}
+                            onClick={() => {
+                              if (inPipeline) {
+                                removeFromShortlist(user.id);
+                                showToast(`Removed ${user.name} from pipeline`);
+                              } else {
+                                addToShortlist(user);
+                                showToast(`${user.name} added to pipeline`);
+                              }
+                            }}
+                          >
+                            {inPipeline ? '✓ In Pipeline' : '+ Add to Pipeline'}
+                          </button>
+                        );
+                      })()}
                     </>
                   )}
                 </div>
@@ -342,6 +392,39 @@ function ProfilePage({ userId }) {
               </div>
             );
           })()}
+
+          {/* AI Profile Tips card */}
+          {isOwnProfile && (aiTips || aiLoading || aiError) && (
+            <div className="li-card" style={{ padding: 20, marginBottom: 16 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                <span style={{ fontSize: 16 }}>✦</span>
+                <h3 style={{ fontSize: 14, fontWeight: 700 }}>AI Profile Tips</h3>
+              </div>
+              {aiLoading && (
+                <div style={{ fontSize: 13, color: 'var(--text-2)' }}>Analyzing your profile…</div>
+              )}
+              {aiError && (
+                <div style={{ fontSize: 13, color: 'var(--red)' }}>{aiError}</div>
+              )}
+              {aiTips && (
+                <ol style={{ paddingLeft: 18, margin: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {aiTips.map((tip, i) => (
+                    <li key={i} style={{ fontSize: 13, color: 'var(--text)', lineHeight: 1.5 }}>{tip}</li>
+                  ))}
+                </ol>
+              )}
+              {aiTips && (
+                <button
+                  className="li-btn li-btn--ghost li-btn--sm"
+                  style={{ marginTop: 12 }}
+                  onClick={fetchAiTips}
+                  disabled={aiLoading}
+                >
+                  Refresh tips
+                </button>
+              )}
+            </div>
+          )}
 
           <PeopleAlsoViewed currentUserId={userId} />
         </div>

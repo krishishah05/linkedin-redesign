@@ -2,8 +2,10 @@
    NAVBAR.JS — Top navigation bar (replaces static HTML nav)
    ============================================================ */
 function NavBar() {
-  const { currentUser, unreadMessages, pendingInvitations, openModal, showToast, darkMode, setDarkMode } =
-    React.useContext(AppContext);
+  const {
+    currentUser, unreadMessages, pendingInvitations, openModal, showToast, darkMode, setDarkMode,
+    recruiterMode, toggleRecruiterMode, shortlisted, recruiterPanelOpen, setRecruiterPanelOpen,
+  } = React.useContext(AppContext);
   const currentHash = useHash();
 
   const [meOpen, setMeOpen] = React.useState(false);
@@ -104,6 +106,7 @@ function NavBar() {
   ];
 
   return (
+    <>
     <nav className="li-nav" id="main-nav" aria-label="Primary">
       <div className="li-nav__inner">
 
@@ -233,6 +236,30 @@ function NavBar() {
             )}
           </button>
 
+          {/* Recruiter pipeline badge — only visible in recruiter mode */}
+          {recruiterMode && (
+            <button
+              type="button"
+              className="li-nav__item"
+              title="Candidate Pipeline"
+              aria-label={`Candidate Pipeline, ${shortlisted.size} shortlisted`}
+              onClick={() => setRecruiterPanelOpen(v => !v)}
+              style={{ position: 'relative' }}
+            >
+              <svg className="nav-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M20 6h-2.18c.07-.44.18-.86.18-1a3 3 0 0 0-6 0c0 .14.11.56.18 1H10C8.9 6 8 6.9 8 8v12c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-7-1a1 1 0 0 1 2 0c0 .14-.05.27-.08.41a.75.75 0 0 1 0 .18c-.03.14-.08.27-.13.41H13.21c-.05-.14-.1-.27-.13-.41a.75.75 0 0 1 0-.18C13.05 5.27 13 5.14 13 5zm7 15H10V8h2v1h6V8h2v12z"/>
+              </svg>
+              <span className="li-nav__item-label">Pipeline</span>
+              {shortlisted.size > 0 && (
+                <span className="li-nav__item-badge" aria-hidden="true"
+                  style={{ background: '#057642' }}
+                >
+                  {shortlisted.size}
+                </span>
+              )}
+            </button>
+          )}
+
           <div className="li-nav__divider" />
 
           {/* Me dropdown */}
@@ -294,6 +321,27 @@ function NavBar() {
                     <span>Settings &amp; Privacy</span>
                   </button>
 
+                  {/* Recruiter mode toggle */}
+                  <button
+                    type="button"
+                    className="li-dropdown__item"
+                    role="menuitem"
+                    onClick={() => { toggleRecruiterMode(); setMeOpen(false); }}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                      <path d="M20 6h-2.18c.07-.44.18-.86.18-1a3 3 0 0 0-6 0c0 .14.11.56.18 1H10C8.9 6 8 6.9 8 8v12c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-7-1a1 1 0 0 1 2 0c0 .14-.05.27-.08.41H13.08C13.05 5.27 13 5.14 13 5zm7 15H10V8h2v1h6V8h2v12z"/>
+                    </svg>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      Recruiter Mode
+                      <span style={{
+                        fontSize: 11, fontWeight: 700, padding: '1px 6px', borderRadius: 8,
+                        background: recruiterMode ? '#057642' : 'var(--border)',
+                        color: recruiterMode ? '#fff' : 'var(--text-2)',
+                      }}>
+                        {recruiterMode ? 'ON' : 'OFF'}
+                      </span>
+                    </span>
+                  </button>
 
                 </div>
 
@@ -321,5 +369,9 @@ function NavBar() {
         </div>
       </div>
     </nav>
+
+    {/* Recruiter: slide-in candidate pipeline panel */}
+    <ShortlistPanel />
+    </>
   );
 }
