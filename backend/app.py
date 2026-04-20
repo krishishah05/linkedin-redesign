@@ -77,6 +77,16 @@ def conflict(e):
     return jsonify({"error": str(e)}), 409
 
 
+@app.errorhandler(502)
+def bad_gateway(e):
+    return jsonify({"error": str(e)}), 502
+
+
+@app.errorhandler(503)
+def service_unavailable(e):
+    return jsonify({"error": str(e)}), 503
+
+
 
 
 # ══════════════════════════════════════════════════════════════

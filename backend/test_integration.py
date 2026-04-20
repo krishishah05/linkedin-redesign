@@ -143,11 +143,11 @@ def test_IT_U01_fetch_me_authenticated(base_url, auth_headers):
     assert "headline" in user
 
 
-def test_IT_U02_fetch_me_unauthenticated_falls_back(base_url):
-    """IT-U02: Unauthenticated GET /api/me returns user id=1."""
+def test_IT_U02_fetch_me_unauthenticated_returns_401(base_url):
+    """IT-U02: Unauthenticated GET /api/me returns 401 (no silent fallback)."""
     resp = requests.get(_url(base_url, "/me"), timeout=TIMEOUT)
-    assert resp.status_code == 200
-    assert resp.json().get("id") == 1
+    assert resp.status_code == 401
+    assert "error" in resp.json()
 
 
 def test_IT_U03_update_profile_headline(base_url, auth_headers):
