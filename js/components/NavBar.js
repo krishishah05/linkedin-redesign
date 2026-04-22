@@ -217,8 +217,8 @@ function NavBar() {
 
           <div className="li-nav__divider" />
 
-          {/* Recruiter shortlist badge — only visible in recruiter mode */}
-          {recruiterMode && (
+          {/* Recruiter shortlist badge — only visible to recruiters with mode ON */}
+          {currentUser?.isRecruiter && recruiterMode && (
             <button
               type="button"
               className="li-nav__item"
@@ -321,8 +321,8 @@ function NavBar() {
                     <span>Settings &amp; Privacy</span>
                   </button>
 
-                  {/* Recruiter mode toggle */}
-                  <button
+                  {/* Recruiter mode toggle — only shown to recruiter accounts */}
+                  {currentUser?.isRecruiter && <button
                     type="button"
                     className="li-dropdown__item"
                     role="menuitem"
@@ -341,7 +341,7 @@ function NavBar() {
                         {recruiterMode ? 'ON' : 'OFF'}
                       </span>
                     </span>
-                  </button>
+                  </button>}
 
                 </div>
 

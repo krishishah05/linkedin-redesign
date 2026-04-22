@@ -106,7 +106,7 @@ function NetworkPage() {
                           {isPending ? 'Pending' : '+ Connect'}
                         </button>
                       )}
-                      {recruiterMode && (() => {
+                      {currentUser?.isRecruiter && recruiterMode && (() => {
                         const inPipeline = shortlisted.has(String(user.id));
                         return (
                           <button

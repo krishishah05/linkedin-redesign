@@ -99,7 +99,7 @@ def client(monkeypatch):
     # Users
     monkeypatch.setattr(flask_app.dbl, "verify_credentials", lambda e, p: MOCK_USER)
     monkeypatch.setattr(flask_app.dbl, "create_session", lambda uid: "mock-token-abc")
-    monkeypatch.setattr(flask_app.dbl, "create_user", lambda n, e, p: MOCK_USER_2)
+    monkeypatch.setattr(flask_app.dbl, "create_user", lambda n, e, p, is_recruiter=False: MOCK_USER_2)
     monkeypatch.setattr(flask_app.dbl, "get_all_users", lambda excl: [MOCK_USER_2])
     monkeypatch.setattr(flask_app.dbl, "get_user_by_id", lambda uid: MOCK_USER_2)
     monkeypatch.setattr(flask_app.dbl, "update_current_user",
@@ -260,7 +260,7 @@ class TestRegister:
 
     def test_T12_RG_duplicate_email_returns_409(self, client, monkeypatch):
         monkeypatch.setattr(flask_app.dbl, "create_user",
-                            lambda n, e, p: (_ for _ in ()).throw(
+                            lambda n, e, p, is_recruiter=False: (_ for _ in ()).throw(
                                 ValueError("Email already registered")))
         resp = _post(client, "/api/auth/register",
                      {"name": "Alice", "email": "alex@example.com",

@@ -44,10 +44,17 @@ function AppProvider({ children }) {
     () => localStorage.getItem('li-dark-mode') === '1'
   );
 
-  // ── Recruiter mode ────────────────────────────────────────
+  // ── Recruiter mode (only active for users with isRecruiter flag) ─────────
   const [recruiterMode, setRecruiterModeState] = React.useState(
     () => localStorage.getItem('li-recruiter-mode') === '1'
   );
+  // Disable recruiter mode if the current user is not a recruiter
+  React.useEffect(() => {
+    if (currentUser && !currentUser.isRecruiter) {
+      setRecruiterModeState(false);
+      localStorage.removeItem('li-recruiter-mode');
+    }
+  }, [currentUser]);
   const [recruiterPanelOpen, setRecruiterPanelOpen] = React.useState(false);
   const [shortlisted, setShortlisted] = React.useState(() => {
     try {

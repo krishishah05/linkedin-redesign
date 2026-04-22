@@ -127,6 +127,7 @@ def register():
     name = (body.get("name") or "").strip()
     email = (body.get("email") or "").strip().lower()
     password = body.get("password") or ""
+    is_recruiter = bool(body.get("isRecruiter", False))
 
     if not name:
         abort(400, description="name is required")
@@ -136,7 +137,7 @@ def register():
         abort(400, description="password must be at least 8 characters")
 
     try:
-        user = dbl.create_user(name, email, password)
+        user = dbl.create_user(name, email, password, is_recruiter=is_recruiter)
     except ValueError as exc:
         abort(409, description=str(exc))
 

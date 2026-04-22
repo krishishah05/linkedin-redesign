@@ -141,7 +141,7 @@ function ProfilePage({ userId }) {
                         {isFollowing ? 'Following' : 'Follow'}
                       </button>
                       <button className="li-btn li-btn--ghost li-btn--sm" onClick={() => showToast('More options')}>···</button>
-                      {recruiterMode && (() => {
+                      {currentUser?.isRecruiter && recruiterMode && (() => {
                         const inPipeline = shortlisted.has(String(user.id));
                         return (
                           <button
