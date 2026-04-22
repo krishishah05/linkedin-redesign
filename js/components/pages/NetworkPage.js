@@ -121,14 +121,14 @@ function NetworkPage() {
                             onClick={() => {
                               if (inPipeline) {
                                 removeFromShortlist(user.id);
-                                showToast(`Removed ${user.name} from pipeline`);
+                                showToast(`Removed ${user.name} from shortlist`);
                               } else {
                                 addToShortlist(user);
-                                showToast(`${user.name} added to pipeline`);
+                                showToast(`${user.name} added to shortlist`);
                               }
                             }}
                           >
-                            {inPipeline ? '✓ In Pipeline' : '+ Add to Pipeline'}
+                            {inPipeline ? '✓ Shortlisted' : '+ Shortlist'}
                           </button>
                         );
                       })()}

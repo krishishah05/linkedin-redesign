@@ -397,14 +397,19 @@ def create_conversation():
 @app.route("/api/conversations")
 def get_conversations_list():
     """GET /api/conversations — message threads for the current user."""
-    return jsonify(dbl.get_all_conversations())
+    user = _auth_user()
+    if not user:
+        abort(401, description="Authentication required")
+    return jsonify(dbl.get_conversations_for_user(user["id"]))
 
 
 @app.route("/api/conversations/<int:conv_id>")
 def get_conversation(conv_id):
     """GET /api/conversations/:id — single conversation with full messages."""
     user = _auth_user()
-    uid = user["id"] if user else 1
+    if not user:
+        abort(401, description="Authentication required")
+    uid = user["id"]
     conv = dbl.get_conversation_by_id(conv_id)
     if not conv:
         abort(404, description=f"Conversation {conv_id} not found")

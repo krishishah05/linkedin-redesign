@@ -31,9 +31,23 @@ function MessagingPage() {
   const [readinessLoading, setReadinessLoading] = React.useState(false);
   const [readinessError, setReadinessError] = React.useState(null);
 
-  // Sync conversations from fetch into local state
+  // Track per-conversation unread counts so we can decrement accurately
+  const [unreadByConv, setUnreadByConv] = React.useState({});
+
+  // Sync conversations from fetch into local state + compute initial unread badge
   React.useEffect(() => {
-    if (conversations) setLocalConversations(conversations);
+    if (conversations) {
+      setLocalConversations(conversations);
+      const map = {};
+      let total = 0;
+      conversations.forEach(c => {
+        const n = c.unreadCount || 0;
+        map[c.id] = n;
+        total += n;
+      });
+      setUnreadByConv(map);
+      setUnreadMessages(total);
+    }
   }, [conversations]);
 
   // Auto-select first conversation
@@ -45,13 +59,8 @@ function MessagingPage() {
 
   // Load users for compose picker
   React.useEffect(() => {
-    API.getUsers?.().then(u => setNetworkUsers(u || [])).catch(() => {});
-  }, []);
-
-  // Mark all read when page mounts (P3 simplification)
-  React.useEffect(() => {
-    setUnreadMessages(0);
-  }, []);
+    API.getUsers?.().then(u => setNetworkUsers(u || [])).catch(() => { });
+  }, [])
 
   // Scroll to bottom when messages change
   React.useEffect(() => {
@@ -63,6 +72,21 @@ function MessagingPage() {
   function selectConversation(id) {
     setSelectedId(id);
     setMsgLoading(true);
+
+    // Decrement badge by this conversation's unread count, then zero it out
+    setUnreadByConv(prev => {
+      const n = prev[id] || 0;
+      if (n > 0) {
+        setUnreadMessages(cur => Math.max(0, cur - n));
+      }
+      return { ...prev, [id]: 0 };
+    });
+
+    // Also clear unreadCount on the local conversation list item
+    setLocalConversations(prev =>
+      (prev || []).map(c => c.id === id ? { ...c, unreadCount: 0 } : c)
+    );
+
     API.getConversation(id)
       .then(data => {
         setMessages(data.messages || []);
@@ -317,23 +341,15 @@ function MessagingPage() {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
               <h2 style={{ fontSize: 18, fontWeight: 700 }}>Messaging</h2>
               <div style={{ display: 'flex', gap: 4 }}>
-  <button
-    className="li-btn li-btn--ghost"
-    style={{ padding: '4px 8px', fontSize: 12 }}
-    onClick={() => showToast('New message — coming soon')}
-    title="New message"
-  >
-    Write
-  </button>
-
-  <button
-    className="li-btn li-btn--ghost"
-    style={{ padding: 4 }}
-    onClick={() => showToast('Settings — coming soon')}
-  >
-    Settings
-  </button>
-</div>
+                <button
+                  className="li-btn li-btn--ghost"
+                  style={{ padding: '4px 8px', fontSize: 12 }}
+                  onClick={() => setComposing(c => !c)}
+                  title="New message"
+                >
+                  New Message
+                </button>
+              </div>
             </div>
 
             {/* Compose picker */}
@@ -416,7 +432,7 @@ function MessagingPage() {
           {!selectedConv && allConversations.length === 0 && (
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'var(--text-2)', gap: 12, padding: 32 }}>
               <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" style={{ color: 'var(--text-3)' }}>
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
               </svg>
               <div style={{ fontWeight: 700, fontSize: 16 }}>Your inbox is empty</div>
               <div style={{ fontSize: 13, textAlign: 'center', maxWidth: 260 }}>
@@ -488,32 +504,32 @@ function MessagingPage() {
                 {(messages || []).map(m => {
                   const isMe = currentUser != null && m.senderId === currentUser.id;
                   return (
-                  <div
-                    key={m.id}
-                    style={{
-                      display: 'flex',
-                      justifyContent: isMe ? 'flex-end' : 'flex-start',
-                      marginTop: 8,
-                    }}
-                  >
                     <div
+                      key={m.id}
                       style={{
-                        maxWidth: '70%',
-                        background: isMe ? 'var(--blue)' : 'var(--white)',
-                        color: isMe ? 'white' : 'var(--text)',
-                        padding: '10px 12px',
-                        borderRadius: isMe ? '18px 4px 18px 18px' : '4px 18px 18px 18px',
-                        boxShadow: '0 1px 2px rgba(0,0,0,0.08)',
-                        fontSize: 14,
-                        lineHeight: 1.5,
+                        display: 'flex',
+                        justifyContent: isMe ? 'flex-end' : 'flex-start',
+                        marginTop: 8,
                       }}
                     >
-                      {m.text}
-                      <div style={{ fontSize: 10, opacity: 0.6, marginTop: 4, textAlign: 'right' }}>
-                        {formatTime(m.timestamp)}
+                      <div
+                        style={{
+                          maxWidth: '70%',
+                          background: isMe ? 'var(--blue)' : 'var(--white)',
+                          color: isMe ? 'white' : 'var(--text)',
+                          padding: '10px 12px',
+                          borderRadius: isMe ? '18px 4px 18px 18px' : '4px 18px 18px 18px',
+                          boxShadow: '0 1px 2px rgba(0,0,0,0.08)',
+                          fontSize: 14,
+                          lineHeight: 1.5,
+                        }}
+                      >
+                        {m.text}
+                        <div style={{ fontSize: 10, opacity: 0.6, marginTop: 4, textAlign: 'right' }}>
+                          {formatTime(m.timestamp)}
+                        </div>
                       </div>
                     </div>
-                  </div>
                   );
                 })}
                 <div ref={messagesEndRef} />

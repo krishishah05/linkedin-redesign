@@ -126,6 +126,7 @@ def client(monkeypatch):
 
     # Conversations
     monkeypatch.setattr(flask_app.dbl, "get_all_conversations", lambda: [MOCK_CONV])
+    monkeypatch.setattr(flask_app.dbl, "get_conversations_for_user", lambda uid: [MOCK_CONV])
     monkeypatch.setattr(flask_app.dbl, "get_conversation_by_id", lambda cid: MOCK_CONV)
     monkeypatch.setattr(flask_app.dbl, "send_message",
                         lambda cid, sender_id, text: {**MOCK_MSG, "text": text})
