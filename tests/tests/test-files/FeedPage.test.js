@@ -1559,17 +1559,17 @@ describe('PostCreator — action buttons', () => {
   // 43
   // Type: WB
   // Spec: #43
-  // Exact line: { label: 'Write article', action: () => showToast('Article editor — coming soon') }
-  // Tests that clicking the Write article button in the collapsed composer calls showToast
-  test('Clicking Write article button calls showToast', async () => {
-    const mockShowToastLocal = jest.fn();
+  // Exact line: { label: 'Write article', action: () => navigate('article') }
+  // Tests that clicking the Write article button in the collapsed composer calls navigate('article')
+  test('Clicking Write article button calls navigate("article")', async () => {
+    global.navigate.mockClear();
 
     render(
       React.createElement(global.PostCreator, {
         user: { name: 'Alex', headline: 'Dev' },
         onPost: jest.fn(),
         openModal: jest.fn(),
-        showToast: mockShowToastLocal,
+        showToast: jest.fn(),
       })
     );
 
@@ -1577,23 +1577,21 @@ describe('PostCreator — action buttons', () => {
       fireEvent.click(screen.getByText('Write article'));
     });
 
-    expect(mockShowToastLocal).toHaveBeenCalledWith('Article editor — coming soon');
+    expect(global.navigate).toHaveBeenCalledWith('article');
   });
 
   // 44
   // Type: WB
   // Spec: #44
-  // Exact line: if (label === 'Event') navigate('events'); else showToast(`${label} upload — coming soon`)
-  // Tests the else branch — Photo in the expanded toolbar calls showToast with 'Photo upload — coming soon'
-  test('Clicking Photo in expanded toolbar calls showToast', async () => {
-    const mockShowToastLocal = jest.fn();
-
+  // Exact line: else handleImageBtn() — Photo in expanded toolbar toggles the image URL input
+  // Tests the else branch — Photo in the expanded toolbar opens the image URL input
+  test('Clicking Photo in expanded toolbar shows image input', async () => {
     render(
       React.createElement(global.PostCreator, {
         user: { name: 'Alex', headline: 'Dev' },
         onPost: jest.fn(),
         openModal: jest.fn(),
-        showToast: mockShowToastLocal,
+        showToast: jest.fn(),
       })
     );
 
@@ -1607,7 +1605,8 @@ describe('PostCreator — action buttons', () => {
       fireEvent.click(screen.getByTitle('Photo'));
     });
 
-    expect(mockShowToastLocal).toHaveBeenCalledWith('Photo upload — coming soon');
+    // Image URL input should now be visible
+    expect(screen.getByPlaceholderText('Paste image URL…')).toBeInTheDocument();
   });
 
   // 45
