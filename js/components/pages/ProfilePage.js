@@ -34,6 +34,7 @@ function ProfilePage({ userId }) {
   const {
     currentUser, connections, connect, pendingConnections, following, follow, openModal, showToast,
     recruiterMode, shortlisted, addToShortlist, removeFromShortlist,
+    userStatus, setUserStatus,
   } = React.useContext(AppContext);
   const isOwnProfile = !userId || (currentUser && String(userId) === String(currentUser.id));
 
@@ -49,6 +50,35 @@ function ProfilePage({ userId }) {
 
   const [expandedSections, setExpandedSections] = React.useState(new Set());
   const [aiTips, setAiTips] = React.useState(null);
+  const [statusPickerOpen, setStatusPickerOpen] = React.useState(false);
+  const [localCerts, setLocalCerts] = React.useState(() => {
+    try {
+      const key = `li-certs-${userId || (currentUser && currentUser.id)}`;
+      const s = localStorage.getItem(key);
+      return s ? JSON.parse(s) : [];
+    } catch { return []; }
+  });
+  const [showAddCert, setShowAddCert] = React.useState(false);
+  const [certForm, setCertForm] = React.useState({ name: '', org: '', issueDate: '' });
+
+  const STATUS_OPTIONS = [
+    { key: 'open_to_work', label: 'Open to work', desc: "Show recruiters you're available", bg: '#E6F4EA', color: '#057642', dot: '#057642' },
+    { key: 'conferences', label: 'Looking for conferences', desc: 'Discover events in your area', bg: '#E8F4FD', color: '#0a66c2', dot: '#0a66c2' },
+    { key: 'recruiting', label: 'Recruiting', desc: 'Unlock Recruiter Mode features', bg: '#F3E8FD', color: '#7c3aed', dot: '#7c3aed' },
+    { key: 'not_looking', label: 'Not looking', desc: 'Hide your availability status', bg: 'var(--bg-2)', color: 'var(--text-2)', dot: 'var(--text-3)' },
+  ];
+
+  function addLocalCert() {
+    if (!certForm.name.trim()) return;
+    const newCert = { id: Date.now(), name: certForm.name.trim(), org: certForm.org.trim(), issueDate: certForm.issueDate };
+    const updated = [newCert, ...localCerts];
+    setLocalCerts(updated);
+    const key = `li-certs-${userId || (currentUser && currentUser.id)}`;
+    try { localStorage.setItem(key, JSON.stringify(updated)); } catch {}
+    setCertForm({ name: '', org: '', issueDate: '' });
+    setShowAddCert(false);
+    showToast('Certification added!', 'success');
+  }
   const [aiLoading, setAiLoading] = React.useState(false);
   const [aiError, setAiError] = React.useState(null);
 
@@ -141,7 +171,7 @@ function ProfilePage({ userId }) {
                         {isFollowing ? 'Following' : 'Follow'}
                       </button>
                       <button className="li-btn li-btn--ghost li-btn--sm" onClick={() => showToast('More options')}>···</button>
-                      {currentUser?.isRecruiter && recruiterMode && (() => {
+                      {userStatus === 'recruiting' && recruiterMode && (() => {
                         const inPipeline = shortlisted.has(String(user.id));
                         return (
                           <button
@@ -188,7 +218,7 @@ function ProfilePage({ userId }) {
 
               {/* Stats (own profile only) */}
               {isOwnProfile && (user.profileViews || user.postImpressions) && (
-                <div style={{ display: 'flex', gap: 24, marginBottom: 12 }}>
+                <div style={{ display: 'flex', gap: 24, marginBottom: 12, flexWrap: 'wrap', alignItems: 'flex-end' }}>
                   {user.profileViews > 0 && (
                     <div style={{ cursor: 'pointer' }}>
                       <div style={{ fontSize: 16, fontWeight: 700 }}>{formatNumber(user.profileViews)}</div>
@@ -201,15 +231,89 @@ function ProfilePage({ userId }) {
                       <div style={{ fontSize: 12, color: 'var(--text-2)' }}>Post impressions</div>
                     </div>
                   )}
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: 'var(--bg-2)', border: '1px solid var(--border)', borderRadius: 12, padding: '3px 8px', fontSize: 11, color: 'var(--text-3)', marginBottom: 2 }}>
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+                    Only visible to you
+                  </div>
                 </div>
               )}
 
-              {/* Open to Work badge */}
-              {user.openToWork && (
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#E6F4EA', color: '#1e7e34', padding: '6px 12px', borderRadius: 16, fontSize: 13, fontWeight: 600 }}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="#1e7e34"><path d="M20 6h-2.18c.07-.44.18-.86.18-1a3 3 0 0 0-6 0c0 .14.11.56.18 1H10C8.9 6 8 6.9 8 8v12c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-7-1a1 1 0 0 1 2 0c0 .14-.05.27-.08.41a.75.75 0 0 1 0 .18c-.03.14-.08.27-.13.41H13.21c-.05-.14-.1-.27-.13-.41a.75.75 0 0 1 0-.18C13.05 5.27 13 5.14 13 5zm7 15H10V8h2v1h6V8h2v12z"/></svg> Open to work
-                </div>
-              )}
+              {/* Status badge + picker */}
+              {(() => {
+                const effectiveStatus = isOwnProfile
+                  ? (userStatus || (user.openToWork ? 'open_to_work' : null))
+                  : (user.openToWork ? 'open_to_work' : null);
+                const opt = STATUS_OPTIONS.find(o => o.key === effectiveStatus);
+                return (
+                  <div style={{ position: 'relative', display: 'inline-block' }}>
+                    {opt && opt.key !== 'not_looking' ? (
+                      <button
+                        onClick={() => isOwnProfile && setStatusPickerOpen(v => !v)}
+                        style={{
+                          display: 'inline-flex', alignItems: 'center', gap: 6,
+                          background: opt.bg, color: opt.color,
+                          padding: '6px 12px', borderRadius: 16, fontSize: 13, fontWeight: 600,
+                          border: 'none', cursor: isOwnProfile ? 'pointer' : 'default',
+                        }}
+                      >
+                        <span style={{ width: 8, height: 8, borderRadius: '50%', background: opt.dot, display: 'inline-block', flexShrink: 0 }} />
+                        {opt.label}
+                        {isOwnProfile && <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M7 10l5 5 5-5z"/></svg>}
+                      </button>
+                    ) : isOwnProfile ? (
+                      <button onClick={() => setStatusPickerOpen(v => !v)} style={{ background: 'none', border: '1px dashed var(--border)', color: 'var(--text-3)', padding: '5px 12px', borderRadius: 16, fontSize: 12, cursor: 'pointer', fontWeight: 600 }}>
+                        + Set availability status
+                      </button>
+                    ) : null}
+
+                    {/* Dropdown picker — own profile only */}
+                    {isOwnProfile && statusPickerOpen && (
+                      <div style={{
+                        position: 'absolute', top: '100%', left: 0, marginTop: 6, zIndex: 200,
+                        background: 'var(--white)', border: '1px solid var(--border)',
+                        borderRadius: 10, boxShadow: '0 4px 20px rgba(0,0,0,0.14)',
+                        minWidth: 290, padding: 8,
+                      }}>
+                        <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', padding: '4px 10px 8px', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                          Your availability
+                        </div>
+                        {STATUS_OPTIONS.map(o => {
+                          const current = userStatus || (user.openToWork ? 'open_to_work' : null);
+                          const isActive = current === o.key;
+                          return (
+                            <button key={o.key} onClick={() => {
+                              setUserStatus(o.key);
+                              setStatusPickerOpen(false);
+                              if (o.key === 'conferences') { showToast('Explore conferences near you →', 'success'); navigate('conferences'); }
+                              else if (o.key === 'recruiting') showToast('Recruiter Mode is now available in the Me menu', 'success');
+                              else if (o.key !== 'not_looking') showToast(`Status set to "${o.label}"`, 'success');
+                            }} style={{
+                              display: 'flex', alignItems: 'flex-start', gap: 10, width: '100%',
+                              padding: '8px 10px', border: 'none', borderRadius: 8,
+                              cursor: 'pointer', textAlign: 'left',
+                              background: isActive ? o.bg : 'transparent',
+                            }}
+                              onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = 'var(--bg)'; }}
+                              onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = isActive ? o.bg : 'transparent'; }}
+                            >
+                              <span style={{ width: 10, height: 10, borderRadius: '50%', background: o.dot, flexShrink: 0, marginTop: 4 }} />
+                              <div style={{ flex: 1 }}>
+                                <div style={{ fontSize: 13, fontWeight: 600, color: isActive ? o.color : 'var(--text)' }}>{o.label}</div>
+                                <div style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 1 }}>{o.desc}</div>
+                              </div>
+                              {isActive && <svg width="14" height="14" viewBox="0 0 24 24" fill={o.dot} style={{ flexShrink: 0, marginTop: 3 }}><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>}
+                            </button>
+                          );
+                        })}
+                        <div style={{ margin: '6px 10px 2px', paddingTop: 8, borderTop: '1px solid var(--border)', fontSize: 11, color: 'var(--text-3)', display: 'flex', alignItems: 'center', gap: 4 }}>
+                          <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+                          Only visible to you
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
           </div>
 
@@ -345,31 +449,89 @@ function ProfilePage({ userId }) {
             </div>
           )}
 
-          {/* Certifications */}
-          {user.certifications && user.certifications.length > 0 && (
-            <div className="li-card" style={{ padding: 24 }}>
-              <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 16 }}>Licenses & certifications</h2>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                {user.certifications.map((cert, i) => (
-                  <div key={i} style={{ display: 'flex', gap: 12 }}>
-                    <div style={{
-                      width: 48, height: 48, borderRadius: 4, background: 'var(--bg-2)',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-                    }}>
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="var(--text-3)">
-                        <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14l-5-5 1.41-1.41L12 14.17l7.59-7.59L21 8l-9 9z"/>
-                      </svg>
-                    </div>
-                    <div>
-                      <div style={{ fontSize: 15, fontWeight: 700 }}>{cert.name}</div>
-                      <div style={{ fontSize: 14, color: 'var(--text-2)' }}>{cert.org || cert.issuer}</div>
-                      {(cert.issueDate || cert.date) && <div style={{ fontSize: 13, color: 'var(--text-3)' }}>Issued {cert.issueDate || cert.date}</div>}
+          {/* Licenses & Certifications */}
+          {(() => {
+            const allCerts = [...(user.certifications || []), ...localCerts];
+            if (allCerts.length === 0 && !isOwnProfile) return null;
+            return (
+              <div className="li-card" style={{ padding: 24 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                  <h2 style={{ fontSize: 18, fontWeight: 700 }}>Licenses & certifications</h2>
+                  {isOwnProfile && (
+                    <button className="li-btn li-btn--ghost li-btn--sm" onClick={() => setShowAddCert(v => !v)}>
+                      {showAddCert ? 'Cancel' : '+ Add'}
+                    </button>
+                  )}
+                </div>
+
+                {/* Inline add form */}
+                {showAddCert && (
+                  <div style={{ background: 'var(--bg)', borderRadius: 8, padding: 16, marginBottom: 16, border: '1px solid var(--border)' }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 12 }}>Add certification</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                      <div>
+                        <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-2)', display: 'block', marginBottom: 4 }}>Name *</label>
+                        <input className="li-input" placeholder="e.g. AWS Solutions Architect" value={certForm.name}
+                          onChange={e => setCertForm(f => ({ ...f, name: e.target.value }))} style={{ fontSize: 13 }} />
+                      </div>
+                      <div>
+                        <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-2)', display: 'block', marginBottom: 4 }}>Issuing organization</label>
+                        <input className="li-input" placeholder="e.g. Amazon Web Services" value={certForm.org}
+                          onChange={e => setCertForm(f => ({ ...f, org: e.target.value }))} style={{ fontSize: 13 }} />
+                      </div>
+                      <div>
+                        <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-2)', display: 'block', marginBottom: 4 }}>Issue date</label>
+                        <input className="li-input" type="month" value={certForm.issueDate}
+                          onChange={e => setCertForm(f => ({ ...f, issueDate: e.target.value }))} style={{ fontSize: 13 }} />
+                      </div>
+                      <button className="li-btn li-btn--primary li-btn--sm" onClick={addLocalCert}
+                        disabled={!certForm.name.trim()} style={{ alignSelf: 'flex-start' }}>
+                        Save
+                      </button>
                     </div>
                   </div>
-                ))}
+                )}
+
+                {allCerts.length === 0 && (
+                  <div style={{ textAlign: 'center', padding: '20px 0', color: 'var(--text-3)', fontSize: 13 }}>
+                    No certifications yet. Click "+ Add" to add your first one.
+                  </div>
+                )}
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                  {allCerts.map((cert, i) => (
+                    <div key={cert.id || i} style={{ display: 'flex', gap: 12 }}>
+                      <div style={{
+                        width: 48, height: 48, borderRadius: 4, background: 'var(--bg-2)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                      }}>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="var(--text-3)">
+                          <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14l-5-5 1.41-1.41L12 14.17l7.59-7.59L21 8l-9 9z"/>
+                        </svg>
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: 15, fontWeight: 700 }}>{cert.name}</div>
+                        <div style={{ fontSize: 14, color: 'var(--text-2)' }}>{cert.org || cert.issuer}</div>
+                        {(cert.issueDate || cert.date) && (
+                          <div style={{ fontSize: 13, color: 'var(--text-3)' }}>
+                            Issued {cert.issueDate ? new Date(cert.issueDate + '-01').toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : cert.date}
+                          </div>
+                        )}
+                      </div>
+                      {isOwnProfile && cert.id && (
+                        <button onClick={() => {
+                          const updated = localCerts.filter(c => c.id !== cert.id);
+                          setLocalCerts(updated);
+                          try { localStorage.setItem(`li-certs-${userId || currentUser?.id}`, JSON.stringify(updated)); } catch {}
+                          showToast('Certification removed');
+                        }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-3)', fontSize: 18, lineHeight: 1, alignSelf: 'flex-start', padding: 0 }}>×</button>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
         </div>
 
         {/* Right sidebar */}

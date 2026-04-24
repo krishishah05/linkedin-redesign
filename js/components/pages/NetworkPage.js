@@ -5,7 +5,7 @@ function NetworkPage() {
   const {
     connections, connect, acceptConnection, pendingConnections, showToast,
     pendingInvitations, dismissedInvitations, dismissInvitation,
-    recruiterMode, shortlisted, addToShortlist, removeFromShortlist,
+    recruiterMode, shortlisted, addToShortlist, removeFromShortlist, userStatus,
   } = React.useContext(AppContext);
   const { data: users, loading: usersLoading } = useFetch(API.getUsers, []);
   const [tab, setTab] = React.useState('suggestions');
@@ -106,7 +106,7 @@ function NetworkPage() {
                           {isPending ? 'Pending' : '+ Connect'}
                         </button>
                       )}
-                      {currentUser?.isRecruiter && recruiterMode && (() => {
+                      {userStatus === 'recruiting' && recruiterMode && (() => {
                         const inPipeline = shortlisted.has(String(user.id));
                         return (
                           <button

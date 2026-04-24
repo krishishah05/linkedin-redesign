@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Nexus</title>
   <link rel="stylesheet" href="css/style.css" />
+  <!-- Leaflet CSS — map tiles for ConferencesPage -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
   <style>
     /* Extra inline styles for icons & quick overrides */
     .nav-icon { width:24px; height:24px; display:block; }
@@ -43,6 +45,9 @@
 <!-- SheetJS — Excel export for Recruiter Shortlist (pinned version for reliability) -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
+<!-- Leaflet — map for ConferencesPage -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV/XN/WLEo=" crossorigin=""></script>
+
 <!-- API utility (plain JS, no JSX) -->
 <script src="js/api.js"></script>
 
@@ -64,52 +69,53 @@
 </script>
 
 <!-- ── Shared utilities & context ──────────────────────────── -->
-<script type="text/babel" src="js/components/utils.js?v=6"></script>
-<script type="text/babel" src="js/components/AppContext.js?v=6"></script>
+<script type="text/babel" src="js/components/utils.js?v=7"></script>
+<script type="text/babel" src="js/components/AppContext.js?v=7"></script>
 
 <!-- ── Shared UI components ────────────────────────────────── -->
-<script type="text/babel" src="js/components/shared/Avatar.js?v=6"></script>
-<script type="text/babel" src="js/components/shared/LoadingSpinner.js?v=6"></script>
-<script type="text/babel" src="js/components/shared/ShortlistPanel.js?v=6"></script>
-<script type="text/babel" src="js/components/ToastContainer.js?v=6"></script>
+<script type="text/babel" src="js/components/shared/Avatar.js?v=7"></script>
+<script type="text/babel" src="js/components/shared/LoadingSpinner.js?v=7"></script>
+<script type="text/babel" src="js/components/shared/ShortlistPanel.js?v=7"></script>
+<script type="text/babel" src="js/components/ToastContainer.js?v=7"></script>
 
 <!-- ── Page components ─────────────────────────────────────── -->
-<script type="text/babel" src="js/components/pages/FeedPage.js?v=6"></script>
-<script type="text/babel" src="js/components/pages/ProfilePage.js?v=6"></script>
-<script type="text/babel" src="js/components/pages/NetworkPage.js?v=6"></script>
-<script type="text/babel" src="js/components/pages/JobsPage.js?v=6"></script>
-<script type="text/babel" src="js/components/pages/MessagingPage.js?v=6"></script>
-<script type="text/babel" src="js/components/pages/NotificationsPage.js?v=6"></script>
-<script type="text/babel" src="js/components/pages/SearchPage.js?v=6"></script>
-<script type="text/babel" src="js/components/pages/CompanyPage.js?v=6"></script>
-<script type="text/babel" src="js/components/pages/GroupsPage.js?v=6"></script>
-<script type="text/babel" src="js/components/pages/GroupDetailPage.js?v=6"></script>
-<script type="text/babel" src="js/components/pages/EventsPage.js?v=6"></script>
-<script type="text/babel" src="js/components/pages/LearningPage.js?v=6"></script>
-<script type="text/babel" src="js/components/pages/SettingsPage.js?v=6"></script>
-<script type="text/babel" src="js/components/pages/PremiumPage.js?v=6"></script>
+<script type="text/babel" src="js/components/pages/FeedPage.js?v=7"></script>
+<script type="text/babel" src="js/components/pages/ProfilePage.js?v=7"></script>
+<script type="text/babel" src="js/components/pages/NetworkPage.js?v=7"></script>
+<script type="text/babel" src="js/components/pages/JobsPage.js?v=7"></script>
+<script type="text/babel" src="js/components/pages/MessagingPage.js?v=7"></script>
+<script type="text/babel" src="js/components/pages/NotificationsPage.js?v=7"></script>
+<script type="text/babel" src="js/components/pages/SearchPage.js?v=7"></script>
+<script type="text/babel" src="js/components/pages/CompanyPage.js?v=7"></script>
+<script type="text/babel" src="js/components/pages/GroupsPage.js?v=7"></script>
+<script type="text/babel" src="js/components/pages/GroupDetailPage.js?v=7"></script>
+<script type="text/babel" src="js/components/pages/EventsPage.js?v=7"></script>
+<script type="text/babel" src="js/components/pages/LearningPage.js?v=7"></script>
+<script type="text/babel" src="js/components/pages/SettingsPage.js?v=7"></script>
+<script type="text/babel" src="js/components/pages/PremiumPage.js?v=7"></script>
+<script type="text/babel" src="js/components/pages/ConferencesPage.js?v=7"></script>
 
 <!-- ── Modal components ────────────────────────────────────── -->
-<script type="text/babel" src="js/components/modals/PostModal.js?v=6"></script>
-<script type="text/babel" src="js/components/modals/ImageViewerModal.js?v=6"></script>
-<script type="text/babel" src="js/components/modals/ConnectModal.js?v=6"></script>
-<script type="text/babel" src="js/components/modals/ShareModal.js?v=6"></script>
-<script type="text/babel" src="js/components/modals/ApplyModal.js?v=6"></script>
-<script type="text/babel" src="js/components/modals/EditProfileModal.js?v=6"></script>
-<script type="text/babel" src="js/components/modals/AddExpModal.js?v=6"></script>
-<script type="text/babel" src="js/components/modals/AddEducationModal.js?v=6"></script>
-<script type="text/babel" src="js/components/modals/AddSkillModal.js?v=6"></script>
-<script type="text/babel" src="js/components/modals/CreateGroupModal.js?v=6"></script>
-<script type="text/babel" src="js/components/modals/ReportModal.js?v=6"></script>
-<script type="text/babel" src="js/components/modals/CreateEventModal.js?v=6"></script>
-<script type="text/babel" src="js/components/modals/ModalContainer.js?v=6"></script>
+<script type="text/babel" src="js/components/modals/PostModal.js?v=7"></script>
+<script type="text/babel" src="js/components/modals/ImageViewerModal.js?v=7"></script>
+<script type="text/babel" src="js/components/modals/ConnectModal.js?v=7"></script>
+<script type="text/babel" src="js/components/modals/ShareModal.js?v=7"></script>
+<script type="text/babel" src="js/components/modals/ApplyModal.js?v=7"></script>
+<script type="text/babel" src="js/components/modals/EditProfileModal.js?v=7"></script>
+<script type="text/babel" src="js/components/modals/AddExpModal.js?v=7"></script>
+<script type="text/babel" src="js/components/modals/AddEducationModal.js?v=7"></script>
+<script type="text/babel" src="js/components/modals/AddSkillModal.js?v=7"></script>
+<script type="text/babel" src="js/components/modals/CreateGroupModal.js?v=7"></script>
+<script type="text/babel" src="js/components/modals/ReportModal.js?v=7"></script>
+<script type="text/babel" src="js/components/modals/CreateEventModal.js?v=7"></script>
+<script type="text/babel" src="js/components/modals/ModalContainer.js?v=7"></script>
 
 <!-- ── Navigation components ───────────────────────────────── -->
-<script type="text/babel" src="js/components/NavBar.js?v=6"></script>
-<script type="text/babel" src="js/components/MobileNav.js?v=6"></script>
+<script type="text/babel" src="js/components/NavBar.js?v=7"></script>
+<script type="text/babel" src="js/components/MobileNav.js?v=7"></script>
 
 <!-- ── Root — mounts React app (must be last) ──────────────── -->
-<script type="text/babel" src="js/components/App.js?v=6"></script>
+<script type="text/babel" src="js/components/App.js?v=7"></script>
 
 </body>
 </html>

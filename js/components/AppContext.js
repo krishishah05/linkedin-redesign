@@ -48,20 +48,39 @@ function AppProvider({ children }) {
   const [recruiterMode, setRecruiterModeState] = React.useState(
     () => localStorage.getItem('li-recruiter-mode') === '1'
   );
-  // Disable recruiter mode if the current user is not a recruiter
+  // Auto-set 'recruiting' status for recruiter accounts that haven't picked a status yet
   React.useEffect(() => {
-    if (currentUser && !currentUser.isRecruiter) {
+    if (currentUser?.isRecruiter && !localStorage.getItem('li-user-status')) {
+      setUserStatusState('recruiting');
+      localStorage.setItem('li-user-status', 'recruiting');
+    }
+  }, [currentUser]);
+
+  // Clear recruiter mode when status changes away from 'recruiting'
+  React.useEffect(() => {
+    if (userStatus !== null && userStatus !== 'recruiting' && recruiterMode) {
       setRecruiterModeState(false);
       localStorage.removeItem('li-recruiter-mode');
     }
-  }, [currentUser]);
+  }, [userStatus]);
   const [recruiterPanelOpen, setRecruiterPanelOpen] = React.useState(false);
+
+  // User availability status: 'open_to_work' | 'conferences' | 'recruiting' | 'not_looking' | null
+  const [userStatus, setUserStatusState] = React.useState(
+    () => localStorage.getItem('li-user-status') || null
+  );
   const [shortlisted, setShortlisted] = React.useState(() => {
     try {
       const s = localStorage.getItem('li-shortlisted');
       return s ? new Map(JSON.parse(s)) : new Map();
     } catch { return new Map(); }
   });
+
+  function setUserStatus(status) {
+    setUserStatusState(status);
+    if (status) localStorage.setItem('li-user-status', status);
+    else localStorage.removeItem('li-user-status');
+  }
 
   function toggleRecruiterMode() {
     setRecruiterModeState(prev => {
@@ -402,6 +421,9 @@ function AppProvider({ children }) {
     follow,
     setDarkMode,
     setSettings,
+    // User status
+    userStatus,
+    setUserStatus,
     // Recruiter mode
     recruiterMode,
     toggleRecruiterMode,
