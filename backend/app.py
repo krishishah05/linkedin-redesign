@@ -343,6 +343,43 @@ def add_post_comment(post_id):
 
 
 # ══════════════════════════════════════════════════════════════
+# Conference Story Endpoints
+# ══════════════════════════════════════════════════════════════
+
+@app.route("/api/conference-stories")
+def get_conference_stories():
+    """GET /api/conference-stories — all conference stories, newest first."""
+    return jsonify(dbl.get_conference_stories())
+
+
+@app.route("/api/conference-stories", methods=["POST"])
+def create_conference_story():
+    """POST /api/conference-stories — share a conference experience.
+    Body: { conferenceName, tagline, description, photoUrl?, companyLogoUrl? }
+    """
+    user = _auth_user()
+    if not user:
+        abort(401, description="Authentication required")
+    body = request.get_json(silent=True) or {}
+    conference_name = (body.get("conferenceName") or "").strip()
+    tagline         = (body.get("tagline") or "").strip()
+    description     = (body.get("description") or "").strip()
+    if not conference_name:
+        abort(400, description="conferenceName is required")
+    if not tagline:
+        abort(400, description="tagline is required")
+    if not description:
+        abort(400, description="description is required")
+    photo_url        = (body.get("photoUrl") or "").strip() or None
+    company_logo_url = (body.get("companyLogoUrl") or "").strip() or None
+    story = dbl.create_conference_story(
+        user["id"], conference_name, tagline, description,
+        photo_url, company_logo_url
+    )
+    return jsonify(story), 201
+
+
+# ══════════════════════════════════════════════════════════════
 # Job Endpoints
 # ══════════════════════════════════════════════════════════════
 

@@ -327,6 +327,16 @@ def init_db():  # pragma: no cover
         )
     """)
 
+    # -- Conference stories ---------------------------------------------------
+    _execute(conn, f"""
+        CREATE TABLE IF NOT EXISTS conference_stories (
+            id         {_PK_SERIAL},
+            author_id  INTEGER NOT NULL,
+            created_at BIGINT NOT NULL,
+            data       TEXT NOT NULL
+        )
+    """)
+
     conn.commit()
 
     # ---- Seed users (always upsert so seed changes are reflected) -----------
@@ -1276,3 +1286,50 @@ def dismiss_invitation(user_id: int, key: str):  # pragma: no cover
     conn.commit()
     conn.close()
     return {"dismissed": True}
+
+
+# ---------------------------------------------------------------------------
+# Conference story functions
+# ---------------------------------------------------------------------------
+
+def get_conference_stories():
+    conn = _connect()
+    rows = _execute(conn,
+        "SELECT id, author_id, created_at, data FROM conference_stories ORDER BY created_at DESC"
+    ).fetchall()
+    conn.close()
+    result = []
+    for r in rows:
+        story = json.loads(r["data"])
+        story["id"]        = r["id"]
+        story["authorId"]  = r["author_id"]
+        story["createdAt"] = r["created_at"]
+        result.append(story)
+    return result
+
+
+def create_conference_story(author_id: int, conference_name: str, tagline: str,
+                             description: str, photo_url: str = None,
+                             company_logo_url: str = None):
+    user = get_user_by_id(author_id)
+    now  = _ts()
+    blob = {
+        "conferenceName":  conference_name,
+        "tagline":         tagline,
+        "description":     description,
+        "photoUrl":        photo_url or "",
+        "companyLogoUrl":  company_logo_url or "",
+        "author": {
+            "id":          user["id"],
+            "name":        user["name"],
+            "headline":    user.get("headline", ""),
+            "avatarColor": user.get("avatarColor", "#0F5DBD"),
+        },
+    }
+    conn   = _connect()
+    new_id = _insert_id(conn,
+        "INSERT INTO conference_stories (author_id, created_at, data) VALUES (%s, %s, %s)",
+        (int(author_id), now, json.dumps(blob)))
+    conn.commit()
+    conn.close()
+    return {**blob, "id": new_id, "authorId": author_id, "createdAt": now}

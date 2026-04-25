@@ -108,6 +108,10 @@
     toggleGroup: (id) => request('POST', `/me/groups/${id}/toggle`),
     dismissInvitation: (key) => request('POST', '/me/invitations/dismiss', { key }),
 
+    // ── Conference Stories ────────────────────────────────────
+    getConferenceStories: () => request('GET', '/conference-stories'),
+    createConferenceStory: (data) => request('POST', '/conference-stories', data),
+
     // ── AI Profile Improvement ────────────────────────────────
     getProfileImprovementTips: () => request('POST', '/profile/improve'),
 

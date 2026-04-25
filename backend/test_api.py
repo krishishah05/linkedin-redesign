@@ -693,6 +693,79 @@ if "id" in _xss_user:
     delete(f"/users/{_xss_user['id']}")
 
 # ══════════════════════════════════════════════════════════════
+# Conference Stories
+# ══════════════════════════════════════════════════════════════
+
+section("Conference Stories")
+
+# Need a token — re-register a fresh test user
+_cs_email = f"cs_tester_{uuid.uuid4().hex[:8]}@example.com"
+_cs_s, _cs_b = post("/auth/register", {"name": "CS Tester", "email": _cs_email, "password": "password123"})
+_cs_token = _cs_b.get("token", "")
+
+s, b = get("/conference-stories")
+ok("GET /conference-stories  returns list", s, b, [
+    ("is list", isinstance(b, list)),
+])
+
+s, b = post("/conference-stories", {
+    "conferenceName": "AI Summit SF 2026",
+    "tagline": "Mind blown — best conference ever",
+    "description": "Key takeaway: transformers everywhere. Great talks on LLMs.",
+    "photoUrl": "",
+    "companyLogoUrl": "",
+}, token=_cs_token)
+ok("POST /conference-stories  creates story", s, b, [
+    ("has id",             "id" in b),
+    ("has conferenceName", b.get("conferenceName") == "AI Summit SF 2026"),
+    ("has tagline",        b.get("tagline") == "Mind blown — best conference ever"),
+    ("has description",    bool(b.get("description"))),
+    ("has author",         isinstance(b.get("author"), dict)),
+    ("author has name",    bool((b.get("author") or {}).get("name"))),
+])
+_story_id = b.get("id")
+
+s, b = get("/conference-stories")
+ok("GET /conference-stories  includes newly created story", s, b, [
+    ("is list",         isinstance(b, list)),
+    ("story present",   any(st.get("id") == _story_id for st in b) if _story_id else True),
+])
+
+err("POST /conference-stories  unauthenticated returns 401",
+    *post("/conference-stories", {"conferenceName": "X", "tagline": "Y", "description": "Z"}),
+    401)
+
+err("POST /conference-stories  missing conferenceName returns 400",
+    *post("/conference-stories", {"tagline": "Y", "description": "Z"}, token=_cs_token),
+    400)
+
+err("POST /conference-stories  missing tagline returns 400",
+    *post("/conference-stories", {"conferenceName": "X", "description": "Z"}, token=_cs_token),
+    400)
+
+err("POST /conference-stories  missing description returns 400",
+    *post("/conference-stories", {"conferenceName": "X", "tagline": "Y"}, token=_cs_token),
+    400)
+
+# Optional fields (photoUrl, companyLogoUrl) should be accepted when provided
+s, b = post("/conference-stories", {
+    "conferenceName": "React Summit West",
+    "tagline": "JSX all day every day",
+    "description": "Loved the React Server Components deep dive.",
+    "photoUrl": "https://example.com/photo.jpg",
+    "companyLogoUrl": "https://example.com/logo.png",
+}, token=_cs_token)
+ok("POST /conference-stories  with optional photo + logo fields", s, b, [
+    ("has id",              "id" in b),
+    ("photoUrl stored",     b.get("photoUrl") == "https://example.com/photo.jpg"),
+    ("companyLogoUrl stored", b.get("companyLogoUrl") == "https://example.com/logo.png"),
+])
+
+# Clean up test user
+if _cs_b.get("user", {}).get("id"):
+    delete(f"/users/{_cs_b['user']['id']}")
+
+# ══════════════════════════════════════════════════════════════
 # SUMMARY
 # ══════════════════════════════════════════════════════════════
 

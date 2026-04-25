@@ -1,9 +1,9 @@
 /* ============================================================
-   CONFERENCESPAGE.JS — Discover conferences near you
+   CONFERENCESPAGE.JS — Discover conferences + share experiences
    Leaflet.js + OpenStreetMap — no API key required
    ============================================================ */
 function ConferencesPage() {
-  const { showToast } = React.useContext(AppContext);
+  const { showToast, currentUser } = React.useContext(AppContext);
   const mapContainerRef = React.useRef(null);
   const leafletMap = React.useRef(null);
   const markerRefs = React.useRef({});
@@ -12,6 +12,15 @@ function ConferencesPage() {
   const [activeFilter, setActiveFilter] = React.useState('All');
   const [mapReady, setMapReady] = React.useState(false);
   const [registeredIds, setRegisteredIds] = React.useState(new Set());
+
+  // Story state
+  const [stories, setStories] = React.useState([]);
+  const [showStoryForm, setShowStoryForm] = React.useState(false);
+  const [viewingStory, setViewingStory] = React.useState(null);
+  const [storyForm, setStoryForm] = React.useState({
+    conferenceName: '', tagline: '', description: '', photoUrl: '', companyLogoUrl: '',
+  });
+  const [storySubmitting, setStorySubmitting] = React.useState(false);
 
   const CATEGORIES = ['All', 'AI/ML', 'Web Dev', 'Design', 'Cloud', 'Data', 'Security'];
 
@@ -41,6 +50,13 @@ function ConferencesPage() {
 
   const filtered = activeFilter === 'All' ? CONFERENCES : CONFERENCES.filter(c => c.category === activeFilter);
   const selectedConf = CONFERENCES.find(c => c.id === selectedId);
+
+  /* ── Load stories from backend ─────────────────────────────── */
+  React.useEffect(() => {
+    API.getConferenceStories()
+      .then(data => setStories(Array.isArray(data) ? data : []))
+      .catch(() => {});
+  }, []);
 
   /* ── Init Leaflet map ──────────────────────────────────────── */
   React.useEffect(() => {
@@ -125,6 +141,40 @@ function ConferencesPage() {
     });
   }, [activeFilter, mapReady]);
 
+  /* ── Submit story ──────────────────────────────────────────── */
+  function handleStorySubmit(e) {
+    e.preventDefault();
+    if (!storyForm.conferenceName.trim() || !storyForm.tagline.trim() || !storyForm.description.trim()) {
+      showToast('Conference name, tagline, and description are required', 'error');
+      return;
+    }
+    setStorySubmitting(true);
+    API.createConferenceStory({
+      conferenceName:  storyForm.conferenceName.trim(),
+      tagline:         storyForm.tagline.trim(),
+      description:     storyForm.description.trim(),
+      photoUrl:        storyForm.photoUrl.trim() || null,
+      companyLogoUrl:  storyForm.companyLogoUrl.trim() || null,
+    })
+      .then(story => {
+        setStories(prev => [story, ...prev]);
+        setShowStoryForm(false);
+        setStoryForm({ conferenceName: '', tagline: '', description: '', photoUrl: '', companyLogoUrl: '' });
+        showToast('Conference experience shared!', 'success');
+      })
+      .catch(() => showToast('Failed to share story', 'error'))
+      .finally(() => setStorySubmitting(false));
+  }
+
+  /* ── Story gradient per author ─────────────────────────────── */
+  function storyGradient(story) {
+    const colors = ['#667eea,#764ba2', '#f093fb,#f5576c', '#4facfe,#00f2fe',
+                    '#43e97b,#38f9d7', '#fa709a,#fee140', '#a18cd1,#fbc2eb',
+                    '#ffecd2,#fcb69f', '#a1c4fd,#c2e9fb'];
+    const idx = (story.authorId || 0) % colors.length;
+    return `linear-gradient(135deg, ${colors[idx]})`;
+  }
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 52px)', overflow: 'hidden', background: 'var(--bg)' }}>
 
@@ -172,59 +222,99 @@ function ConferencesPage() {
       <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
 
         {/* Sidebar list */}
-        <div style={{ width: 360, flexShrink: 0, overflowY: 'auto', borderRight: '1px solid var(--border)', background: 'var(--white)' }}>
-          {filtered.length === 0 && (
-            <div style={{ padding: 48, textAlign: 'center', color: 'var(--text-2)' }}>
-              <div style={{ fontSize: 36, marginBottom: 8 }}>🔍</div>
-              <div style={{ fontSize: 14, fontWeight: 600 }}>No conferences in this category</div>
+        <div style={{ width: 360, flexShrink: 0, overflowY: 'auto', borderRight: '1px solid var(--border)', background: 'var(--white)', display: 'flex', flexDirection: 'column' }}>
+
+          {/* ── Stories row ── */}
+          <div style={{ padding: '12px 16px 8px', borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 10 }}>
+              Others' Experiences
             </div>
-          )}
-          {filtered.map(conf => {
-            const color = CAT_COLORS[conf.category] || '#0a66c2';
-            const isActive = conf.id === selectedId;
-            const isReg = registeredIds.has(conf.id);
-            return (
-              <div key={conf.id}
-                onClick={() => setSelectedId(id => id === conf.id ? null : conf.id)}
-                style={{
-                  padding: '14px 16px', cursor: 'pointer',
-                  borderLeft: `4px solid ${isActive ? color : 'transparent'}`,
-                  background: isActive ? color + '0A' : 'transparent',
-                  borderBottom: '1px solid var(--border)', transition: 'all 0.12s',
-                }}
-                onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = 'var(--bg)'; }}
-                onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'transparent'; }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 }}>
-                  <span style={{
-                    fontSize: 10, fontWeight: 700, color, background: color + '18',
-                    padding: '2px 8px', borderRadius: 8, textTransform: 'uppercase', letterSpacing: 0.5,
+            <div style={{ display: 'flex', gap: 12, overflowX: 'auto', paddingBottom: 4 }}>
+              {stories.length === 0 && (
+                <div style={{ fontSize: 12, color: 'var(--text-3)', paddingTop: 4 }}>
+                  No stories yet — be the first!
+                </div>
+              )}
+              {stories.map(story => (
+                <div key={story.id} onClick={() => setViewingStory(story)}
+                  style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, cursor: 'pointer', flexShrink: 0 }}>
+                  <div style={{
+                    width: 52, height: 52, borderRadius: '50%',
+                    background: storyGradient(story),
+                    padding: 2, boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
                   }}>
-                    {conf.category}
-                  </span>
-                  <span style={{ fontSize: 12, fontWeight: 700, color: conf.price === 'Free' ? '#057642' : 'var(--text-2)' }}>
-                    {conf.price}
-                  </span>
+                    {story.photoUrl ? (
+                      <img src={story.photoUrl} alt="" style={{ width: 46, height: 46, borderRadius: '50%', objectFit: 'cover', border: '2px solid #fff' }} onError={e => { e.target.style.display='none'; }} />
+                    ) : (
+                      <div style={{ width: 46, height: 46, borderRadius: '50%', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid #fff' }}>
+                        <Avatar name={story.author ? story.author.name : '?'} size={42} colorOverride={story.author ? story.author.avatarColor : undefined} />
+                      </div>
+                    )}
+                  </div>
+                  <div style={{ fontSize: 10, color: 'var(--text-2)', maxWidth: 52, textAlign: 'center', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {story.author ? story.author.name.split(' ')[0] : 'User'}
+                  </div>
                 </div>
-                <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)', marginBottom: 3, lineHeight: 1.3 }}>{conf.name}</div>
-                <div style={{ fontSize: 12, color: 'var(--text-2)', marginBottom: 2, display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>
-                  {conf.date}
-                </div>
-                <div style={{ fontSize: 12, color: 'var(--text-2)', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-                  {conf.venue}
-                </div>
-                <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center' }}>
-                  <span style={{ fontSize: 11, color: 'var(--text-3)' }}>👥 {conf.attendees.toLocaleString()}</span>
-                  {conf.tags.slice(0, 2).map(t => (
-                    <span key={t} style={{ fontSize: 11, background: 'var(--bg-2)', padding: '1px 6px', borderRadius: 6, color: 'var(--text-2)' }}>{t}</span>
-                  ))}
-                  {isReg && <span style={{ fontSize: 11, color: '#057642', fontWeight: 700, marginLeft: 'auto' }}>✓ Registered</span>}
-                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Conference list */}
+          <div style={{ flex: 1, overflowY: 'auto' }}>
+            {filtered.length === 0 && (
+              <div style={{ padding: 48, textAlign: 'center', color: 'var(--text-2)' }}>
+                <div style={{ fontSize: 36, marginBottom: 8 }}>🔍</div>
+                <div style={{ fontSize: 14, fontWeight: 600 }}>No conferences in this category</div>
               </div>
-            );
-          })}
+            )}
+            {filtered.map(conf => {
+              const color = CAT_COLORS[conf.category] || '#0a66c2';
+              const isActive = conf.id === selectedId;
+              const isReg = registeredIds.has(conf.id);
+              return (
+                <div key={conf.id}
+                  onClick={() => setSelectedId(id => id === conf.id ? null : conf.id)}
+                  style={{
+                    padding: '14px 16px', cursor: 'pointer',
+                    borderLeft: `4px solid ${isActive ? color : 'transparent'}`,
+                    background: isActive ? color + '0A' : 'transparent',
+                    borderBottom: '1px solid var(--border)', transition: 'all 0.12s',
+                  }}
+                  onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = 'var(--bg)'; }}
+                  onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'transparent'; }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 }}>
+                    <span style={{
+                      fontSize: 10, fontWeight: 700, color, background: color + '18',
+                      padding: '2px 8px', borderRadius: 8, textTransform: 'uppercase', letterSpacing: 0.5,
+                    }}>
+                      {conf.category}
+                    </span>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: conf.price === 'Free' ? '#057642' : 'var(--text-2)' }}>
+                      {conf.price}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)', marginBottom: 3, lineHeight: 1.3 }}>{conf.name}</div>
+                  <div style={{ fontSize: 12, color: 'var(--text-2)', marginBottom: 2, display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>
+                    {conf.date}
+                  </div>
+                  <div style={{ fontSize: 12, color: 'var(--text-2)', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                    {conf.venue}
+                  </div>
+                  <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center' }}>
+                    <span style={{ fontSize: 11, color: 'var(--text-3)' }}>👥 {conf.attendees.toLocaleString()}</span>
+                    {conf.tags.slice(0, 2).map(t => (
+                      <span key={t} style={{ fontSize: 11, background: 'var(--bg-2)', padding: '1px 6px', borderRadius: 6, color: 'var(--text-2)' }}>{t}</span>
+                    ))}
+                    {isReg && <span style={{ fontSize: 11, color: '#057642', fontWeight: 700, marginLeft: 'auto' }}>✓ Registered</span>}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
 
         {/* Map */}
@@ -311,8 +401,235 @@ function ConferencesPage() {
               )}
             </div>
           )}
+
+          {/* ── Floating camera button ── */}
+          <button
+            data-testid="share-conference-story-btn"
+            onClick={() => setShowStoryForm(true)}
+            title="Share your conference experience"
+            style={{
+              position: 'absolute', bottom: 24, left: 24, zIndex: 1000,
+              width: 52, height: 52, borderRadius: '50%',
+              background: '#0a66c2', border: '3px solid #fff',
+              boxShadow: '0 4px 16px rgba(10,102,194,0.45)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: 'pointer', transition: 'transform 0.15s, box-shadow 0.15s',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.12)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(10,102,194,0.55)'; }}
+            onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(10,102,194,0.45)'; }}
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="white">
+              <path d="M12 15.2A3.2 3.2 0 0 1 8.8 12 3.2 3.2 0 0 1 12 8.8 3.2 3.2 0 0 1 15.2 12 3.2 3.2 0 0 1 12 15.2M12 7A5 5 0 0 0 7 12a5 5 0 0 0 5 5 5 5 0 0 0 5-5A5 5 0 0 0 12 7M0 5h2.5L5 2h14l2.5 3H24v14H0z"/>
+            </svg>
+          </button>
         </div>
       </div>
+
+      {/* ── Story creation form overlay ── */}
+      {showStoryForm && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 9000,
+          background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}
+          onClick={e => { if (e.target === e.currentTarget) setShowStoryForm(false); }}
+        >
+          <div style={{
+            background: 'var(--white)', borderRadius: 16, padding: 28, width: 480, maxWidth: '95vw',
+            boxShadow: '0 20px 60px rgba(0,0,0,0.3)', maxHeight: '90vh', overflowY: 'auto',
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <div>
+                <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>Share Your Experience</h2>
+                <p style={{ fontSize: 13, color: 'var(--text-2)', margin: '4px 0 0' }}>Tell others about a conference you attended</p>
+              </div>
+              <button onClick={() => setShowStoryForm(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 22, color: 'var(--text-3)', lineHeight: 1 }}>×</button>
+            </div>
+
+            <form onSubmit={handleStorySubmit}>
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', display: 'block', marginBottom: 6 }}>
+                  Which conference? <span style={{ color: '#e11d48' }}>*</span>
+                </label>
+                <input
+                  type="text"
+                  list="conf-list"
+                  value={storyForm.conferenceName}
+                  onChange={e => setStoryForm(f => ({ ...f, conferenceName: e.target.value }))}
+                  placeholder="e.g. AI Summit SF 2026"
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1.5px solid var(--border-2)', fontSize: 14, background: 'var(--white)', color: 'var(--text)', boxSizing: 'border-box', outline: 'none' }}
+                />
+                <datalist id="conf-list">
+                  {CONFERENCES.map(c => <option key={c.id} value={c.name} />)}
+                </datalist>
+              </div>
+
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', display: 'block', marginBottom: 6 }}>
+                  Your tagline <span style={{ color: '#e11d48' }}>*</span>
+                  <span style={{ fontWeight: 400, color: 'var(--text-3)', marginLeft: 6 }}>— one casual line</span>
+                </label>
+                <input
+                  type="text"
+                  value={storyForm.tagline}
+                  onChange={e => setStoryForm(f => ({ ...f, tagline: e.target.value }))}
+                  placeholder="e.g. Mind blown 🤯 — best $500 I ever spent"
+                  maxLength={120}
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1.5px solid var(--border-2)', fontSize: 14, background: 'var(--white)', color: 'var(--text)', boxSizing: 'border-box', outline: 'none' }}
+                />
+              </div>
+
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', display: 'block', marginBottom: 6 }}>
+                  Key takeaways <span style={{ color: '#e11d48' }}>*</span>
+                </label>
+                <textarea
+                  value={storyForm.description}
+                  onChange={e => setStoryForm(f => ({ ...f, description: e.target.value }))}
+                  placeholder="What did you learn? What were the highlights? Any talks that blew your mind?"
+                  rows={4}
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1.5px solid var(--border-2)', fontSize: 14, background: 'var(--white)', color: 'var(--text)', resize: 'vertical', fontFamily: 'inherit', boxSizing: 'border-box', outline: 'none' }}
+                />
+              </div>
+
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', display: 'block', marginBottom: 6 }}>
+                  Snap / Photo URL
+                  <span style={{ fontWeight: 400, color: 'var(--text-3)', marginLeft: 6 }}>— optional</span>
+                </label>
+                <input
+                  type="url"
+                  value={storyForm.photoUrl}
+                  onChange={e => setStoryForm(f => ({ ...f, photoUrl: e.target.value }))}
+                  placeholder="https://... (your conference photo)"
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1.5px solid var(--border-2)', fontSize: 14, background: 'var(--white)', color: 'var(--text)', boxSizing: 'border-box', outline: 'none' }}
+                />
+                {storyForm.photoUrl && (
+                  <img src={storyForm.photoUrl} alt="" style={{ marginTop: 8, width: 80, height: 80, objectFit: 'cover', borderRadius: 8, border: '1px solid var(--border)' }}
+                    onError={e => { e.target.style.display = 'none'; }} />
+                )}
+              </div>
+
+              <div style={{ marginBottom: 24 }}>
+                <label style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', display: 'block', marginBottom: 6 }}>
+                  Company logo URL
+                  <span style={{ fontWeight: 400, color: 'var(--text-3)', marginLeft: 6 }}>— optional</span>
+                </label>
+                <input
+                  type="url"
+                  value={storyForm.companyLogoUrl}
+                  onChange={e => setStoryForm(f => ({ ...f, companyLogoUrl: e.target.value }))}
+                  placeholder="https://... (your company or conference logo)"
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1.5px solid var(--border-2)', fontSize: 14, background: 'var(--white)', color: 'var(--text)', boxSizing: 'border-box', outline: 'none' }}
+                />
+                {storyForm.companyLogoUrl && (
+                  <img src={storyForm.companyLogoUrl} alt="" style={{ marginTop: 8, width: 48, height: 48, objectFit: 'contain', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--bg-2)', padding: 4 }}
+                    onError={e => { e.target.style.display = 'none'; }} />
+                )}
+              </div>
+
+              <div style={{ display: 'flex', gap: 10 }}>
+                <button type="button" className="li-btn li-btn--ghost" style={{ flex: 1 }}
+                  onClick={() => setShowStoryForm(false)}>
+                  Cancel
+                </button>
+                <button type="submit" className="li-btn li-btn--primary" style={{ flex: 2 }}
+                  disabled={storySubmitting}>
+                  {storySubmitting ? 'Sharing…' : 'Share Experience'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── Story viewer overlay ── */}
+      {viewingStory && (
+        <div
+          style={{
+            position: 'fixed', inset: 0, zIndex: 9100,
+            background: 'rgba(0,0,0,0.92)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}
+          onClick={e => { if (e.target === e.currentTarget) setViewingStory(null); }}
+        >
+          <div style={{
+            position: 'relative', width: 380, maxWidth: '95vw', borderRadius: 20, overflow: 'hidden',
+            boxShadow: '0 24px 80px rgba(0,0,0,0.6)',
+          }}>
+            {/* Gradient background card */}
+            <div style={{
+              background: storyGradient(viewingStory),
+              minHeight: 480,
+              display: 'flex', flexDirection: 'column',
+            }}>
+              {/* Photo if present */}
+              {viewingStory.photoUrl && (
+                <div style={{ width: '100%', height: 220, overflow: 'hidden', position: 'relative' }}>
+                  <img src={viewingStory.photoUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    onError={e => { e.target.parentElement.style.display = 'none'; }} />
+                  <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.5))' }} />
+                </div>
+              )}
+
+              {/* Content */}
+              <div style={{ padding: '20px 22px 24px', flex: 1 }}>
+                {/* Author row */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+                  <Avatar name={viewingStory.author ? viewingStory.author.name : '?'} size={38}
+                    colorOverride={viewingStory.author ? viewingStory.author.avatarColor : undefined} />
+                  <div>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>
+                      {viewingStory.author ? viewingStory.author.name : 'User'}
+                    </div>
+                    {viewingStory.author && viewingStory.author.headline && (
+                      <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.75)' }}>
+                        {viewingStory.author.headline.slice(0, 50)}
+                      </div>
+                    )}
+                  </div>
+                  {viewingStory.companyLogoUrl && (
+                    <img src={viewingStory.companyLogoUrl} alt="" style={{ width: 36, height: 36, objectFit: 'contain', borderRadius: 6, background: 'rgba(255,255,255,0.9)', padding: 3, marginLeft: 'auto' }}
+                      onError={e => { e.target.style.display = 'none'; }} />
+                  )}
+                </div>
+
+                {/* Conference badge */}
+                <div style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 5,
+                  background: 'rgba(255,255,255,0.2)', borderRadius: 20, padding: '4px 12px',
+                  fontSize: 12, fontWeight: 600, color: '#fff', marginBottom: 14,
+                }}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="white"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>
+                  {viewingStory.conferenceName}
+                </div>
+
+                {/* Tagline */}
+                <div style={{ fontSize: 22, fontWeight: 800, color: '#fff', lineHeight: 1.25, marginBottom: 14, letterSpacing: -0.3 }}>
+                  "{viewingStory.tagline}"
+                </div>
+
+                {/* Description */}
+                <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.88)', lineHeight: 1.6 }}>
+                  {viewingStory.description}
+                </div>
+              </div>
+            </div>
+
+            {/* Close button */}
+            <button
+              onClick={() => setViewingStory(null)}
+              style={{
+                position: 'absolute', top: 12, right: 12,
+                width: 34, height: 34, borderRadius: '50%',
+                background: 'rgba(0,0,0,0.45)', border: 'none',
+                color: '#fff', fontSize: 20, cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                lineHeight: 1,
+              }}
+            >×</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
