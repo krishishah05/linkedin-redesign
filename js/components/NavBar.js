@@ -4,7 +4,7 @@
 function NavBar() {
   const {
     currentUser, unreadMessages, pendingInvitations, openModal, showToast, darkMode, setDarkMode,
-    recruiterMode, toggleRecruiterMode, shortlisted, recruiterPanelOpen, setRecruiterPanelOpen,
+    recruiterMode, toggleRecruiterMode, shortlisted, setRecruiterPanelOpen,
   } = React.useContext(AppContext);
   const currentHash = useHash();
 

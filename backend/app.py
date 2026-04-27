@@ -745,7 +745,7 @@ Open to Work: {user.get('openToWork', False)}"""
                     {"role": "user", "content": profile_text},
                 ],
                 "max_tokens": 512,
-                "temperature": 0.7,
+                "temperature": 0,
             },
             timeout=20,
         )
