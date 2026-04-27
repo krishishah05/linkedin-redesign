@@ -7,12 +7,13 @@ function ShortlistPanel() {
   const {
     shortlisted, removeFromShortlist, clearShortlist,
     recruiterPanelOpen, setRecruiterPanelOpen,
+    currentUser, recruiterMode,
   } = React.useContext(AppContext);
   const navigate = window.navigate;
 
   const profiles = [...shortlisted.values()];
 
-  if (!recruiterPanelOpen) return null;
+  if (!currentUser?.isRecruiter || !recruiterMode || !recruiterPanelOpen) return null;
 
   function downloadCSV() {
     const headers = ['Name','Current Role','Company','Headline','Location','Skills','Education','Degree','Connections','Open to Work','Profile URL'];

@@ -665,7 +665,7 @@ function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, followi
                         onKeyDown={e => {
                           if (e.key === 'Enter' && replyDraft.trim()) {
                             const reply = { author: currentUser?.name || 'You', text: `@${cName} ${replyDraft.trim()}`, timestamp: 'Just now', likes: 0 };
-                            setLocalComments(prev => { const next = [...prev]; next.splice(ci + 1, 0, reply); return next; });
+                            setLocalComments(prev => { const next = [...prev]; next.splice(i + 1, 0, reply); return next; });
                             setReplyDraft(''); setReplyingTo(null);
                           } else if (e.key === 'Escape') { setReplyingTo(null); }
                         }}
@@ -675,7 +675,7 @@ function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, followi
                         onClick={() => {
                           if (!replyDraft.trim()) return;
                           const reply = { author: currentUser?.name || 'You', text: `@${cName} ${replyDraft.trim()}`, timestamp: 'Just now', likes: 0 };
-                          setLocalComments(prev => { const next = [...prev]; next.splice(ci + 1, 0, reply); return next; });
+                          setLocalComments(prev => { const next = [...prev]; next.splice(i + 1, 0, reply); return next; });
                           setReplyDraft(''); setReplyingTo(null);
                         }}>Reply</button>
                     </div>

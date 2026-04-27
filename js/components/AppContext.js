@@ -48,14 +48,15 @@ function AppProvider({ children }) {
   const [recruiterMode, setRecruiterModeState] = React.useState(
     () => localStorage.getItem('li-recruiter-mode') === '1'
   );
+  const [recruiterPanelOpen, setRecruiterPanelOpen] = React.useState(false);
   // Disable recruiter mode if the current user is not a recruiter
   React.useEffect(() => {
     if (currentUser && !currentUser.isRecruiter) {
       setRecruiterModeState(false);
+      setRecruiterPanelOpen(false);
       localStorage.removeItem('li-recruiter-mode');
     }
   }, [currentUser]);
-  const [recruiterPanelOpen, setRecruiterPanelOpen] = React.useState(false);
   const [shortlisted, setShortlisted] = React.useState(new Map());
 
   function toggleRecruiterMode() {
@@ -71,7 +72,7 @@ function AppProvider({ children }) {
     setShortlisted(prev => {
       const next = new Map(prev);
       next.set(String(user.id), user);
-      try { localStorage.setItem(`li-shortlisted-${currentUser?.id}`, JSON.stringify([...next])); } catch {}
+      try { localStorage.setItem(`li-shortlisted-${userIdRef.current}`, JSON.stringify([...next])); } catch {}
       return next;
     });
   }
@@ -80,14 +81,14 @@ function AppProvider({ children }) {
     setShortlisted(prev => {
       const next = new Map(prev);
       next.delete(String(userId));
-      try { localStorage.setItem(`li-shortlisted-${currentUser?.id}`, JSON.stringify([...next])); } catch {}
+      try { localStorage.setItem(`li-shortlisted-${userIdRef.current}`, JSON.stringify([...next])); } catch {}
       return next;
     });
   }
 
   function clearShortlist() {
     setShortlisted(new Map());
-    try { localStorage.removeItem(`li-shortlisted-${currentUser?.id}`); } catch {}
+    try { localStorage.removeItem(`li-shortlisted-${userIdRef.current}`); } catch {}
   }
 
   const [settings, setSettings] = React.useState(() => {

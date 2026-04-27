@@ -1998,6 +1998,43 @@ describe('FeedPost — render variants and action buttons', () => {
     expect(screen.getByPlaceholderText(/Reply to Bob/i)).toBeInTheDocument();
   });
 
+  // 60b
+  // Type: WB
+  // Spec: #60b
+  // Tests that typing and submitting a reply inserts the reply text into the comment list
+  test('Submitting a reply inserts it into the comment list', async () => {
+    const postWithComments = {
+      id: 1, content: 'Post', totalReactions: 0, repostCount: 0,
+      comments: [{ author: { name: 'Bob', headline: 'Eng' }, text: 'Nice!', timestamp: 'Yesterday' }],
+    };
+
+    render(
+      React.createElement(sandbox.FeedPost, {
+        ...baseProps,
+        commentsOpen: true,
+        post: postWithComments,
+      })
+    );
+
+    // Open reply input
+    await act(async () => {
+      fireEvent.click(screen.getByText('Reply'));
+    });
+
+    const replyInput = screen.getByPlaceholderText(/Reply to Bob/i);
+
+    // Type a reply and submit via Enter
+    await act(async () => {
+      fireEvent.change(replyInput, { target: { value: 'Great point!' } });
+      fireEvent.keyDown(replyInput, { key: 'Enter' });
+    });
+
+    // Reply should appear in the comment list prefixed with @Bob
+    expect(screen.getByText('@Bob Great point!')).toBeInTheDocument();
+    // Reply input should be gone after submit
+    expect(screen.queryByPlaceholderText(/Reply to Bob/i)).not.toBeInTheDocument();
+  });
+
   // 61
   // Type: WB
   // Spec: #61
