@@ -6,6 +6,7 @@ function NetworkPage() {
     connections, connect, acceptConnection, pendingConnections, showToast,
     pendingInvitations, dismissedInvitations, dismissInvitation,
     recruiterMode, shortlisted, addToShortlist, removeFromShortlist,
+    currentUser,
   } = React.useContext(AppContext);
   const { data: users, loading: usersLoading } = useFetch(API.getUsers, []);
   const [tab, setTab] = React.useState('suggestions');

@@ -759,7 +759,8 @@ Open to Work: {user.get('openToWork', False)}"""
             raise ValueError("Expected a JSON array")
         tips = [str(t) for t in tips[:5]]
     except Exception as exc:
-        abort(502, description=f"AI service error: {exc}")
+        app.logger.exception("AI service request failed: %s", exc)
+        abort(502, description="AI service error")
 
     return jsonify({"tips": tips}), 200
 

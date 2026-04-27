@@ -25,10 +25,11 @@ function ShortlistPanel() {
         .map(v => `"${String(v || '').replace(/"/g, '""')}"`).join(',');
     });
     const blob = new Blob([[headers.join(','), ...rows].join('\n')], { type: 'text/csv' });
+    const objectUrl = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
+    a.href = objectUrl;
     a.download = `candidate-shortlist-${new Date().toISOString().split('T')[0]}.csv`;
-    a.click();
+    try { a.click(); } finally { URL.revokeObjectURL(objectUrl); }
   }
 
   function exportToExcel() {
@@ -55,6 +56,7 @@ function ShortlistPanel() {
           'Profile URL':   `${window.location.origin}${window.location.pathname}#profile?id=${u.id}`,
         };
       });
+      const XLSX = window.XLSX;
       const ws = XLSX.utils.json_to_sheet(rows);
       ws['!cols'] = [
         { wch: 22 }, { wch: 28 }, { wch: 24 }, { wch: 40 },
