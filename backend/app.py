@@ -127,7 +127,10 @@ def register():
     name = (body.get("name") or "").strip()
     email = (body.get("email") or "").strip().lower()
     password = body.get("password") or ""
-    is_recruiter = bool(body.get("isRecruiter", False))
+    is_recruiter_raw = body.get("isRecruiter", False)
+    if not isinstance(is_recruiter_raw, bool):
+        abort(400, description="isRecruiter must be a boolean")
+    is_recruiter = is_recruiter_raw
 
     if not name:
         abort(400, description="name is required")

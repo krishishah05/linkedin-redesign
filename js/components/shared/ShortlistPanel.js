@@ -7,8 +7,8 @@ function ShortlistPanel() {
   const {
     shortlisted, removeFromShortlist, clearShortlist,
     recruiterPanelOpen, setRecruiterPanelOpen,
-    navigate,
   } = React.useContext(AppContext);
+  const navigate = window.navigate;
 
   const profiles = [...shortlisted.values()];
 
