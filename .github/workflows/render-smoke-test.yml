@@ -1,0 +1,119 @@
+name: render-smoke-test
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    env:
+      BASE: https://linkedin-redesign-z364.onrender.com/api
+
+    steps:
+      - name: Wake up Render (free tier cold-start)
+        run: |
+          echo "Pinging Render until it responds…"
+          for i in $(seq 1 24); do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$BASE/jobs" --max-time 10 || echo "000")
+            echo "  attempt $i — HTTP $STATUS"
+            if [ "$STATUS" = "200" ]; then
+              echo "Service is up."
+              break
+            fi
+            if [ "$i" = "24" ]; then
+              echo "Service did not respond after 2 minutes."
+              exit 1
+            fi
+            sleep 5
+          done
+
+      - name: Public endpoints return 200
+        run: |
+          fail=0
+
+          check() {
+            local label="$1"
+            local url="$2"
+            local status
+            status=$(curl -s -o /dev/null -w "%{http_code}" "$url" --max-time 15)
+            if [ "$status" = "200" ]; then
+              echo "  PASS  $label ($status)"
+            else
+              echo "  FAIL  $label — expected 200, got $status"
+              fail=1
+            fi
+          }
+
+          check "GET /api/feed"          "$BASE/feed"
+          check "GET /api/jobs"          "$BASE/jobs"
+          check "GET /api/users"         "$BASE/users"
+          check "GET /api/events"        "$BASE/events"
+          check "GET /api/groups"        "$BASE/groups"
+          check "GET /api/notifications" "$BASE/notifications"
+
+          exit $fail
+
+      - name: Auth — login returns token
+        run: |
+          RESP=$(curl -s -X POST "$BASE/auth/login" \
+            -H "Content-Type: application/json" \
+            -d '{"email":"alex.johnson@gmail.com","password":"password123"}' \
+            --max-time 15)
+          TOKEN=$(echo "$RESP" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('token',''))" 2>/dev/null)
+          if [ -z "$TOKEN" ]; then
+            echo "FAIL  login — no token in response: $RESP"
+            exit 1
+          fi
+          echo "PASS  login — got token"
+          echo "SMOKE_TOKEN=$TOKEN" >> "$GITHUB_ENV"
+
+      - name: Authenticated endpoints return 200
+        run: |
+          fail=0
+
+          auth_check() {
+            local label="$1"
+            local url="$2"
+            local status
+            status=$(curl -s -o /dev/null -w "%{http_code}" "$url" \
+              -H "Authorization: Bearer $SMOKE_TOKEN" --max-time 15)
+            if [ "$status" = "200" ]; then
+              echo "  PASS  $label ($status)"
+            else
+              echo "  FAIL  $label — expected 200, got $status"
+              fail=1
+            fi
+          }
+
+          auth_check "GET /api/me"              "$BASE/me"
+          auth_check "GET /api/conversations"   "$BASE/conversations"
+
+          exit $fail
+
+      - name: POST — create and delete a test post
+        run: |
+          RESP=$(curl -s -X POST "$BASE/feed" \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer $SMOKE_TOKEN" \
+            -d '{"content":"[smoke-test] automated check — will be deleted"}' \
+            --max-time 15)
+          POST_ID=$(echo "$RESP" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('id',''))" 2>/dev/null)
+          if [ -z "$POST_ID" ]; then
+            echo "FAIL  create post — $RESP"
+            exit 1
+          fi
+          echo "PASS  create post (id=$POST_ID)"
+
+          DEL=$(curl -s -o /dev/null -w "%{http_code}" -X DELETE "$BASE/feed/$POST_ID" \
+            -H "Authorization: Bearer $SMOKE_TOKEN" --max-time 15)
+          if [ "$DEL" = "200" ]; then
+            echo "PASS  delete post"
+          else
+            echo "FAIL  delete post — HTTP $DEL"
+            exit 1
+          fi
