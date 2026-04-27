@@ -1052,12 +1052,13 @@ def get_all_events_with_attendance(user_id: int):
 
     conn    = _connect()
     attended = set()
-    rows    = _execute(conn,
-        "SELECT event_id, event_src FROM event_attendance WHERE user_id=%s",
-        (int(user_id),)
-    ).fetchall()
-    for r in rows:
-        attended.add((r["event_id"], r["event_src"]))
+    if user_id is not None:
+        rows = _execute(conn,
+            "SELECT event_id, event_src FROM event_attendance WHERE user_id=%s",
+            (int(user_id),)
+        ).fetchall()
+        for r in rows:
+            attended.add((r["event_id"], r["event_src"]))
 
     static_events = _get_static_events()
     result = []
