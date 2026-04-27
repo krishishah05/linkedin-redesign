@@ -522,13 +522,13 @@ function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, followi
       {post.image && (
         <img src={post.image} alt="" className="li-post__image"
           style={{ cursor: 'zoom-in' }}
-          onClick={() => showToast('Image viewer — coming soon')} />
+          onClick={() => openModal('imageViewer', { src: post.image })} />
       )}
 
       {/* Reactions count row */}
       {(totalReactions > 0 || commentCount > 0 || repostCount > 0) && (
         <div className="li-post__reactions">
-          <div className="li-post__reaction-icons" style={{ cursor: 'pointer' }} onClick={() => showToast('Reactions — coming soon')}>
+          <div className="li-post__reaction-icons">
             {topReactLabels.length > 0 && (
               <span style={{ display: 'flex', marginRight: 4 }}>
                 {topReactLabels.map((e, i) => (
@@ -652,7 +652,7 @@ function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, followi
                     <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-2)', fontSize: 12, fontWeight: 600, padding: 0 }}
                       onClick={() => showToast('Liked comment!')}>Like</button>
                     <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-2)', fontSize: 12, fontWeight: 600, padding: 0 }}
-                      onClick={() => showToast('Reply — coming soon')}>Reply</button>
+                      onClick={() => setReplyingTo(i)}>Reply</button>
                   </div>
                   {replyingTo === i && (
                     <div style={{ display: 'flex', gap: 8, marginTop: 6, marginLeft: 40 }}>
