@@ -474,7 +474,8 @@ def mark_all_notifications_read():
 @app.route("/api/events")
 def get_events():
     current_user = _auth_user()
-    return jsonify(dbl.get_all_events_with_attendance(current_user["id"]))
+    uid = current_user["id"] if current_user else None
+    return jsonify(dbl.get_all_events_with_attendance(uid))
 
 
 @app.route("/api/events", methods=["POST"])
