@@ -22,7 +22,7 @@ function ShortlistPanel() {
       const skills = (u.skills || []).slice(0, 15).map(s => (typeof s === 'object' ? s.name : s)).join('; ');
       const url = `${window.location.origin}${window.location.pathname}#profile?id=${u.id}`;
       return [u.name, exp0.title, exp0.company, u.headline, u.location, skills, edu0.school, edu0.degree, u.connections, u.openToWork ? 'Yes' : 'No', url]
-        .map(v => `"${String(v || '').replace(/"/g, '""')}"`).join(',');
+        .map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(',');
     });
     const blob = new Blob([[headers.join(','), ...rows].join('\n')], { type: 'text/csv' });
     const objectUrl = URL.createObjectURL(blob);

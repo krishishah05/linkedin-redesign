@@ -56,12 +56,7 @@ function AppProvider({ children }) {
     }
   }, [currentUser]);
   const [recruiterPanelOpen, setRecruiterPanelOpen] = React.useState(false);
-  const [shortlisted, setShortlisted] = React.useState(() => {
-    try {
-      const s = localStorage.getItem('li-shortlisted');
-      return s ? new Map(JSON.parse(s)) : new Map();
-    } catch { return new Map(); }
-  });
+  const [shortlisted, setShortlisted] = React.useState(new Map());
 
   function toggleRecruiterMode() {
     setRecruiterModeState(prev => {
@@ -76,7 +71,7 @@ function AppProvider({ children }) {
     setShortlisted(prev => {
       const next = new Map(prev);
       next.set(String(user.id), user);
-      try { localStorage.setItem('li-shortlisted', JSON.stringify([...next])); } catch {}
+      try { localStorage.setItem(`li-shortlisted-${currentUser?.id}`, JSON.stringify([...next])); } catch {}
       return next;
     });
   }
@@ -85,14 +80,14 @@ function AppProvider({ children }) {
     setShortlisted(prev => {
       const next = new Map(prev);
       next.delete(String(userId));
-      try { localStorage.setItem('li-shortlisted', JSON.stringify([...next])); } catch {}
+      try { localStorage.setItem(`li-shortlisted-${currentUser?.id}`, JSON.stringify([...next])); } catch {}
       return next;
     });
   }
 
   function clearShortlist() {
     setShortlisted(new Map());
-    try { localStorage.removeItem('li-shortlisted'); } catch {}
+    try { localStorage.removeItem(`li-shortlisted-${currentUser?.id}`); } catch {}
   }
 
   const [settings, setSettings] = React.useState(() => {
@@ -143,6 +138,8 @@ function AppProvider({ children }) {
       if (f) setFollowing(new Set(JSON.parse(f)));
       const l = localStorage.getItem(`li-liked-posts-${uid}`);
       if (l) setLikedPosts(new Set(JSON.parse(l)));
+      const sl = localStorage.getItem(`li-shortlisted-${uid}`);
+      setShortlisted(sl ? new Map(JSON.parse(sl)) : new Map());
     } catch (_) {}
   }, [currentUser?.id]);
 
