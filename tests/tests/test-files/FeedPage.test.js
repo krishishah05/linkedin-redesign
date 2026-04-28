@@ -704,12 +704,14 @@ describe('SponsoredPost', () => {
   // 18
   // Type: BB
   // Spec: #18
-  // Contract: SponsoredPost calls showToast('Ad hidden') when X button is clicked
-  test('Calls showToast with Ad hidden when X button clicked', async () => {
+  // Contract: SponsoredPost calls onDismiss when X button is clicked (ad is removed from feed)
+  test('Calls onDismiss when X button clicked', async () => {
+    const mockDismiss = jest.fn();
     render(
       React.createElement(sandbox.SponsoredPost, {
         ad: mockAd,
         showToast: mockShowToast,
+        onDismiss: mockDismiss,
       })
     );
 
@@ -717,7 +719,7 @@ describe('SponsoredPost', () => {
       fireEvent.click(screen.getByText('✕'));
     });
 
-    expect(mockShowToast).toHaveBeenCalledWith('Ad hidden');
+    expect(mockDismiss).toHaveBeenCalledTimes(1);
   });
 
   // 19
@@ -1859,13 +1861,15 @@ describe('FeedPost — render variants and action buttons', () => {
   // 55
   // Type: WB
   // Spec: #55
-  // Exact line: else showToast(label);
-  // Tests the else branch in the options menu — Save post calls showToast with the label
-  test('Clicking Save post in menu calls showToast', async () => {
+  // Tests that clicking Save post calls onSave and shows 'Post saved' toast
+  test('Clicking Save post in menu calls onSave and shows toast', async () => {
+    const mockOnSave = jest.fn();
     render(
       React.createElement(sandbox.FeedPost, {
         ...baseProps,
         post: { id: 1, content: 'Post', comments: [], totalReactions: 0, repostCount: 0, authorId: 99 },
+        onSave: mockOnSave,
+        savedPostIds: new Set(),
       })
     );
 
@@ -1878,7 +1882,8 @@ describe('FeedPost — render variants and action buttons', () => {
       fireEvent.click(screen.getByText('Save post'));
     });
 
-    expect(mockShowToast).toHaveBeenCalledWith('Save post');
+    expect(mockOnSave).toHaveBeenCalledWith(1);
+    expect(mockShowToast).toHaveBeenCalledWith('Post saved');
   });
 
   // 56

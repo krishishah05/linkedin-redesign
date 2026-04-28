@@ -6,6 +6,7 @@ function LearningPage() {
   const { data: courses, loading, error } = useFetch(API.getCourses, []);
   const [tab, setTab] = React.useState('explore');
   const [searchQ, setSearchQ] = React.useState('');
+  const [enrolledIds, setEnrolledIds] = React.useState(new Set());
 
   const tabs = ['My Learning', 'Completed', 'Saved', 'Explore'];
 
@@ -13,7 +14,7 @@ function LearningPage() {
   if (error) return <ErrorMessage message={error} />;
 
   const allCourses = courses || [];
-  const inProgress = allCourses.filter(c => c.isInProgress);
+  const inProgress = allCourses.filter(c => c.isInProgress || enrolledIds.has(c.id));
   const completed = allCourses.filter(c => c.isCompleted);
   const saved = allCourses.filter(c => c.isSaved);
 
@@ -107,9 +108,17 @@ function LearningPage() {
           </div>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 16 }}>
-            {shownCourses.map(course => (
+            {shownCourses.map(course => {
+              const isEnrolled = enrolledIds.has(course.id) || course.isInProgress;
+              return (
               <div key={course.id} className="li-card" style={{ padding: 0, overflow: 'hidden', cursor: 'pointer' }}
-                onClick={() => showToast(`"${course.title}" — starting course...`)}>
+                onClick={() => {
+                  if (!isEnrolled) {
+                    setEnrolledIds(prev => new Set([...prev, course.id]));
+                    setTab('my-learning');
+                    showToast(`Enrolled in "${course.title}"`, 'success');
+                  }
+                }}>
                 {/* Thumbnail */}
                 <div style={{
                   height: 140,
@@ -132,17 +141,28 @@ function LearningPage() {
                     <span style={{ fontSize: 12, color: 'var(--text-2)' }}>({formatNumber(course.reviews || course.students || 0)})</span>
                     <span style={{ fontSize: 12, color: 'var(--text-2)' }}>{course.duration}</span>
                   </div>
-                  {course.level && (
-                    <span style={{
-                      fontSize: 11, padding: '2px 8px', borderRadius: 12,
-                      background: 'var(--bg-2)', color: 'var(--text-2)', fontWeight: 600,
-                    }}>
-                      {course.level}
-                    </span>
-                  )}
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 4 }}>
+                    {course.level && (
+                      <span style={{
+                        fontSize: 11, padding: '2px 8px', borderRadius: 12,
+                        background: 'var(--bg-2)', color: 'var(--text-2)', fontWeight: 600,
+                      }}>
+                        {course.level}
+                      </span>
+                    )}
+                    {isEnrolled && (
+                      <span style={{
+                        fontSize: 11, padding: '2px 8px', borderRadius: 12,
+                        background: '#e8f5e9', color: '#057642', fontWeight: 700,
+                      }}>
+                        ▶ In Progress
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

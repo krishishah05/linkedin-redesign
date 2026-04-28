@@ -2,8 +2,9 @@
    ADDEXPMODAL.JS — Add a work experience entry
    ============================================================ */
 function AddExpModal() {
-  const { closeModal, showToast } = React.useContext(AppContext);
+  const { closeModal, showToast, currentUser, setCurrentUser } = React.useContext(AppContext);
   const [currentRole, setCurrentRole] = React.useState(true);
+  const [saving, setSaving] = React.useState(false);
   const [form, setForm] = React.useState({
     title: '', type: '', company: '', location: '',
     startMonth: 'January', startYear: '2024', description: '', skills: '',
@@ -15,8 +16,19 @@ function AddExpModal() {
 
   function handleSave() {
     if (!form.title || !form.company) { showToast('Title and company are required', 'error'); return; }
-    showToast('Experience added!');
-    closeModal();
+    if (saving) return;
+    setSaving(true);
+    const newEntry = {
+      title: form.title, company: form.company, type: form.type,
+      location: form.location, description: form.description,
+      startDate: `${form.startMonth} ${form.startYear}`,
+      current: currentRole,
+      skills: form.skills ? form.skills.split(',').map(s => s.trim()).filter(Boolean) : [],
+    };
+    const updatedExp = [...((currentUser || {}).experience || []), newEntry];
+    API.updateMe({ experience: updatedExp })
+      .then(updated => { setCurrentUser(updated); showToast('Experience added!', 'success'); closeModal(); })
+      .catch(() => { showToast('Failed to save experience', 'error'); setSaving(false); });
   }
 
   const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -89,7 +101,7 @@ function AddExpModal() {
         </div>
         <div className="li-modal__footer">
           <button className="li-btn li-btn--ghost li-btn--sm" onClick={closeModal}>Cancel</button>
-          <button className="li-btn li-btn--primary li-btn--sm" onClick={handleSave}>Save</button>
+          <button className="li-btn li-btn--primary li-btn--sm" onClick={handleSave} disabled={saving}>{saving ? 'Saving…' : 'Save'}</button>
         </div>
       </div>
     </div>

@@ -10,6 +10,8 @@ function FeedPage() {
   const [localPosts, setLocalPosts] = React.useState(null);
   const [feedSort, setFeedSort] = React.useState('Top');
   const [expandedComments, setExpandedComments] = React.useState(new Set());
+  const [savedPostIds, setSavedPostIds] = React.useState(new Set());
+  const [dismissedAdIndices, setDismissedAdIndices] = React.useState(new Set());
 
   React.useEffect(() => { if (posts) setLocalPosts(posts); }, [posts]);
 
@@ -143,6 +145,9 @@ function FeedPage() {
               openModal={openModal}
               showToast={showToast}
               currentUser={u}
+              savedPostIds={savedPostIds}
+              onSave={id => setSavedPostIds(prev => { const next = new Set(prev); next.has(String(id)) ? next.delete(String(id)) : next.add(String(id)); return next; })}
+              onHide={id => { setLocalPosts(prev => (prev || []).filter(p => p.id !== id)); showToast('Post removed from your feed'); }}
               onDelete={id => {
                 const deleted = (localPosts || []).find(p => p.id === id);
                 setLocalPosts(prev => prev.filter(p => p.id !== id));
@@ -153,8 +158,8 @@ function FeedPage() {
               }}
             />
             {/* Sponsored posts interspersed */}
-            {(i === 1 || i === 3) && (
-              <SponsoredPost key={`ad-${i}`} ad={sponsored[i === 1 ? 0 : 1]} showToast={showToast} />
+            {(i === 1 || i === 3) && !dismissedAdIndices.has(i) && (
+              <SponsoredPost key={`ad-${i}`} ad={sponsored[i === 1 ? 0 : 1]} showToast={showToast} onDismiss={() => setDismissedAdIndices(prev => new Set([...prev, i]))} />
             )}
           </React.Fragment>
         ))}
@@ -336,7 +341,7 @@ function PostCreator({ user, onPost, openModal, showToast }) {
 }
 
 /* ── SponsoredPost ───────────────────────────────────────── */
-function SponsoredPost({ ad, showToast }) {
+function SponsoredPost({ ad, showToast, onDismiss }) {
   return (
     <div className="li-post" style={{ padding: '12px 16px' }}>
       <div className="li-post__header">
@@ -348,7 +353,7 @@ function SponsoredPost({ ad, showToast }) {
           <div style={{ fontSize: 12, color: 'var(--text-2)' }}>Sponsored</div>
         </div>
         <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-2)', padding: 4 }}
-          onClick={() => showToast('Ad hidden')}>✕</button>
+          onClick={onDismiss}>✕</button>
       </div>
       <div className="li-post__body">
         <p className="li-post__text">{ad.desc}</p>
@@ -374,7 +379,7 @@ function SponsoredPost({ ad, showToast }) {
 }
 
 /* ── FeedPost ────────────────────────────────────────────── */
-function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, following, onFollow, openModal, showToast, currentUser, onDelete }) {
+function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, following, onFollow, openModal, showToast, currentUser, onDelete, onHide, onSave, savedPostIds }) {
   const [menuOpen, setMenuOpen] = React.useState(false);
   const [reactionHover, setReactionHover] = React.useState(false);
   const [reactionTimer, setReactionTimer] = React.useState(null);
@@ -485,7 +490,8 @@ function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, followi
               <div className="li-dropdown" style={{ display: 'block', position: 'absolute', top: '100%', right: 0, minWidth: 200, zIndex: 100 }}>
                 {[
                   ...(currentUser && (post.authorId === currentUser.id || post.authorId === String(currentUser.id)) ? ['Delete post'] : []),
-                  'Save post', 'Copy link to post', 'Not interested', 'Report post'
+                  savedPostIds && savedPostIds.has(String(post.id)) ? 'Unsave post' : 'Save post',
+                  'Copy link to post', 'Not interested', 'Report post'
                 ].map(label => (
                   <div key={label} className="li-dropdown__item"
                     style={label === 'Delete post' ? { color: 'var(--red)' } : {}}
@@ -499,6 +505,11 @@ function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, followi
                           navigator.clipboard.writeText(url).then(() => showToast('Link copied!')).catch(() => showToast('Failed to copy link', 'error'));
                         } else { showToast('Link copied!'); }
                       }
+                      else if (label === 'Save post' || label === 'Unsave post') {
+                        onSave && onSave(post.id);
+                        showToast(label === 'Save post' ? 'Post saved' : 'Post unsaved');
+                      }
+                      else if (label === 'Not interested') { onHide && onHide(post.id); }
                       else showToast(label);
                     }}>
                     {label}
