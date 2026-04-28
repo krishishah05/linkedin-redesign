@@ -480,7 +480,7 @@ describe('MessagingPage Component Tests', () => {
         });
 
         const scoreBtn = screen.getByTitle('Profile Readiness');
-        act(() => {
+        await act(async () => {
             fireEvent.click(scoreBtn);
         });
 

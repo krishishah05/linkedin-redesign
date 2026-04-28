@@ -1290,35 +1290,35 @@ Open to Work: {user.get('openToWork', False)}"""
 # ══════════════════════════════════════════════════════════════
 
 @app.route("/api/me/social")
-def get_social_state():  # pragma: no cover
+def get_social_state():
     """GET /api/me/social — all social state for the current user."""
     user = _auth_user()
     return jsonify(dbl.get_social_state(user["id"]))
 
 
 @app.route("/api/me/saved-jobs/<int:job_id>", methods=["POST"])
-def toggle_saved_job(job_id):  # pragma: no cover
+def toggle_saved_job(job_id):
     """POST /api/me/saved-jobs/:id — toggle saved job."""
     user = _auth_user()
     return jsonify(dbl.toggle_saved_job(user["id"], job_id))
 
 
 @app.route("/api/me/saved-jobs/<int:job_id>", methods=["PUT"])
-def save_job(job_id):  # pragma: no cover
+def save_job(job_id):
     """PUT /api/me/saved-jobs/:id — explicitly save a job (idempotent)."""
     user = _auth_user()
     return jsonify(dbl.save_job(user["id"], job_id))
 
 
 @app.route("/api/me/saved-jobs/<int:job_id>", methods=["DELETE"])
-def unsave_job(job_id):  # pragma: no cover
+def unsave_job(job_id):
     """DELETE /api/me/saved-jobs/:id — explicitly unsave a job (idempotent)."""
     user = _auth_user()
     return jsonify(dbl.unsave_job(user["id"], job_id))
 
 
 @app.route("/api/me/connection-requests")
-def get_connection_requests():  # pragma: no cover
+def get_connection_requests():
     """GET /api/me/connection-requests — users who have sent the current user a pending request."""
     user = _auth_user()
     if not user:
@@ -1327,7 +1327,7 @@ def get_connection_requests():  # pragma: no cover
 
 
 @app.route("/api/me/connection-requests/<int:requester_id>", methods=["DELETE"])
-def decline_connection_request(requester_id):  # pragma: no cover
+def decline_connection_request(requester_id):
     """DELETE /api/me/connection-requests/:id — decline a pending connection request."""
     user = _auth_user()
     if not user:
@@ -1336,42 +1336,42 @@ def decline_connection_request(requester_id):  # pragma: no cover
 
 
 @app.route("/api/me/connections/<int:target_id>", methods=["POST"])
-def connect_user(target_id):  # pragma: no cover
+def connect_user(target_id):
     """POST /api/me/connections/:id — send a connection request."""
     user = _auth_user()
     return jsonify(dbl.connect_user(user["id"], target_id))
 
 
 @app.route("/api/me/connections/<int:target_id>/accept", methods=["POST"])
-def accept_connection(target_id):  # pragma: no cover
+def accept_connection(target_id):
     """POST /api/me/connections/:id/accept — confirm a connection."""
     user = _auth_user()
     return jsonify(dbl.accept_connection(user["id"], target_id))
 
 
 @app.route("/api/me/following/<int:target_id>", methods=["POST"])
-def toggle_following(target_id):  # pragma: no cover
+def toggle_following(target_id):
     """POST /api/me/following/:id — toggle follow."""
     user = _auth_user()
     return jsonify(dbl.toggle_following(user["id"], target_id))
 
 
 @app.route("/api/me/applied-jobs/<int:job_id>", methods=["POST"])
-def apply_to_job(job_id):  # pragma: no cover
+def apply_to_job(job_id):
     """POST /api/me/applied-jobs/:id — mark a job as applied."""
     user = _auth_user()
     return jsonify(dbl.apply_to_job(user["id"], job_id))
 
 
 @app.route("/api/me/groups/<int:group_id>/toggle", methods=["POST"])
-def toggle_group(group_id):  # pragma: no cover
+def toggle_group(group_id):
     """POST /api/me/groups/:id/toggle — join or leave a group."""
     user = _auth_user()
     return jsonify(dbl.toggle_group(user["id"], group_id))
 
 
 @app.route("/api/me/invitations/dismiss", methods=["POST"])
-def dismiss_invitation():  # pragma: no cover
+def dismiss_invitation():
     """POST /api/me/invitations/dismiss — dismiss an invitation. Body: {key: str}"""
     body = request.get_json(silent=True) or {}
     key = str(body.get("key") or "").strip()

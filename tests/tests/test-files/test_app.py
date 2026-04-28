@@ -158,6 +158,58 @@ def client(monkeypatch):
     monkeypatch.setattr(flask_app.outreach_mod, "generate_outreach_message",
                         lambda sender, recipient, ctx: MOCK_OUTREACH_RESULT)
 
+    # Social state
+    monkeypatch.setattr(flask_app.dbl, "get_social_state",
+                        lambda uid: {"connections": [], "following": [], "savedJobs": []})
+    monkeypatch.setattr(flask_app.dbl, "toggle_saved_job",
+                        lambda uid, jid: {"saved": True})
+    monkeypatch.setattr(flask_app.dbl, "save_job",
+                        lambda uid, jid: {"saved": True})
+    monkeypatch.setattr(flask_app.dbl, "unsave_job",
+                        lambda uid, jid: {"saved": False})
+    monkeypatch.setattr(flask_app.dbl, "get_incoming_connection_requests",
+                        lambda uid: [])
+    monkeypatch.setattr(flask_app.dbl, "decline_connection_request",
+                        lambda rid, uid: {"declined": True})
+    monkeypatch.setattr(flask_app.dbl, "connect_user",
+                        lambda uid, tid: {"requested": True})
+    monkeypatch.setattr(flask_app.dbl, "accept_connection",
+                        lambda uid, tid: {"connected": True})
+    monkeypatch.setattr(flask_app.dbl, "toggle_following",
+                        lambda uid, tid: {"following": True})
+    monkeypatch.setattr(flask_app.dbl, "apply_to_job",
+                        lambda uid, jid: {"applied": True})
+    monkeypatch.setattr(flask_app.dbl, "toggle_group",
+                        lambda uid, gid: {"joined": True})
+    monkeypatch.setattr(flask_app.dbl, "dismiss_invitation",
+                        lambda uid, key: {"dismissed": True})
+
+    # Profile CRUD
+    monkeypatch.setattr(flask_app.dbl, "add_experience",
+                        lambda uid, e: {**MOCK_USER, "experience": [e]})
+    monkeypatch.setattr(flask_app.dbl, "update_experience",
+                        lambda uid, idx, e: {**MOCK_USER, "experience": [e]})
+    monkeypatch.setattr(flask_app.dbl, "update_education",
+                        lambda uid, idx, e: {**MOCK_USER, "education": [e]})
+    monkeypatch.setattr(flask_app.dbl, "update_project",
+                        lambda uid, idx, e: {**MOCK_USER, "projects": [e]})
+    monkeypatch.setattr(flask_app.dbl, "update_volunteering",
+                        lambda uid, idx, e: {**MOCK_USER, "volunteering": [e]})
+    monkeypatch.setattr(flask_app.dbl, "update_honor",
+                        lambda uid, idx, e: {**MOCK_USER, "honors": [e]})
+    monkeypatch.setattr(flask_app.dbl, "delete_experience",
+                        lambda uid, idx: {**MOCK_USER, "experience": []})
+    monkeypatch.setattr(flask_app.dbl, "delete_education",
+                        lambda uid, idx: {**MOCK_USER, "education": []})
+    monkeypatch.setattr(flask_app.dbl, "delete_project",
+                        lambda uid, idx: {**MOCK_USER, "projects": []})
+    monkeypatch.setattr(flask_app.dbl, "delete_volunteering",
+                        lambda uid, idx: {**MOCK_USER, "volunteering": []})
+    monkeypatch.setattr(flask_app.dbl, "delete_honor",
+                        lambda uid, idx: {**MOCK_USER, "honors": []})
+    monkeypatch.setattr(flask_app.dbl, "delete_skill",
+                        lambda uid, idx: {**MOCK_USER, "skills": []})
+
     flask_app.app.config["TESTING"] = True
     with flask_app.app.test_client() as c:
         yield c
@@ -1122,3 +1174,172 @@ class TestCreateConversation:
         resp = client.post("/api/conversations", json={"participantId": 2})
         assert resp.status_code == 201
         assert "id" in _json(resp)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# Social state endpoints
+# ══════════════════════════════════════════════════════════════════════════════
+
+class TestSocialState:
+
+    def test_T116_BB_get_social_state_returns_200(self, client, monkeypatch):
+        """BB: GET /api/me/social → 200 with social state dict."""
+        resp = client.get("/api/me/social")
+        assert resp.status_code == 200
+        data = _json(resp)
+        assert "connections" in data or "savedJobs" in data or isinstance(data, dict)
+
+    def test_T117_BB_toggle_saved_job_returns_200(self, client, monkeypatch):
+        """BB: POST /api/me/saved-jobs/:id → 200."""
+        resp = client.post("/api/me/saved-jobs/1")
+        assert resp.status_code == 200
+
+    def test_T118_BB_save_job_returns_200(self, client, monkeypatch):
+        """BB: PUT /api/me/saved-jobs/:id → 200."""
+        resp = client.put("/api/me/saved-jobs/1")
+        assert resp.status_code == 200
+
+    def test_T119_BB_unsave_job_returns_200(self, client, monkeypatch):
+        """BB: DELETE /api/me/saved-jobs/:id → 200."""
+        resp = client.delete("/api/me/saved-jobs/1")
+        assert resp.status_code == 200
+
+    def test_T120_BB_get_connection_requests_returns_list(self, client, monkeypatch):
+        """BB: GET /api/me/connection-requests → 200 with list."""
+        resp = client.get("/api/me/connection-requests")
+        assert resp.status_code == 200
+        assert isinstance(_json(resp), list)
+
+    def test_T121_BB_decline_connection_request_returns_200(self, client, monkeypatch):
+        """BB: DELETE /api/me/connection-requests/:id → 200."""
+        resp = client.delete("/api/me/connection-requests/2")
+        assert resp.status_code == 200
+
+    def test_T122_BB_connect_user_returns_200(self, client, monkeypatch):
+        """BB: POST /api/me/connections/:id → 200."""
+        resp = client.post("/api/me/connections/2")
+        assert resp.status_code == 200
+
+    def test_T123_BB_accept_connection_returns_200(self, client, monkeypatch):
+        """BB: POST /api/me/connections/:id/accept → 200."""
+        resp = client.post("/api/me/connections/2/accept")
+        assert resp.status_code == 200
+
+    def test_T124_BB_toggle_following_returns_200(self, client, monkeypatch):
+        """BB: POST /api/me/following/:id → 200."""
+        resp = client.post("/api/me/following/2")
+        assert resp.status_code == 200
+
+    def test_T125_BB_apply_to_job_returns_200(self, client, monkeypatch):
+        """BB: POST /api/me/applied-jobs/:id → 200."""
+        resp = client.post("/api/me/applied-jobs/1")
+        assert resp.status_code == 200
+
+    def test_T126_BB_toggle_group_returns_200(self, client, monkeypatch):
+        """BB: POST /api/me/groups/:id/toggle → 200."""
+        resp = client.post("/api/me/groups/1/toggle")
+        assert resp.status_code == 200
+
+    def test_T127_BB_dismiss_invitation_valid_key_returns_200(self, client, monkeypatch):
+        """BB: POST /api/me/invitations/dismiss with valid key → 200."""
+        resp = client.post("/api/me/invitations/dismiss", json={"key": "user-42"})
+        assert resp.status_code == 200
+
+    def test_T128_WB_dismiss_invitation_missing_key_returns_400(self, client, monkeypatch):
+        """WB: POST /api/me/invitations/dismiss without key → 400."""
+        resp = client.post("/api/me/invitations/dismiss", json={})
+        assert resp.status_code == 400
+        assert "error" in _json(resp)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# Profile CRUD — update and delete endpoints
+# ══════════════════════════════════════════════════════════════════════════════
+
+class TestProfileCRUD:
+
+    def test_T129_BB_update_experience_valid_returns_200(self, client, monkeypatch):
+        """BB: PUT /api/me/experience/:index with valid body → 200."""
+        resp = client.put("/api/me/experience/0",
+                          json={"title": "Engineer", "company": "Nexus"})
+        assert resp.status_code == 200
+
+    def test_T130_WB_update_experience_missing_fields_returns_400(self, client, monkeypatch):
+        """WB: PUT /api/me/experience/:index without title/company → 400."""
+        resp = client.put("/api/me/experience/0", json={"location": "NY"})
+        assert resp.status_code == 400
+
+    def test_T131_BB_update_education_valid_returns_200(self, client, monkeypatch):
+        """BB: PUT /api/me/education/:index with valid body → 200."""
+        resp = client.put("/api/me/education/0",
+                          json={"school": "NJIT", "degree": "BS"})
+        assert resp.status_code == 200
+
+    def test_T132_WB_update_education_missing_school_returns_400(self, client, monkeypatch):
+        """WB: PUT /api/me/education/:index without school → 400."""
+        resp = client.put("/api/me/education/0", json={"degree": "BS"})
+        assert resp.status_code == 400
+
+    def test_T133_BB_update_project_valid_returns_200(self, client, monkeypatch):
+        """BB: PUT /api/me/projects/:index with valid body → 200."""
+        resp = client.put("/api/me/projects/0",
+                          json={"name": "My App", "description": "A cool project"})
+        assert resp.status_code == 200
+
+    def test_T134_WB_update_project_missing_name_returns_400(self, client, monkeypatch):
+        """WB: PUT /api/me/projects/:index without name → 400."""
+        resp = client.put("/api/me/projects/0", json={"description": "A project"})
+        assert resp.status_code == 400
+
+    def test_T135_BB_update_volunteering_valid_returns_200(self, client, monkeypatch):
+        """BB: PUT /api/me/volunteering/:index with valid body → 200."""
+        resp = client.put("/api/me/volunteering/0",
+                          json={"role": "Mentor", "organization": "Code.org"})
+        assert resp.status_code == 200
+
+    def test_T136_BB_update_honor_valid_returns_200(self, client, monkeypatch):
+        """BB: PUT /api/me/honors/:index with valid body → 200."""
+        resp = client.put("/api/me/honors/0",
+                          json={"title": "Dean's List", "issuer": "NJIT"})
+        assert resp.status_code == 200
+
+    def test_T137_BB_delete_experience_returns_200(self, client, monkeypatch):
+        """BB: DELETE /api/me/experience/:index → 200 with updated list."""
+        resp = client.delete("/api/me/experience/0")
+        assert resp.status_code == 200
+
+    def test_T138_BB_delete_education_returns_200(self, client, monkeypatch):
+        """BB: DELETE /api/me/education/:index → 200 with updated list."""
+        resp = client.delete("/api/me/education/0")
+        assert resp.status_code == 200
+
+    def test_T139_BB_delete_project_returns_200(self, client, monkeypatch):
+        """BB: DELETE /api/me/projects/:index → 200 with updated list."""
+        resp = client.delete("/api/me/projects/0")
+        assert resp.status_code == 200
+
+    def test_T140_BB_delete_volunteering_returns_200(self, client, monkeypatch):
+        """BB: DELETE /api/me/volunteering/:index → 200 with updated list."""
+        resp = client.delete("/api/me/volunteering/0")
+        assert resp.status_code == 200
+
+    def test_T141_BB_delete_honor_returns_200(self, client, monkeypatch):
+        """BB: DELETE /api/me/honors/:index → 200 with updated list."""
+        resp = client.delete("/api/me/honors/0")
+        assert resp.status_code == 200
+
+    def test_T142_BB_delete_skill_returns_200(self, client, monkeypatch):
+        """BB: DELETE /api/me/skills/:index → 200 with updated list."""
+        resp = client.delete("/api/me/skills/0")
+        assert resp.status_code == 200
+
+    def test_T143_BB_add_experience_valid_returns_200(self, client, monkeypatch):
+        """BB: POST /api/me/experience with valid body → 200."""
+        resp = client.post("/api/me/experience",
+                           json={"title": "Engineer", "company": "Nexus"})
+        assert resp.status_code == 200
+
+    def test_T144_WB_add_experience_missing_fields_returns_400(self, client, monkeypatch):
+        """WB: POST /api/me/experience without title/company → 400."""
+        resp = client.post("/api/me/experience", json={"location": "NY"})
+        assert resp.status_code == 400
