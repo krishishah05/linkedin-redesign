@@ -2038,10 +2038,8 @@ describe('FeedPost — render variants and action buttons', () => {
   // 61
   // Type: WB
   // Spec: #61
-  // Exact line: {commentCount > 3 && ( ... onClick={() => showToast('Loading all comments...')}
-  // Tests that the View all comments button appears when commentCount > 3 and calls showToast
-  test('Clicking View all comments shows loading toast', async () => {
-    // Need more than 3 comments to trigger the View all button
+  // Tests that "View all N comments" expands the list in-place (no toast)
+  test('Clicking View all comments expands comment list and toggles to Show fewer', async () => {
     const manyComments = Array.from({ length: 5 }, (_, i) => ({
       author: { name: `User${i}`, headline: '' }, text: `Comment ${i}`, timestamp: 'now',
     }));
@@ -2050,17 +2048,22 @@ describe('FeedPost — render variants and action buttons', () => {
       React.createElement(sandbox.FeedPost, {
         ...baseProps,
         commentsOpen: true,
-        // commentCount must be passed explicitly — FeedPost derives it from post.commentCount,
-        // not from the comments array length
         post: { id: 1, content: 'Post', totalReactions: 0, repostCount: 0, commentCount: 5, comments: manyComments },
       })
     );
 
+    // Button should appear since there are 5 comments (> 3)
+    const expandBtn = screen.getByText(/View all/i);
+    expect(expandBtn).toBeInTheDocument();
+
     await act(async () => {
-      fireEvent.click(screen.getByText(/View all/));
+      fireEvent.click(expandBtn);
     });
 
-    expect(mockShowToast).toHaveBeenCalledWith('Loading all comments...');
+    // After clicking, button should now say "Show fewer comments"
+    expect(screen.getByText(/Show fewer comments/i)).toBeInTheDocument();
+    // No toast should have been called
+    expect(mockShowToast).not.toHaveBeenCalled();
   });
 
 });
