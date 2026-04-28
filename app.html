@@ -43,6 +43,21 @@
 <!-- SheetJS — Excel export for Recruiter Shortlist (pinned version for reliability) -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
+<!-- jsPDF — PDF export for Cover Letter generator -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<!-- PDF.js — read uploaded PDF cover letters -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+  if (window.pdfjsLib) {
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  }
+</script>
+
+<!-- mammoth.js — read uploaded DOCX cover letters -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+
 <!-- API utility (plain JS, no JSX) -->
 <script src="js/api.js?v=6"></script>
 
@@ -89,6 +104,7 @@
 <script type="text/babel" src="js/components/pages/SettingsPage.js?v=6"></script>
 <script type="text/babel" src="js/components/pages/PremiumPage.js?v=6"></script>
 <script type="text/babel" src="js/components/pages/ArticlePage.js?v=6"></script>
+<script type="text/babel" src="js/components/pages/CoverLetterPage.js?v=6"></script>
 
 <!-- ── Modal components ────────────────────────────────────── -->
 <script type="text/babel" src="js/components/modals/PostModal.js?v=6"></script>
@@ -103,6 +119,9 @@
 <script type="text/babel" src="js/components/modals/CreateGroupModal.js?v=6"></script>
 <script type="text/babel" src="js/components/modals/ReportModal.js?v=6"></script>
 <script type="text/babel" src="js/components/modals/CreateEventModal.js?v=6"></script>
+<script type="text/babel" src="js/components/modals/AddProjectModal.js?v=6"></script>
+<script type="text/babel" src="js/components/modals/AddVolunteerModal.js?v=6"></script>
+<script type="text/babel" src="js/components/modals/AddHonorModal.js?v=6"></script>
 <script type="text/babel" src="js/components/modals/ModalContainer.js?v=6"></script>
 
 <!-- ── Navigation components ───────────────────────────────── -->

@@ -701,14 +701,31 @@ function Field({ label, value, onChange }) {
 function ProfileReadinessPanel({ readiness, loading, error, onClose, onRefresh }) {
   const s = readiness;
 
-  const score = s?.score ?? 0;
-  const status = score >= 80 ? 'good' : score >= 70 ? 'warn' : 'bad';
-  const statusLabel = score >= 80 ? 'Ready' : score >= 70 ? 'Almost there' : 'Needs improvement';
+  const [aiData, setAiData] = React.useState(null);
+  const [aiLoading, setAiLoading] = React.useState(false);
+  const [aiError, setAiError] = React.useState(null);
+
+  function fetchAI() {
+    setAiLoading(true);
+    setAiError(null);
+    API.getAIProfileReadiness()
+      .then(res => { setAiData(res); setAiLoading(false); })
+      .catch(err => { setAiError(err.message || 'AI evaluation failed'); setAiLoading(false); });
+  }
+
+  // Auto-run quality analysis when the panel first opens
+  React.useEffect(() => { fetchAI(); }, []);
+
+  const displayScore    = aiData?.score ?? 0;
+  const displaySections = aiData?.sections ?? [];
+
+  const status      = displayScore >= 80 ? 'good' : displayScore >= 70 ? 'warn' : 'bad';
+  const statusLabel = aiData?.level ?? (displayScore >= 80 ? 'All-Star' : displayScore >= 50 ? 'Developing' : 'Beginner');
 
   // Ring math
   const r = 44;
   const circ = 2 * Math.PI * r;
-  const offset = circ * (1 - (score / 100));
+  const offset = circ * (1 - (displayScore / 100));
 
   return (
     <div className="li-msg-score" role="complementary" aria-label="Profile readiness score">
@@ -716,15 +733,25 @@ function ProfileReadinessPanel({ readiness, loading, error, onClose, onRefresh }
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span style={{ fontSize: 15 }}>Score</span>
           <span className="li-msg-score__title">Profile Readiness</span>
-          <span className="li-msg-score__subtitle">Improve your profile before outreach</span>
+          <span className="li-msg-score__subtitle">
+            {aiData ? 'AI quality score' : 'Improve your profile before outreach'}
+          </span>
         </div>
         <button className="li-msg-score__close" onClick={onClose} title="Close">✕</button>
       </div>
 
       <div className="li-msg-score__body">
-        {loading ? (
-          <div style={{ padding: 14, color: 'var(--text-3)' }}>Calculating score…</div>
-        ) : !s ? (
+        {(loading || aiLoading) && !aiData ? (
+          <div style={{ padding: 24, color: 'var(--text-3)', textAlign: 'center' }}>
+            <div style={{ fontSize: 14, marginBottom: 6 }}>✦ Analyzing your profile quality…</div>
+            <div style={{ fontSize: 12 }}>This takes a few seconds</div>
+          </div>
+        ) : aiError && !aiData ? (
+          <div style={{ padding: 14 }}>
+            <div style={{ fontSize: 13, color: 'var(--red)', marginBottom: 10 }}>{aiError}</div>
+            <button className="li-msg-score__btn" onClick={fetchAI}>Try again</button>
+          </div>
+        ) : !aiData ? (
           <div style={{ padding: 14, color: 'var(--text-3)' }}>No score available.</div>
         ) : (
           <div className="li-msg-score__grid">
@@ -734,12 +761,9 @@ function ProfileReadinessPanel({ readiness, loading, error, onClose, onRefresh }
                   <svg width="108" height="108" viewBox="0 0 108 108" aria-hidden="true">
                     <circle cx="54" cy="54" r={r} stroke="var(--border)" strokeWidth="8" fill="none" />
                     <circle
-                      cx="54"
-                      cy="54"
-                      r={r}
+                      cx="54" cy="54" r={r}
                       stroke={status === 'good' ? 'var(--green)' : status === 'warn' ? 'var(--gold-dark)' : 'var(--red)'}
-                      strokeWidth="8"
-                      fill="none"
+                      strokeWidth="8" fill="none"
                       strokeDasharray={circ.toFixed(1)}
                       strokeDashoffset={offset.toFixed(1)}
                       strokeLinecap="round"
@@ -747,29 +771,40 @@ function ProfileReadinessPanel({ readiness, loading, error, onClose, onRefresh }
                     />
                   </svg>
                   <div className="li-msg-score__ring-text">
-                    <div className="li-msg-score__ring-num">{score}</div>
+                    <div className="li-msg-score__ring-num">{displayScore}</div>
                     <div className="li-msg-score__ring-den">/ 100</div>
                   </div>
                 </div>
 
                 <div className="li-msg-score__status">
                   <span className={'li-msg-score__badge ' + status}>{statusLabel}</span>
+                  {aiData && <span style={{ fontSize: 11, color: 'var(--text-3)', display: 'block', marginTop: 2 }}>AI quality score</span>}
                 </div>
 
-                <div className="li-msg-score__sub">Tightening your profile usually increases reply rates.</div>
+                {aiData?.summary ? (
+                  <div className="li-msg-score__sub">{aiData.summary}</div>
+                ) : (
+                  <div className="li-msg-score__sub">Tightening your profile usually increases reply rates.</div>
+                )}
                 {!!error && <div className="li-msg-score__api-note">{error}</div>}
+                {!!aiError && <div className="li-msg-score__api-note" style={{ color: 'var(--red)' }}>{aiError}</div>}
               </div>
 
               <div className="li-msg-score__breakdown">
-                {(s.sections || []).map(sec => {
-                  const c = sec.score >= 80 ? 'good' : sec.score >= 70 ? 'warn' : 'bad';
+                {displaySections.map(sec => {
+                  const c = sec.score >= 80 ? 'good' : sec.score >= 40 ? 'warn' : 'bad';
                   return (
-                    <div key={sec.key} className="li-msg-score__bar">
+                    <div key={sec.key} className="li-msg-score__bar" style={{ marginBottom: sec.feedback ? 8 : 4 }}>
                       <div className="li-msg-score__bar-label">{sec.label}</div>
                       <div className="li-msg-score__bar-track">
                         <div className={'li-msg-score__bar-fill ' + c} style={{ width: `${sec.score}%` }} />
                       </div>
                       <div className={'li-msg-score__bar-pct ' + c}>{sec.score}%</div>
+                      {sec.feedback && (
+                        <div style={{ fontSize: 11, color: 'var(--text-3)', gridColumn: '1 / -1', lineHeight: 1.4, marginTop: 1 }}>
+                          {sec.feedback}
+                        </div>
+                      )}
                     </div>
                   );
                 })}
@@ -778,33 +813,55 @@ function ProfileReadinessPanel({ readiness, loading, error, onClose, onRefresh }
 
             <div className="li-msg-score__right">
               <div className="li-msg-score__card">
-                <div className="li-msg-score__card-title">Quick fixes</div>
-                <div className="li-msg-score__fixes">
-                  {(s.fixes || []).map(f => (
-                    <div key={f.key} className="li-msg-score__fix">
-                      <div className="li-msg-score__fix-left">
-                        <span className={'li-msg-score__dot ' + f.status}></span>
-                        <span className="li-msg-score__fix-label">{f.label}</span>
-                      </div>
-                      {f.status === 'done' ? (
-                        <span className="li-msg-score__done">Done</span>
-                      ) : (
-                        <span className="li-msg-score__todo">Fix</span>
-                      )}
+                {aiData?.suggestions?.length > 0 ? (
+                  <>
+                    <div className="li-msg-score__card-title">AI Suggestions</div>
+                    <ul style={{ margin: '0 0 12px', paddingLeft: 16, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                      {aiData.suggestions.map((sg, i) => (
+                        <li key={i} style={{ fontSize: 13, color: 'var(--text)', lineHeight: 1.4 }}>{sg}</li>
+                      ))}
+                    </ul>
+                  </>
+                ) : (
+                  <>
+                    <div className="li-msg-score__card-title">Quick fixes</div>
+                    <div className="li-msg-score__fixes">
+                      {(s.fixes || []).map(f => (
+                        <div key={f.key} className="li-msg-score__fix">
+                          <div className="li-msg-score__fix-left">
+                            <span className={'li-msg-score__dot ' + f.status}></span>
+                            <span className="li-msg-score__fix-label">{f.label}</span>
+                          </div>
+                          {f.status === 'done' ? (
+                            <span className="li-msg-score__done">Done</span>
+                          ) : (
+                            <span className="li-msg-score__todo">Fix</span>
+                          )}
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  </>
+                )}
 
                 <div className="li-msg-score__actions">
-                  <button className="li-msg-score__btn" onClick={onRefresh}>Refresh score</button>
+                  <button
+                    className="li-msg-score__btn"
+                    onClick={fetchAI}
+                    disabled={aiLoading}
+                    title="Evaluate profile quality with AI"
+                  >
+                    {aiLoading ? 'Analyzing…' : aiData ? 'Re-analyze' : '✦ AI Analyze'}
+                  </button>
                   <button className="li-msg-score__btn primary" onClick={() => { window.location.hash = 'profile'; }}>
                     Go to profile
                   </button>
                 </div>
 
-                <div className="li-msg-score__note">
-                  You can message now — but these fixes usually boost response rates.
-                </div>
+                {!aiData && (
+                  <div className="li-msg-score__note">
+                    You can message now — but these fixes usually boost response rates.
+                  </div>
+                )}
               </div>
             </div>
           </div>

@@ -44,6 +44,7 @@ function Router() {
     'learning':      <LearningPage />,
     'settings':      <SettingsPage />,
     'article':       <ArticlePage />,
+    'cover-letter':  <CoverLetterPage />,
   };
 
   return pageMap[route] || pageMap['feed'];

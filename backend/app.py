@@ -18,6 +18,10 @@ from flask_cors import CORS
 import sys
 import os
 import re
+import time
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Allow running from repo root: python backend/app.py
 sys.path.insert(0, os.path.dirname(__file__))
@@ -35,6 +39,76 @@ CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 # Initialise DB (creates schema + seeds if empty)
 dbl.init_db()
+
+# ── The Muse live job cache ────────────────────────────────────
+_muse_cache        = {"jobs": [], "fetched_at": 0.0}
+_muse_detail_cache = {}   # museId -> full job dict
+_MUSE_TTL          = 4 * 3600  # refresh every 4 hours
+
+
+def _fetch_muse_jobs():
+    """Pull live jobs from The Muse public API (no API key required)."""
+    import requests as req_lib
+    from datetime import datetime, timezone
+
+    jobs = []
+    uid  = 10000  # IDs above static seed data so they don't collide
+
+    for page in range(5):  # 5 pages × 20 = up to 100 jobs
+        try:
+            r = req_lib.get(
+                "https://www.themuse.com/api/public/jobs",
+                params={"page": page, "descending": "true"},
+                timeout=8,
+            )
+            if not r.ok:
+                break
+            results = r.json().get("results", [])
+            if not results:
+                break
+            for j in results:
+                company    = j.get("company", {})
+                locations  = j.get("locations", [])
+                levels     = j.get("levels", [])
+                categories = j.get("categories", [])
+
+                loc   = locations[0]["name"]   if locations   else "Remote"
+                level = levels[0]["name"]      if levels      else ""
+                cat   = categories[0]["name"]  if categories  else "General"
+
+                pub = j.get("publication_date", "")
+                try:
+                    dt     = datetime.fromisoformat(pub.replace("Z", "+00:00"))
+                    delta  = (datetime.now(timezone.utc) - dt).days
+                    posted = "Today" if delta == 0 else f"{delta}d ago"
+                except Exception:
+                    posted = pub[:10] if pub else ""
+
+                co_name = company.get("name", "")
+                jobs.append({
+                    "id":          uid,
+                    "museId":      j.get("id"),
+                    "title":       j.get("name", ""),
+                    "company":     co_name,
+                    "location":    loc,
+                    "type":        "Full-time",
+                    "level":       level,
+                    "category":    cat,
+                    "description": "",
+                    "salary":      "",
+                    "posted":      posted,
+                    "logo":        (co_name[:1] or "?").upper(),
+                    "applicants":  0,
+                    "saved":       False,
+                    "applied":     False,
+                    "url":         j.get("refs", {}).get("landing_page", ""),
+                    "source":      "muse",
+                })
+                uid += 1
+        except Exception:
+            break
+
+    return jobs
 
 
 def _auth_user():
@@ -222,6 +296,285 @@ def add_skill():
     return jsonify(updated)
 
 
+@app.route("/api/me/experience/<int:index>", methods=["PUT"])
+def update_experience(index):
+    user = _auth_user()
+    if not user:
+        abort(401, description="Authentication required")
+    body = request.get_json(silent=True) or {}
+    if not (body.get("title") or "").strip() or not (body.get("company") or "").strip():
+        abort(400, description="title and company are required")
+    entry = {
+        "title": (body.get("title") or "").strip(),
+        "company": (body.get("company") or "").strip(),
+        "type": (body.get("type") or "").strip(),
+        "location": (body.get("location") or "").strip(),
+        "startDate": (body.get("startDate") or "").strip(),
+        "endDate": (body.get("endDate") or "").strip(),
+        "description": (body.get("description") or "").strip(),
+        "skills": (body.get("skills") or "").strip(),
+    }
+    updated = dbl.update_experience(user["id"], index, entry)
+    if not updated:
+        abort(404, description="User not found")
+    return jsonify(updated)
+
+
+@app.route("/api/me/education/<int:index>", methods=["PUT"])
+def update_education(index):
+    user = _auth_user()
+    if not user:
+        abort(401, description="Authentication required")
+    body = request.get_json(silent=True) or {}
+    if not (body.get("school") or "").strip():
+        abort(400, description="school is required")
+    entry = {
+        "school": (body.get("school") or "").strip(),
+        "degree": (body.get("degree") or "").strip(),
+        "field": (body.get("field") or "").strip(),
+        "startDate": (body.get("startDate") or "").strip(),
+        "endDate": (body.get("endDate") or "").strip(),
+    }
+    updated = dbl.update_education(user["id"], index, entry)
+    if not updated:
+        abort(404, description="User not found")
+    return jsonify(updated)
+
+
+@app.route("/api/me/projects/<int:index>", methods=["PUT"])
+def update_project(index):
+    user = _auth_user()
+    if not user:
+        abort(401, description="Authentication required")
+    body = request.get_json(silent=True) or {}
+    if not (body.get("name") or "").strip():
+        abort(400, description="name is required")
+    entry = {
+        "name": (body.get("name") or "").strip(),
+        "description": (body.get("description") or "").strip(),
+        "url": (body.get("url") or "").strip(),
+        "startDate": (body.get("startDate") or "").strip(),
+        "endDate": (body.get("endDate") or "").strip(),
+        "skills": (body.get("skills") or "").strip(),
+    }
+    updated = dbl.update_project(user["id"], index, entry)
+    if not updated:
+        abort(404, description="User not found")
+    return jsonify(updated)
+
+
+@app.route("/api/me/volunteering/<int:index>", methods=["PUT"])
+def update_volunteering(index):
+    user = _auth_user()
+    if not user:
+        abort(401, description="Authentication required")
+    body = request.get_json(silent=True) or {}
+    if not (body.get("role") or "").strip() or not (body.get("organization") or "").strip():
+        abort(400, description="role and organization are required")
+    entry = {
+        "role": (body.get("role") or "").strip(),
+        "organization": (body.get("organization") or "").strip(),
+        "cause": (body.get("cause") or "").strip(),
+        "startDate": (body.get("startDate") or "").strip(),
+        "endDate": (body.get("endDate") or "").strip(),
+        "description": (body.get("description") or "").strip(),
+    }
+    updated = dbl.update_volunteering(user["id"], index, entry)
+    if not updated:
+        abort(404, description="User not found")
+    return jsonify(updated)
+
+
+@app.route("/api/me/honors/<int:index>", methods=["PUT"])
+def update_honor(index):
+    user = _auth_user()
+    if not user:
+        abort(401, description="Authentication required")
+    body = request.get_json(silent=True) or {}
+    if not (body.get("title") or "").strip():
+        abort(400, description="title is required")
+    entry = {
+        "title": (body.get("title") or "").strip(),
+        "issuer": (body.get("issuer") or "").strip(),
+        "issueDate": (body.get("issueDate") or "").strip(),
+        "description": (body.get("description") or "").strip(),
+    }
+    updated = dbl.update_honor(user["id"], index, entry)
+    if not updated:
+        abort(404, description="User not found")
+    return jsonify(updated)
+
+
+@app.route("/api/me/experience/<int:index>", methods=["DELETE"])
+def delete_experience(index):
+    """DELETE /api/me/experience/:index — remove an experience entry by index."""
+    user = _auth_user()
+    if not user:
+        abort(401, description="Authentication required")
+    updated = dbl.delete_experience(user["id"], index)
+    if updated is None:
+        abort(404, description="User not found")
+    return jsonify(updated)
+
+
+@app.route("/api/me/education/<int:index>", methods=["DELETE"])
+def delete_education(index):
+    """DELETE /api/me/education/:index — remove an education entry by index."""
+    user = _auth_user()
+    if not user:
+        abort(401, description="Authentication required")
+    updated = dbl.delete_education(user["id"], index)
+    if updated is None:
+        abort(404, description="User not found")
+    return jsonify(updated)
+
+
+@app.route("/api/me/projects/<int:index>", methods=["DELETE"])
+def delete_project(index):
+    """DELETE /api/me/projects/:index — remove a project entry by index."""
+    user = _auth_user()
+    if not user:
+        abort(401, description="Authentication required")
+    updated = dbl.delete_project(user["id"], index)
+    if updated is None:
+        abort(404, description="User not found")
+    return jsonify(updated)
+
+
+@app.route("/api/me/volunteering/<int:index>", methods=["DELETE"])
+def delete_volunteering(index):
+    """DELETE /api/me/volunteering/:index — remove a volunteering entry by index."""
+    user = _auth_user()
+    if not user:
+        abort(401, description="Authentication required")
+    updated = dbl.delete_volunteering(user["id"], index)
+    if updated is None:
+        abort(404, description="User not found")
+    return jsonify(updated)
+
+
+@app.route("/api/me/honors/<int:index>", methods=["DELETE"])
+def delete_honor(index):
+    """DELETE /api/me/honors/:index — remove a honor entry by index."""
+    user = _auth_user()
+    if not user:
+        abort(401, description="Authentication required")
+    updated = dbl.delete_honor(user["id"], index)
+    if updated is None:
+        abort(404, description="User not found")
+    return jsonify(updated)
+
+
+@app.route("/api/me/skills/<int:index>", methods=["DELETE"])
+def delete_skill(index):
+    """DELETE /api/me/skills/:index — remove a skill by index."""
+    user = _auth_user()
+    if not user:
+        abort(401, description="Authentication required")
+    updated = dbl.delete_skill(user["id"], index)
+    if updated is None:
+        abort(404, description="User not found")
+    return jsonify(updated)
+
+
+@app.route("/api/me/experience", methods=["POST"])
+def add_experience():
+    """POST /api/me/experience — append a work experience entry to the current user."""
+    user = _auth_user()
+    if not user:
+        abort(401, description="Authentication required")
+    body = request.get_json(silent=True) or {}
+    title = (body.get("title") or "").strip()
+    company = (body.get("company") or "").strip()
+    if not title or not company:
+        abort(400, description="title and company are required")
+    entry = {
+        "title": title,
+        "company": company,
+        "type": (body.get("type") or "").strip(),
+        "location": (body.get("location") or "").strip(),
+        "startDate": (body.get("startDate") or "").strip(),
+        "endDate": (body.get("endDate") or "").strip(),
+        "description": (body.get("description") or "").strip(),
+        "skills": (body.get("skills") or "").strip(),
+    }
+    updated = dbl.add_experience(user["id"], entry)
+    if not updated:
+        abort(404, description="User not found")
+    return jsonify(updated)
+
+
+@app.route("/api/me/projects", methods=["POST"])
+def add_project():
+    """POST /api/me/projects — append a project entry to the current user."""
+    user = _auth_user()
+    if not user:
+        abort(401, description="Authentication required")
+    body = request.get_json(silent=True) or {}
+    name = (body.get("name") or "").strip()
+    if not name:
+        abort(400, description="name is required")
+    entry = {
+        "name": name,
+        "description": (body.get("description") or "").strip(),
+        "url": (body.get("url") or "").strip(),
+        "startDate": (body.get("startDate") or "").strip(),
+        "endDate": (body.get("endDate") or "").strip(),
+        "skills": (body.get("skills") or "").strip(),
+    }
+    updated = dbl.add_project(user["id"], entry)
+    if not updated:
+        abort(404, description="User not found")
+    return jsonify(updated)
+
+
+@app.route("/api/me/volunteering", methods=["POST"])
+def add_volunteering():
+    """POST /api/me/volunteering — append a volunteering entry to the current user."""
+    user = _auth_user()
+    if not user:
+        abort(401, description="Authentication required")
+    body = request.get_json(silent=True) or {}
+    role = (body.get("role") or "").strip()
+    organization = (body.get("organization") or "").strip()
+    if not role or not organization:
+        abort(400, description="role and organization are required")
+    entry = {
+        "role": role,
+        "organization": organization,
+        "cause": (body.get("cause") or "").strip(),
+        "startDate": (body.get("startDate") or "").strip(),
+        "endDate": (body.get("endDate") or "").strip(),
+        "description": (body.get("description") or "").strip(),
+    }
+    updated = dbl.add_volunteering(user["id"], entry)
+    if not updated:
+        abort(404, description="User not found")
+    return jsonify(updated)
+
+
+@app.route("/api/me/honors", methods=["POST"])
+def add_honor():
+    """POST /api/me/honors — append a honor/award entry to the current user."""
+    user = _auth_user()
+    if not user:
+        abort(401, description="Authentication required")
+    body = request.get_json(silent=True) or {}
+    title = (body.get("title") or "").strip()
+    if not title:
+        abort(400, description="title is required")
+    entry = {
+        "title": title,
+        "issuer": (body.get("issuer") or "").strip(),
+        "issueDate": (body.get("issueDate") or "").strip(),
+        "description": (body.get("description") or "").strip(),
+    }
+    updated = dbl.add_honor(user["id"], entry)
+    if not updated:
+        abort(404, description="User not found")
+    return jsonify(updated)
+
+
 @app.route("/api/groups", methods=["POST"])
 def create_group():
     """POST /api/groups — create a new group (persisted in memory for the session)."""
@@ -356,13 +709,57 @@ def add_post_comment(post_id):
 
 @app.route("/api/jobs")
 def get_jobs():
-    """GET /api/jobs — all job listings."""
-    return jsonify(dbl.get_all_jobs())
+    """GET /api/jobs — live jobs from The Muse (4h cache), fallback to static seed."""
+    now = time.time()
+    if now - _muse_cache["fetched_at"] > _MUSE_TTL or not _muse_cache["jobs"]:
+        try:
+            fresh = _fetch_muse_jobs()
+            if fresh:
+                _muse_cache["jobs"]       = fresh
+                _muse_cache["fetched_at"] = now
+        except Exception as exc:
+            app.logger.warning("The Muse fetch failed: %s", exc)
+    return jsonify(_muse_cache["jobs"] if _muse_cache["jobs"] else dbl.get_all_jobs())
 
 
 @app.route("/api/jobs/<int:job_id>")
 def get_job(job_id):
-    """GET /api/jobs/:id — single job listing."""
+    """GET /api/jobs/:id — single job listing. For Muse jobs, fetches full description."""
+    if job_id >= 10000:
+        now = time.time()
+        if now - _muse_cache["fetched_at"] > _MUSE_TTL or not _muse_cache["jobs"]:
+            try:
+                fresh = _fetch_muse_jobs()
+                if fresh:
+                    _muse_cache["jobs"]       = fresh
+                    _muse_cache["fetched_at"] = now
+            except Exception:
+                pass
+
+        muse_job = next((j for j in _muse_cache["jobs"] if j["id"] == job_id), None)
+        if not muse_job:
+            abort(404, description=f"Job {job_id} not found")
+
+        muse_id = muse_job.get("museId")
+        if muse_id:
+            if muse_id in _muse_detail_cache:
+                return jsonify(_muse_detail_cache[muse_id])
+            try:
+                import requests as req_lib
+                r = req_lib.get(
+                    f"https://www.themuse.com/api/public/jobs/{muse_id}",
+                    timeout=8,
+                )
+                if r.ok:
+                    detail   = r.json()
+                    full_job = dict(muse_job)
+                    full_job["description"] = detail.get("contents", "") or ""
+                    _muse_detail_cache[muse_id] = full_job
+                    return jsonify(full_job)
+            except Exception:
+                pass
+        return jsonify(muse_job)
+
     job = dbl.get_job_by_id(job_id)
     if not job:
         abort(404, description=f"Job {job_id} not found")
@@ -601,6 +998,120 @@ def get_profile_readiness():
 # Outreach — Story #1 (Outreach Message Guidance)  (NX.API.3)
 # ══════════════════════════════════════════════════════════════
 
+@app.route("/api/profile-readiness/ai", methods=["POST"])
+def ai_profile_readiness():
+    """POST /api/profile-readiness/ai — AI quality evaluation; does not replace /api/profile-readiness."""
+    user = _auth_user()
+    if not user:
+        abort(401, description="Authentication required")
+
+    api_key = os.environ.get("GROQ_API_KEY", "")
+    if not api_key:
+        abort(503, description="AI service not configured — set GROQ_API_KEY in .env")
+
+    headline = (user.get("headline") or "").strip()
+    about    = (user.get("about") or "").strip()
+    exp_list      = user.get("experience")    or []
+    edu_list      = user.get("education")     or []
+    skills_list   = user.get("skills")        or []
+    projects_list = user.get("projects")      or []
+
+    exp_lines = []
+    for e in exp_list[:5]:
+        desc = (e.get("description") or "").strip()
+        exp_lines.append(
+            f"- {e.get('title','?')} at {e.get('company','?')} "
+            f"({e.get('startDate','')}–{e.get('endDate','Present')})"
+            + (f"\n  Desc: {desc[:200]}" if desc else " (no description)")
+        )
+
+    edu_lines = []
+    for e in edu_list[:3]:
+        field = e.get("field") or e.get("fieldOfStudy") or "?"
+        start = e.get("startDate") or e.get("startYear") or ""
+        end   = e.get("endDate")   or e.get("endYear")   or ""
+        edu_lines.append(f"- {e.get('degree','?')} in {field} at {e.get('school','?')} ({start}–{end})")
+
+    skill_names = [(s["name"] if isinstance(s, dict) else s) for s in skills_list[:20]]
+
+    proj_lines = []
+    for p in projects_list[:4]:
+        desc = (p.get("description") or "").strip()
+        proj_lines.append(f"- {p.get('name','?')}" + (f": {desc[:150]}" if desc else " (no description)"))
+
+    profile_text = (
+        f"Name: {user.get('name','Unknown')}\n"
+        f"Headline: {headline or '(empty)'}\n"
+        f"About ({len(about)} chars): {about[:400] or '(empty)'}\n"
+        f"Experience ({len(exp_list)} entries):\n" + ("\n".join(exp_lines) or "  (none)") + "\n"
+        f"Education ({len(edu_list)} entries):\n"  + ("\n".join(edu_lines) or "  (none)") + "\n"
+        f"Skills ({len(skill_names)}): {', '.join(skill_names) or '(none)'}\n"
+        f"Projects ({len(projects_list)} entries):\n" + ("\n".join(proj_lines) or "  (none)")
+    )
+
+    system_prompt = (
+        'You are a LinkedIn profile coach. Evaluate quality (not just presence). '
+        'Return ONLY valid JSON — no markdown fences — with EXACTLY this shape:\n'
+        '{"score":<int 0-100>,"level":<"Beginner"|"Developing"|"Strong"|"All-Star">,'
+        '"summary":"<2 honest sentences>","sections":['
+        '{"key":"headline","label":"Headline","score":<int>,"feedback":"<feedback>"},'
+        '{"key":"about","label":"About","score":<int>,"feedback":"<feedback>"},'
+        '{"key":"experience","label":"Experience","score":<int>,"feedback":"<feedback>"},'
+        '{"key":"education","label":"Education","score":<int>,"feedback":"<feedback>"},'
+        '{"key":"skills","label":"Skills","score":<int>,"feedback":"<feedback>"},'
+        '{"key":"projects","label":"Projects","score":<int>,"feedback":"<feedback>"}],'
+        '"suggestions":["<verb-first action>","<verb-first action>","<verb-first action>"]}\n\n'
+        'Feedback rules (STRICT):\n'
+        '- Every section with score < 100 MUST end with a specific "To reach 100%: ..." sentence.\n'
+        '- Sections scoring 100 may simply say what is excellent about them.\n'
+        '- Be concrete — name exactly what is missing or what to add/change.\n\n'
+        'Scoring rules (strict):\n'
+        '- Empty/missing field → 0\n'
+        '- Very short/vague (headline="hi", about="student") → 5-20\n'
+        '- Mediocre/generic → 40-60\n'
+        '- Good, specific, professional → 70-85\n'
+        '- Excellent, achievement-focused → 86-100\n'
+        'Overall score = weighted avg: headline 20%, about 20%, experience 30%, '
+        'education 15%, skills 10%, projects 5%.'
+    )
+
+    try:
+        import requests as req_lib
+        resp = req_lib.post(
+            "https://api.groq.com/openai/v1/chat/completions",
+            headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+            json={
+                "model": "llama-3.3-70b-versatile",
+                "messages": [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user",   "content": profile_text},
+                ],
+                "max_tokens": 1024,
+                "temperature": 0.2,
+            },
+            timeout=30,
+        )
+        resp.raise_for_status()
+        raw = resp.json()["choices"][0]["message"]["content"].strip()
+        if raw.startswith("```"):
+            raw = raw.split("```")[1]
+            if raw.startswith("json"):
+                raw = raw[4:]
+            raw = raw.strip()
+        import json as _json
+        result = _json.loads(raw)
+        if not isinstance(result.get("score"), (int, float)):
+            raise ValueError("Missing score in AI response")
+        result["score"] = max(0, min(100, int(result["score"])))
+        for sec in result.get("sections", []):
+            sec["score"] = max(0, min(100, int(sec.get("score", 0))))
+    except Exception as exc:
+        app.logger.exception("AI profile readiness failed: %s", exc)
+        abort(502, description="AI evaluation failed — try again")
+
+    return jsonify(result), 200
+
+
 @app.route("/api/outreach/generate", methods=["POST"])
 def outreach_generate():
     """POST /api/outreach/generate — personalised outreach draft."""
@@ -806,6 +1317,24 @@ def unsave_job(job_id):  # pragma: no cover
     return jsonify(dbl.unsave_job(user["id"], job_id))
 
 
+@app.route("/api/me/connection-requests")
+def get_connection_requests():  # pragma: no cover
+    """GET /api/me/connection-requests — users who have sent the current user a pending request."""
+    user = _auth_user()
+    if not user:
+        abort(401, description="Authentication required")
+    return jsonify(dbl.get_incoming_connection_requests(user["id"]))
+
+
+@app.route("/api/me/connection-requests/<int:requester_id>", methods=["DELETE"])
+def decline_connection_request(requester_id):  # pragma: no cover
+    """DELETE /api/me/connection-requests/:id — decline a pending connection request."""
+    user = _auth_user()
+    if not user:
+        abort(401, description="Authentication required")
+    return jsonify(dbl.decline_connection_request(requester_id, user["id"]))
+
+
 @app.route("/api/me/connections/<int:target_id>", methods=["POST"])
 def connect_user(target_id):  # pragma: no cover
     """POST /api/me/connections/:id — send a connection request."""
@@ -850,6 +1379,51 @@ def dismiss_invitation():  # pragma: no cover
         abort(400, description="key is required")
     user = _auth_user()
     return jsonify(dbl.dismiss_invitation(user["id"], key))
+
+
+# ══════════════════════════════════════════════════════════════
+# Cover Letter Generation  (Groq)
+# ══════════════════════════════════════════════════════════════
+
+@app.route("/api/cover-letter/generate", methods=["POST"])
+def generate_cover_letter():
+    """POST /api/cover-letter/generate — tailor a cover letter via Groq LLM."""
+    user = _auth_user()
+    if not user:
+        abort(401, description="Authentication required")
+
+    api_key = os.environ.get("GROQ_API_KEY", "")
+    if not api_key:
+        abort(503, description="AI service not configured — set GROQ_API_KEY in .env")
+
+    body = request.get_json(silent=True) or {}
+    prompt = (body.get("prompt") or "").strip()
+    if not prompt:
+        abort(400, description="prompt is required")
+
+    try:
+        import requests as req_lib
+        resp = req_lib.post(
+            "https://api.groq.com/openai/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "model": "llama-3.3-70b-versatile",
+                "messages": [{"role": "user", "content": prompt}],
+                "max_tokens": 1024,
+                "temperature": 0.7,
+            },
+            timeout=30,
+        )
+        resp.raise_for_status()
+        letter = resp.json()["choices"][0]["message"]["content"].strip()
+    except Exception as exc:
+        app.logger.exception("Groq API request failed: %s", exc)
+        abort(502, description="AI service error — check your GROQ_API_KEY")
+
+    return jsonify({"letter": letter}), 200
 
 
 if __name__ == "__main__":

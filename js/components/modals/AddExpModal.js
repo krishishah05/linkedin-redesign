@@ -1,33 +1,71 @@
 /* ============================================================
-   ADDEXPMODAL.JS — Add a work experience entry
+   ADDEXPMODAL.JS — Add or edit a work experience entry
    ============================================================ */
 function AddExpModal() {
-  const { closeModal, showToast } = React.useContext(AppContext);
-  const [currentRole, setCurrentRole] = React.useState(true);
+  const { closeModal, setCurrentUser, showToast, modalData } = React.useContext(AppContext);
+
+  const isEditing = !!(modalData && modalData.entry);
+  const editEntry = isEditing ? modalData.entry : null;
+  const editIndex = isEditing ? modalData.index : null;
+
+  function parseParts(dateStr) {
+    if (!dateStr || dateStr === 'Present') return { month: 'January', year: String(new Date().getFullYear()) };
+    const parts = dateStr.split(' ');
+    return { month: parts[0] || 'January', year: parts[1] || String(new Date().getFullYear()) };
+  }
+
+  const startParts = parseParts(editEntry?.startDate);
+  const endParts   = parseParts(editEntry?.endDate);
+
+  const [saving, setSaving] = React.useState(false);
+  const [currentRole, setCurrentRole] = React.useState(
+    isEditing ? (editEntry.endDate === 'Present' || !editEntry.endDate) : true
+  );
   const [form, setForm] = React.useState({
-    title: '', type: '', company: '', location: '',
-    startMonth: 'January', startYear: '2024', description: '', skills: '',
+    title:      editEntry?.title       || '',
+    type:       editEntry?.type        || '',
+    company:    editEntry?.company     || '',
+    location:   editEntry?.location    || '',
+    startMonth: startParts.month,
+    startYear:  startParts.year,
+    endMonth:   endParts.month,
+    endYear:    endParts.year,
+    description: editEntry?.description || '',
+    skills:     editEntry?.skills      || '',
   });
 
-  function update(key, val) {
-    setForm(prev => ({ ...prev, [key]: val }));
-  }
+  function update(key, val) { setForm(prev => ({ ...prev, [key]: val })); }
 
   function handleSave() {
     if (!form.title || !form.company) { showToast('Title and company are required', 'error'); return; }
-    showToast('Experience added!');
-    closeModal();
+    if (saving) return;
+    setSaving(true);
+    const entry = {
+      title: form.title, company: form.company, type: form.type,
+      location: form.location,
+      startDate: `${form.startMonth} ${form.startYear}`,
+      endDate: currentRole ? 'Present' : `${form.endMonth} ${form.endYear}`,
+      description: form.description, skills: form.skills,
+    };
+    const call = isEditing ? API.updateExperience(editIndex, entry) : API.addExperience(entry);
+    call
+      .then(updated => {
+        setCurrentUser(updated);
+        showToast(isEditing ? 'Experience updated!' : 'Experience added!', 'success');
+        closeModal();
+      })
+      .catch(() => { showToast('Failed to save experience', 'error'); setSaving(false); });
   }
 
   const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-  const years = Array.from({ length: 30 }, (_, i) => String(new Date().getFullYear() - i));
+  const years  = Array.from({ length: 30 }, (_, i) => String(new Date().getFullYear() - i));
 
   return (
     <div className="li-modal-overlay" style={{ display: 'flex' }}
       onClick={e => { if (e.target === e.currentTarget) closeModal(); }}>
       <div className="li-modal li-modal--lg">
         <div className="li-modal__header">
-          <span className="li-modal__title">Add experience</span>
+          <span className="li-modal__title">{isEditing ? 'Edit experience' : 'Add experience'}</span>
           <button className="li-modal__close" onClick={closeModal}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
               <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
@@ -73,6 +111,22 @@ function AddExpModal() {
               </select>
             </div>
           </div>
+          {!currentRole && (
+            <div className="li-settings-form-row">
+              <div style={{ flex: 1 }}>
+                <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 4 }}>End date</label>
+                <select className="li-settings-input" style={{ width: '100%' }} value={form.endMonth} onChange={e => update('endMonth', e.target.value)}>
+                  {months.map(m => <option key={m}>{m}</option>)}
+                </select>
+              </div>
+              <div style={{ flex: 1 }}>
+                <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 4 }}>&nbsp;</label>
+                <select className="li-settings-input" style={{ width: '100%' }} value={form.endYear} onChange={e => update('endYear', e.target.value)}>
+                  {years.map(y => <option key={y}>{y}</option>)}
+                </select>
+              </div>
+            </div>
+          )}
           <div style={{ marginBottom: 12 }}>
             <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 4 }}>Description</label>
             <textarea
@@ -89,7 +143,7 @@ function AddExpModal() {
         </div>
         <div className="li-modal__footer">
           <button className="li-btn li-btn--ghost li-btn--sm" onClick={closeModal}>Cancel</button>
-          <button className="li-btn li-btn--primary li-btn--sm" onClick={handleSave}>Save</button>
+          <button className="li-btn li-btn--primary li-btn--sm" onClick={handleSave} disabled={saving}>{saving ? 'Saving…' : 'Save'}</button>
         </div>
       </div>
     </div>
