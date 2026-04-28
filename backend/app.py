@@ -219,13 +219,16 @@ def add_experience():
     company = (body.get("company") or "").strip()
     if not company:
         abort(400, description="company is required")
+    current = body.get("current", False)
+    if not isinstance(current, bool):
+        abort(400, description="current must be a boolean")
     entry = {
         "title": title,
         "company": company,
         "type": (body.get("type") or "").strip(),
         "location": (body.get("location") or "").strip(),
         "startDate": (body.get("startDate") or "").strip(),
-        "current": bool(body.get("current", False)),
+        "current": current,
         "description": (body.get("description") or "").strip(),
         "skills": body.get("skills") if isinstance(body.get("skills"), list) else [],
     }

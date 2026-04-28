@@ -3,11 +3,7 @@
    ============================================================ */
 
 function copyLink(url, showToast) {
-  if (navigator.clipboard?.writeText) {
-    navigator.clipboard.writeText(url)
-      .then(() => showToast('Link copied!'))
-      .catch(() => showToast('Failed to copy link', 'error'));
-  } else {
+  function execCopy() {
     let ta;
     try {
       ta = document.createElement('textarea');
@@ -23,6 +19,13 @@ function copyLink(url, showToast) {
     } finally {
       if (ta && ta.parentNode) { ta.parentNode.removeChild(ta); }
     }
+  }
+  if (navigator.clipboard?.writeText) {
+    navigator.clipboard.writeText(url)
+      .then(() => showToast('Link copied!'))
+      .catch(() => execCopy());
+  } else {
+    execCopy();
   }
 }
 
@@ -724,10 +727,10 @@ function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, followi
               </div>
             );
           })}
-          {localComments.length > 3 && (
+          {commentCount > 3 && (
             <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-2)', fontSize: 13, fontWeight: 600 }}
-              onClick={() => setShowAllComments(v => !v)}>
-              {showAllComments ? 'Show fewer comments' : `View all ${formatNumber(localComments.length)} comments`}
+              onClick={() => localComments.length > 3 && setShowAllComments(v => !v)}>
+              {showAllComments ? 'Show fewer comments' : `View all ${formatNumber(commentCount)} comments`}
             </button>
           )}
         </div>

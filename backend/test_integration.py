@@ -244,6 +244,17 @@ def test_IT_U07d_add_experience_unauthenticated(base_url):
     assert resp.status_code == 401
 
 
+def test_IT_U07e_add_experience_invalid_current(base_url, auth_headers):
+    """IT-U07e: current field must be a boolean; string value returns 400."""
+    resp = requests.post(
+        _url(base_url, "/me/experience"),
+        headers=auth_headers,
+        json={"title": "Engineer", "company": "ACME", "current": "false"},
+        timeout=TIMEOUT,
+    )
+    assert resp.status_code == 400
+
+
 def test_IT_U07_add_skill(base_url, auth_headers):
     """IT-U07: Add skill."""
     resp = requests.post(
