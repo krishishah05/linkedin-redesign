@@ -890,3 +890,65 @@ class TestProfileImprove:
 
         resp = client.post("/api/profile/improve")
         assert resp.status_code == 502
+
+
+class TestAddExperience:
+    """Tests for POST /api/me/experience."""
+
+    MOCK_UPDATED = {**{k: v for k, v in {
+        "id": 1, "name": "Test User", "email": "test@example.com",
+        "headline": "", "location": "", "about": "", "pronouns": "",
+        "industry": "", "avatarColor": None, "experience": [], "education": [],
+        "skills": [], "phone": "", "isRecruiter": False,
+    }.items()}, "experience": [{"id": 1, "title": "Engineer", "company": "ACME", "current": False}]}
+
+    def test_T96_BB_happy_path_returns_200(self, client, monkeypatch):
+        """BB: valid payload → 200 with updated user data."""
+        monkeypatch.setattr(flask_app.dbl, "add_experience", lambda uid, e: self.MOCK_UPDATED)
+        resp = client.post(
+            "/api/me/experience",
+            json={"title": "Engineer", "company": "ACME", "current": False},
+            headers={"Authorization": "Bearer mock-token"},
+        )
+        assert resp.status_code == 200
+        assert any(e["title"] == "Engineer" for e in _json(resp)["experience"])
+
+    def test_T97_WB_missing_title_returns_400(self, client, monkeypatch):
+        """WB: omitting title → 400."""
+        monkeypatch.setattr(flask_app.dbl, "add_experience", lambda uid, e: self.MOCK_UPDATED)
+        resp = client.post(
+            "/api/me/experience",
+            json={"company": "ACME", "current": False},
+            headers={"Authorization": "Bearer mock-token"},
+        )
+        assert resp.status_code == 400
+
+    def test_T98_WB_missing_company_returns_400(self, client, monkeypatch):
+        """WB: omitting company → 400."""
+        monkeypatch.setattr(flask_app.dbl, "add_experience", lambda uid, e: self.MOCK_UPDATED)
+        resp = client.post(
+            "/api/me/experience",
+            json={"title": "Engineer", "current": False},
+            headers={"Authorization": "Bearer mock-token"},
+        )
+        assert resp.status_code == 400
+
+    def test_T99_WB_non_bool_current_returns_400(self, client, monkeypatch):
+        """WB: current as string → 400 (must be strict boolean)."""
+        monkeypatch.setattr(flask_app.dbl, "add_experience", lambda uid, e: self.MOCK_UPDATED)
+        resp = client.post(
+            "/api/me/experience",
+            json={"title": "Engineer", "company": "ACME", "current": "false"},
+            headers={"Authorization": "Bearer mock-token"},
+        )
+        assert resp.status_code == 400
+
+    def test_T100_WB_unauthenticated_returns_401(self, client, monkeypatch):
+        """WB: no valid auth token → 401."""
+        monkeypatch.setattr(flask_app.dbl, "get_session_user_id", lambda token: None)
+        monkeypatch.setattr(flask_app.dbl, "get_current_user", lambda uid: None)
+        resp = client.post(
+            "/api/me/experience",
+            json={"title": "Engineer", "company": "ACME", "current": False},
+        )
+        assert resp.status_code == 401
