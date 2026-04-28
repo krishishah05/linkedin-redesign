@@ -56,7 +56,11 @@ function CompanyPage({ companyId }) {
               >
                 {isFollowing ? 'Following' : '+ Follow'}
               </button>
-              <button className="li-btn li-btn--primary li-btn--sm" onClick={() => showToast('Website opened in new tab')}>
+              <button className="li-btn li-btn--primary li-btn--sm" onClick={() => {
+                const url = company.website ? (company.website.startsWith('http') ? company.website : `https://${company.website}`) : null;
+                if (url) { window.open(url, '_blank', 'noopener,noreferrer'); }
+                else { showToast('No website available'); }
+              }}>
                 Visit website
               </button>
             </div>

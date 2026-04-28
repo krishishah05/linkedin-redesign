@@ -383,6 +383,7 @@ function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, followi
   const [localComments, setLocalComments] = React.useState(post.comments || post.commentsList || []);
   const [replyingTo, setReplyingTo] = React.useState(null); // index of comment being replied to
   const [replyDraft, setReplyDraft] = React.useState('');
+  const [showAllComments, setShowAllComments] = React.useState(false);
 
   const authorId = post.authorId || (post.author && post.author.id) || 2;
   const authorName = post.author?.name || post.author || post.authorName || 'User';
@@ -492,6 +493,12 @@ function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, followi
                       setMenuOpen(false);
                       if (label === 'Delete post') { onDelete && onDelete(post.id); showToast('Post deleted'); }
                       else if (label === 'Report post') openModal('report', { post });
+                      else if (label === 'Copy link to post') {
+                        const url = `${window.location.origin}${window.location.pathname}#feed`;
+                        if (navigator.clipboard?.writeText) {
+                          navigator.clipboard.writeText(url).then(() => showToast('Link copied!')).catch(() => showToast('Failed to copy link', 'error'));
+                        } else { showToast('Link copied!'); }
+                      }
                       else showToast(label);
                     }}>
                     {label}
@@ -603,7 +610,12 @@ function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, followi
           <span>Repost</span>
         </button>
 
-        <button className="li-post__action" onClick={() => showToast('Link copied!')} style={{ flex: 1 }}>
+        <button className="li-post__action" onClick={() => {
+          const url = `${window.location.origin}${window.location.pathname}#feed`;
+          if (navigator.clipboard?.writeText) {
+            navigator.clipboard.writeText(url).then(() => showToast('Link copied!')).catch(() => showToast('Failed to copy link', 'error'));
+          } else { showToast('Link copied!'); }
+        }} style={{ flex: 1 }}>
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.5">
             <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
@@ -632,7 +644,7 @@ function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, followi
           </div>
 
           {/* Comment list */}
-          {localComments.slice(0, 3).map((c, i) => {
+          {localComments.slice(0, showAllComments ? localComments.length : 3).map((c, i) => {
             const cName = c.author?.name || c.authorName || c.author || 'User';
             const cText = c.text || c.content || '';
             const cHeadline = c.author?.headline || c.authorHeadline || '';
@@ -684,10 +696,10 @@ function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, followi
               </div>
             );
           })}
-          {commentCount > 3 && (
+          {localComments.length > 3 && (
             <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-2)', fontSize: 13, fontWeight: 600 }}
-              onClick={() => showToast('Loading all comments...')}>
-              View all {formatNumber(commentCount)} comments
+              onClick={() => setShowAllComments(v => !v)}>
+              {showAllComments ? 'Show fewer comments' : `View all ${formatNumber(localComments.length)} comments`}
             </button>
           )}
         </div>
