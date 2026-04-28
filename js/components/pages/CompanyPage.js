@@ -15,7 +15,7 @@ function CompanyPage({ companyId }) {
   const isFollowing = following.has(String(companyId));
   const companyJobs = (jobs || []).filter(j => j.company === company.name || j.companyId === company.id).slice(0, 5);
   const employees = (allUsers || []).filter(u => {
-    const currentExp = (u.experience || []).find(e => e.current);
+    const currentExp = Array.isArray(u.experience) ? u.experience.find(e => e.current) : null;
     return currentExp && currentExp.company === company.name;
   });
 

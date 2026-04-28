@@ -196,7 +196,9 @@ function SettingsPage() {
                 />
                 <div style={{ paddingTop: 16 }}>
                   <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 10 }}>Language</h3>
-                  <select className="li-settings-input" style={{ width: 200 }}>
+                  <select className="li-settings-input" style={{ width: 200 }}
+                    value={settings.language || 'English'}
+                    onChange={e => { setSettings(s => ({ ...s, language: e.target.value })); showToast(`Language set to ${e.target.value}`); }}>
                     <option>English</option>
                     <option>Spanish</option>
                     <option>French</option>
@@ -274,8 +276,27 @@ function SettingsPage() {
                   <p style={{ fontSize: 13, color: 'var(--text-2)', marginBottom: 12 }}>
                     Get a copy of your Nexus data including your connections, messages, and posts.
                   </p>
-                  <button className="li-btn li-btn--outline li-btn--sm" onClick={() => showToast('Data export requested — check your email')}>
-                    Request data export
+                  <button className="li-btn li-btn--outline li-btn--sm" onClick={() => {
+                    try {
+                      const exportData = {
+                        exportDate: new Date().toISOString(),
+                        profile: currentUser ? {
+                          name: currentUser.name, email: currentUser.email,
+                          headline: currentUser.headline, location: currentUser.location,
+                          about: currentUser.about,
+                        } : {},
+                        settings,
+                      };
+                      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url; a.download = 'nexus-data-export.json';
+                      document.body.appendChild(a); a.click();
+                      document.body.removeChild(a); URL.revokeObjectURL(url);
+                      showToast('Data exported successfully!', 'success');
+                    } catch { showToast('Export failed — please try again', 'error'); }
+                  }}>
+                    Download my data
                   </button>
                 </div>
               </div>

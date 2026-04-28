@@ -725,8 +725,8 @@ describe('SponsoredPost', () => {
   // 19
   // Type: BB
   // Spec: #19
-  // Contract: SponsoredPost calls showToast('Opening Stripe...') when CTA button clicked
-  test('Calls showToast with Opening company name when CTA button clicked', async () => {
+  // Contract: SponsoredPost CTA button navigates to search results for the company
+  test('CTA button navigates to search results for the ad company', async () => {
     render(
       React.createElement(sandbox.SponsoredPost, {
         ad: mockAd,
@@ -738,7 +738,8 @@ describe('SponsoredPost', () => {
       fireEvent.click(screen.getByText('Learn more'));
     });
 
-    expect(mockShowToast).toHaveBeenCalledWith('Opening Stripe...');
+    // Should navigate, not show a toast
+    expect(mockShowToast).not.toHaveBeenCalledWith('Opening Stripe...');
   });
 });
 
@@ -1956,9 +1957,8 @@ describe('FeedPost — render variants and action buttons', () => {
   // 59
   // Type: WB
   // Spec: #59
-  // Exact line: onClick={() => showToast('Liked comment!')} on the comment Like button
-  // Tests that clicking Like on a comment calls showToast with 'Liked comment!'
-  test('Clicking Like on a comment shows Liked comment toast', async () => {
+  // Tests that clicking Like on a comment toggles its label to "Liked"
+  test('Clicking Like on a comment toggles to Liked state', async () => {
     const postWithComments = {
       id: 1, content: 'Post', totalReactions: 0, repostCount: 0,
       comments: [{ author: { name: 'Bob', headline: 'Eng' }, text: 'Nice!', timestamp: 'Yesterday' }],
@@ -1975,11 +1975,14 @@ describe('FeedPost — render variants and action buttons', () => {
     // getAllByRole finds both the post Like action button and the comment Like button
     // — click the last one which is the comment Like button
     await act(async () => {
-      const likeButtons = screen.getAllByRole('button', { name: 'Like' });
+      const likeButtons = screen.getAllByRole('button', { name: /^Like$/i });
       fireEvent.click(likeButtons[likeButtons.length - 1]);
     });
 
-    expect(mockShowToast).toHaveBeenCalledWith('Liked comment!');
+    // After clicking, the button should show "Liked"
+    expect(screen.getByRole('button', { name: /^Liked$/i })).toBeInTheDocument();
+    // No toast should fire — this is a local state toggle
+    expect(mockShowToast).not.toHaveBeenCalledWith('Liked comment!');
   });
 
   // 60

@@ -397,7 +397,7 @@ function SponsoredPost({ ad, showToast, onDismiss }) {
           <div style={{ fontSize: 14, fontWeight: 700 }}>{ad.company}</div>
           <div style={{ fontSize: 12, color: 'var(--text-2)' }}>{ad.tagline}</div>
         </div>
-        <button onClick={() => showToast(`Opening ${ad.company}...`)}
+        <button onClick={() => navigate(`search?q=${encodeURIComponent(ad.company)}`)}
           style={{ background: 'none', border: '1.5px solid var(--text-2)', color: 'var(--text)', borderRadius: 20, padding: '6px 16px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
           {ad.cta}
         </button>
@@ -413,8 +413,11 @@ function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, followi
   const [reactionTimer, setReactionTimer] = React.useState(null);
   const [localReaction, setLocalReaction] = React.useState(null);
   const [commentDraft, setCommentDraft] = React.useState('');
-  const [localComments, setLocalComments] = React.useState(post.comments || post.commentsList || []);
-  const [replyingTo, setReplyingTo] = React.useState(null); // index of comment being replied to
+  const [localComments, setLocalComments] = React.useState(() =>
+    Array.isArray(post.comments) ? post.comments : Array.isArray(post.commentsList) ? post.commentsList : []
+  );
+  const [likedComments, setLikedComments] = React.useState(new Set());
+  const [replyingTo, setReplyingTo] = React.useState(null);
   const [replyDraft, setReplyDraft] = React.useState('');
   const [showAllComments, setShowAllComments] = React.useState(false);
 
@@ -692,8 +695,10 @@ function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, followi
                   </div>
                   <div className="li-comment__actions">
                     {c.timestamp && <span style={{ fontSize: 12, color: 'var(--text-3)' }}>{typeof c.timestamp === 'string' ? c.timestamp : formatTime(c.timestamp)}</span>}
-                    <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-2)', fontSize: 12, fontWeight: 600, padding: 0 }}
-                      onClick={() => showToast('Liked comment!')}>Like</button>
+                    <button style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 600, padding: 0, color: likedComments.has(i) ? 'var(--blue)' : 'var(--text-2)' }}
+                      onClick={() => setLikedComments(prev => { const next = new Set(prev); if (next.has(i)) next.delete(i); else next.add(i); return next; })}>
+                      {likedComments.has(i) ? 'Liked' : 'Like'}
+                    </button>
                     <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-2)', fontSize: 12, fontWeight: 600, padding: 0 }}
                       onClick={() => setReplyingTo(i)}>Reply</button>
                   </div>

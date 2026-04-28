@@ -247,7 +247,7 @@ function AppProvider({ children }) {
       setLikedPosts(prev => {
         const next = new Set(prev);
         if (next.has(key)) next.delete(key); else next.add(key);
-        try { localStorage.setItem('li-liked-posts', JSON.stringify([...next])); } catch {}
+        _save('li-liked-posts', next);
         return next;
       });
       showToast('Failed to react to post', 'error');

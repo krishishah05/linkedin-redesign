@@ -1,19 +1,41 @@
 /* ============================================================
    ARTICLEPAGE.JS — Write & publish a long-form article
    ============================================================ */
+const ARTICLE_DRAFT_KEY = 'nx-article-draft';
+
 function ArticlePage() {
   const { currentUser, showToast } = React.useContext(AppContext);
 
-  const [title, setTitle]     = React.useState('');
-  const [body, setBody]       = React.useState('');
-  const [coverUrl, setCover]  = React.useState('');
+  const [title, setTitle]     = React.useState(() => {
+    try { return JSON.parse(localStorage.getItem(ARTICLE_DRAFT_KEY) || '{}').title || ''; } catch { return ''; }
+  });
+  const [body, setBody]       = React.useState(() => {
+    try { return JSON.parse(localStorage.getItem(ARTICLE_DRAFT_KEY) || '{}').body || ''; } catch { return ''; }
+  });
+  const [coverUrl, setCover]  = React.useState(() => {
+    try { return JSON.parse(localStorage.getItem(ARTICLE_DRAFT_KEY) || '{}').coverUrl || ''; } catch { return ''; }
+  });
   const [published, setPublished] = React.useState(false);
 
   const BODY_MAX = 10000;
 
+  function saveDraft() {
+    try {
+      localStorage.setItem(ARTICLE_DRAFT_KEY, JSON.stringify({ title, body, coverUrl }));
+      showToast('Draft saved', 'success');
+    } catch {
+      showToast('Could not save draft', 'error');
+    }
+  }
+
+  function clearDraft() {
+    try { localStorage.removeItem(ARTICLE_DRAFT_KEY); } catch {}
+  }
+
   function handlePublish() {
     if (!title.trim()) { showToast('Please add a title', 'error'); return; }
     if (!body.trim())  { showToast('Please write something in the article body', 'error'); return; }
+    clearDraft();
     setPublished(true);
     showToast('Article published!', 'success');
   }
@@ -57,7 +79,7 @@ function ArticlePage() {
         <div style={{ display: 'flex', gap: 10 }}>
           <button
             className="li-btn li-btn--ghost"
-            onClick={() => showToast('Draft saved', 'success')}
+            onClick={saveDraft}
           >
             Save draft
           </button>
