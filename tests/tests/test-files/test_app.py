@@ -890,3 +890,235 @@ class TestProfileImprove:
 
         resp = client.post("/api/profile/improve")
         assert resp.status_code == 502
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# POST /api/profile-readiness/ai  — AI quality evaluation
+# ══════════════════════════════════════════════════════════════════════════════
+
+MOCK_AI_READINESS_RESULT = {
+    "score": 75,
+    "level": "Strong",
+    "summary": "Your profile is solid with clear experience.",
+    "sections": [
+        {"key": "headline",   "label": "Headline",   "score": 80,  "feedback": "Good. To reach 100%: add industry keywords."},
+        {"key": "about",      "label": "About",      "score": 70,  "feedback": "Decent. To reach 100%: add specific achievements."},
+        {"key": "experience", "label": "Experience", "score": 75,  "feedback": "Good. To reach 100%: quantify your impact."},
+        {"key": "education",  "label": "Education",  "score": 100, "feedback": "Excellent education section."},
+        {"key": "skills",     "label": "Skills",     "score": 60,  "feedback": "Some skills. To reach 100%: add more relevant ones."},
+        {"key": "projects",   "label": "Projects",   "score": 50,  "feedback": "Few projects. To reach 100%: add detailed descriptions."},
+    ],
+    "suggestions": [
+        "Add measurable achievements to experience",
+        "List more technical skills",
+        "Expand your about section",
+    ],
+}
+
+
+def _make_groq_post(content_str):
+    """Return a fake requests.post that mimics a Groq API JSON response."""
+    mock_resp = types.SimpleNamespace(
+        raise_for_status=lambda: None,
+        json=lambda: {"choices": [{"message": {"content": content_str}}]},
+    )
+    return lambda *a, **kw: mock_resp
+
+
+class TestAIProfileReadiness:
+
+    def test_T96_BB_unauthenticated_returns_401(self, client, monkeypatch):
+        """BB: No valid token → 401 before hitting Groq."""
+        monkeypatch.setattr(flask_app.dbl, "get_session_user_id", lambda t: None)
+        resp = client.post("/api/profile-readiness/ai")
+        assert resp.status_code == 401
+
+    def test_T97_BB_no_groq_key_returns_503(self, client, monkeypatch):
+        """BB: Missing GROQ_API_KEY → 503 service unavailable."""
+        monkeypatch.delenv("GROQ_API_KEY", raising=False)
+        resp = client.post("/api/profile-readiness/ai")
+        assert resp.status_code == 503
+        assert "error" in _json(resp)
+
+    def test_T98_BB_valid_request_returns_score_sections_suggestions(self, client, monkeypatch):
+        """BB: Authenticated + key set + valid LLM response → 200 with score, sections, suggestions."""
+        monkeypatch.setenv("GROQ_API_KEY", "test-key-xyz")
+        import requests as _req
+        monkeypatch.setattr(_req, "post", _make_groq_post(json.dumps(MOCK_AI_READINESS_RESULT)))
+        resp = client.post("/api/profile-readiness/ai")
+        assert resp.status_code == 200
+        data = _json(resp)
+        assert "score" in data
+        assert "sections" in data
+        assert "suggestions" in data
+        assert 0 <= data["score"] <= 100
+
+    def test_T99_WB_out_of_range_scores_clamped_to_0_100(self, client, monkeypatch):
+        """WB: LLM returns scores > 100 → endpoint clamps them."""
+        monkeypatch.setenv("GROQ_API_KEY", "test-key-xyz")
+        clamped = dict(MOCK_AI_READINESS_RESULT)
+        clamped["score"] = 150
+        clamped["sections"] = [{"key": "headline", "label": "Headline", "score": 200, "feedback": "Perfect."}]
+        import requests as _req
+        monkeypatch.setattr(_req, "post", _make_groq_post(json.dumps(clamped)))
+        resp = client.post("/api/profile-readiness/ai")
+        assert resp.status_code == 200
+        data = _json(resp)
+        assert data["score"] == 100
+        assert data["sections"][0]["score"] == 100
+
+    def test_T100_WB_llm_network_error_returns_502(self, client, monkeypatch):
+        """WB: requests.post raises → 502 bad gateway."""
+        monkeypatch.setenv("GROQ_API_KEY", "test-key-xyz")
+        import requests as _req
+        def boom(*a, **kw):
+            raise ConnectionError("down")
+        monkeypatch.setattr(_req, "post", boom)
+        resp = client.post("/api/profile-readiness/ai")
+        assert resp.status_code == 502
+
+    def test_T101_WB_llm_response_in_markdown_fences_parsed_correctly(self, client, monkeypatch):
+        """WB: LLM wraps JSON in ```json fences — endpoint strips them and parses correctly."""
+        monkeypatch.setenv("GROQ_API_KEY", "test-key-xyz")
+        fenced = "```json\n" + json.dumps(MOCK_AI_READINESS_RESULT) + "\n```"
+        import requests as _req
+        monkeypatch.setattr(_req, "post", _make_groq_post(fenced))
+        resp = client.post("/api/profile-readiness/ai")
+        assert resp.status_code == 200
+        assert "score" in _json(resp)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# POST /api/cover-letter/generate  — AI cover letter generation
+# ══════════════════════════════════════════════════════════════════════════════
+
+class TestCoverLetterGenerate:
+
+    def test_T102_BB_unauthenticated_returns_401(self, client, monkeypatch):
+        """BB: No valid token → 401 before hitting Groq."""
+        monkeypatch.setattr(flask_app.dbl, "get_session_user_id", lambda t: None)
+        resp = client.post("/api/cover-letter/generate",
+                           json={"prompt": "Write a cover letter"})
+        assert resp.status_code == 401
+
+    def test_T103_BB_no_groq_key_returns_503(self, client, monkeypatch):
+        """BB: Missing GROQ_API_KEY → 503."""
+        monkeypatch.delenv("GROQ_API_KEY", raising=False)
+        resp = client.post("/api/cover-letter/generate",
+                           json={"prompt": "Write a cover letter"})
+        assert resp.status_code == 503
+        assert "error" in _json(resp)
+
+    def test_T104_WB_missing_prompt_returns_400(self, client, monkeypatch):
+        """WB: Empty or absent prompt → 400 bad request."""
+        monkeypatch.setenv("GROQ_API_KEY", "test-key-xyz")
+        resp = client.post("/api/cover-letter/generate", json={})
+        assert resp.status_code == 400
+        assert "error" in _json(resp)
+
+    def test_T105_BB_valid_request_returns_letter_string(self, client, monkeypatch):
+        """BB: Authenticated + key + valid prompt → 200 with letter string."""
+        monkeypatch.setenv("GROQ_API_KEY", "test-key-xyz")
+        letter_text = "Dear Hiring Manager, I am excited to apply for this role."
+        import requests as _req
+        monkeypatch.setattr(_req, "post", _make_groq_post(letter_text))
+        resp = client.post("/api/cover-letter/generate",
+                           json={"prompt": "Write a cover letter for Engineer at Nexus"})
+        assert resp.status_code == 200
+        data = _json(resp)
+        assert "letter" in data
+        assert data["letter"] == letter_text
+
+    def test_T106_WB_llm_network_error_returns_502(self, client, monkeypatch):
+        """WB: requests.post raises → 502 bad gateway."""
+        monkeypatch.setenv("GROQ_API_KEY", "test-key-xyz")
+        import requests as _req
+        def boom(*a, **kw):
+            raise ConnectionError("down")
+        monkeypatch.setattr(_req, "post", boom)
+        resp = client.post("/api/cover-letter/generate",
+                           json={"prompt": "Write a cover letter"})
+        assert resp.status_code == 502
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# POST /api/me/education  — add education entry
+# ══════════════════════════════════════════════════════════════════════════════
+
+class TestAddEducation:
+
+    def test_T107_BB_unauthenticated_returns_401(self, client, monkeypatch):
+        """BB: No valid token → 401."""
+        monkeypatch.setattr(flask_app.dbl, "get_session_user_id", lambda t: None)
+        resp = client.post("/api/me/education", json={"school": "NJIT"})
+        assert resp.status_code == 401
+
+    def test_T108_WB_missing_school_returns_400(self, client, monkeypatch):
+        """WB: school field missing or blank → 400."""
+        resp = client.post("/api/me/education", json={"degree": "BS"})
+        assert resp.status_code == 400
+        assert "error" in _json(resp)
+
+    def test_T109_BB_valid_entry_returns_updated_user(self, client, monkeypatch):
+        """BB: Valid education entry → 200 with updated user data containing education list."""
+        entry = {"school": "NJIT", "degree": "BS", "field": "Computer Science",
+                 "startDate": "2021", "endDate": "2025"}
+        monkeypatch.setattr(flask_app.dbl, "add_education",
+                            lambda uid, e: {**MOCK_USER, "education": [e]})
+        resp = client.post("/api/me/education", json=entry)
+        assert resp.status_code == 200
+        assert "education" in _json(resp)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# POST /api/me/skills  — add skill
+# ══════════════════════════════════════════════════════════════════════════════
+
+class TestAddSkill:
+
+    def test_T110_BB_unauthenticated_returns_401(self, client, monkeypatch):
+        """BB: No valid token → 401."""
+        monkeypatch.setattr(flask_app.dbl, "get_session_user_id", lambda t: None)
+        resp = client.post("/api/me/skills", json={"skill": "Python"})
+        assert resp.status_code == 401
+
+    def test_T111_WB_missing_skill_returns_400(self, client, monkeypatch):
+        """WB: skill field missing or blank → 400."""
+        resp = client.post("/api/me/skills", json={})
+        assert resp.status_code == 400
+        assert "error" in _json(resp)
+
+    def test_T112_BB_valid_skill_returns_updated_user(self, client, monkeypatch):
+        """BB: Valid skill name → 200 with updated user containing skills list."""
+        monkeypatch.setattr(flask_app.dbl, "add_skill",
+                            lambda uid, s: {**MOCK_USER, "skills": [s]})
+        resp = client.post("/api/me/skills", json={"skill": "Python"})
+        assert resp.status_code == 200
+        assert "skills" in _json(resp)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# POST /api/conversations  — create conversation
+# ══════════════════════════════════════════════════════════════════════════════
+
+class TestCreateConversation:
+
+    def test_T113_BB_unauthenticated_returns_401(self, client, monkeypatch):
+        """BB: No valid token → 401."""
+        monkeypatch.setattr(flask_app.dbl, "get_session_user_id", lambda t: None)
+        resp = client.post("/api/conversations", json={"participantId": 2})
+        assert resp.status_code == 401
+
+    def test_T114_WB_missing_participant_id_returns_400(self, client, monkeypatch):
+        """WB: participantId missing from body → 400."""
+        resp = client.post("/api/conversations", json={})
+        assert resp.status_code == 400
+        assert "error" in _json(resp)
+
+    def test_T115_BB_valid_participant_returns_201_with_conversation(self, client, monkeypatch):
+        """BB: Valid participantId → 201 with conversation object."""
+        monkeypatch.setattr(flask_app.dbl, "create_conversation",
+                            lambda uid, participant: MOCK_CONV)
+        resp = client.post("/api/conversations", json={"participantId": 2})
+        assert resp.status_code == 201
+        assert "id" in _json(resp)

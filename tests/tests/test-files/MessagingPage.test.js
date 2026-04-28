@@ -40,7 +40,11 @@ global.API = {
     getConversations: jest.fn(),
     getConversation: jest.fn(() => Promise.resolve({ messages: [] })),
     sendMessage: jest.fn(() => Promise.resolve()),
-    getProfileReadiness: jest.fn(() => Promise.resolve({ score: 100 }))
+    getProfileReadiness: jest.fn(() => Promise.resolve({ score: 100 })),
+    getAIProfileReadiness: jest.fn(() => Promise.resolve({
+        score: 75, level: 'Strong', summary: 'Good profile.',
+        sections: [], suggestions: []
+    })),
 };
 global.LoadingSpinner = ({ text }) => React.createElement('div', { 'data-testid': 'spinner' }, text);
 global.formatTime = jest.fn((ts) => ts);
