@@ -8,16 +8,21 @@ function copyLink(url, showToast) {
       .then(() => showToast('Link copied!'))
       .catch(() => showToast('Failed to copy link', 'error'));
   } else {
+    let ta;
     try {
-      const ta = document.createElement('textarea');
+      ta = document.createElement('textarea');
       ta.value = url;
       ta.style.cssText = 'position:fixed;opacity:0';
       document.body.appendChild(ta);
       ta.focus(); ta.select();
-      document.execCommand('copy');
-      document.body.removeChild(ta);
-      showToast('Link copied!');
-    } catch (_) { showToast('Failed to copy link', 'error'); }
+      const copied = document.execCommand('copy');
+      if (copied) { showToast('Link copied!'); }
+      else { showToast('Failed to copy link', 'error'); }
+    } catch (_) {
+      showToast('Failed to copy link', 'error');
+    } finally {
+      if (ta && ta.parentNode) { ta.parentNode.removeChild(ta); }
+    }
   }
 }
 
@@ -719,10 +724,10 @@ function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, followi
               </div>
             );
           })}
-          {(commentCount > 3 || localComments.length > 3) && (
+          {localComments.length > 3 && (
             <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-2)', fontSize: 13, fontWeight: 600 }}
-              onClick={() => localComments.length > 3 && setShowAllComments(v => !v)}>
-              {showAllComments ? 'Show fewer comments' : `View all ${formatNumber(Math.max(commentCount, localComments.length))} comments`}
+              onClick={() => setShowAllComments(v => !v)}>
+              {showAllComments ? 'Show fewer comments' : `View all ${formatNumber(localComments.length)} comments`}
             </button>
           )}
         </div>
