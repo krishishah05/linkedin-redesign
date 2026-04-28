@@ -2,7 +2,7 @@
    ADDEXPMODAL.JS — Add a work experience entry
    ============================================================ */
 function AddExpModal() {
-  const { closeModal, showToast, currentUser, setCurrentUser } = React.useContext(AppContext);
+  const { closeModal, showToast, setCurrentUser } = React.useContext(AppContext);
   const [currentRole, setCurrentRole] = React.useState(true);
   const [saving, setSaving] = React.useState(false);
   const [form, setForm] = React.useState({

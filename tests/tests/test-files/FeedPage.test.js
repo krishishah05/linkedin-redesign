@@ -175,8 +175,8 @@ describe('FeedPage — handleNewPost', () => {
     expect(firstPostProps.post.author).toBe('Alex');
     expect(firstPostProps.post.authorId).toBe(1);
 
-    // API.createPost must have been called with the content string
-    expect(global.API.createPost).toHaveBeenCalledWith('Hello world');
+    // API.createPost must have been called with the content string and null imageUrl
+    expect(global.API.createPost).toHaveBeenCalledWith('Hello world', null);
   });
 
   // 2
@@ -254,7 +254,7 @@ describe('FeedPage — handleNewPost', () => {
     // does not validate — validation is in submit(). So we confirm the
     // post appears with whitespace content as-is.
     // The real guard is in PostCreator > submit() tested separately.
-    expect(global.API.createPost).toHaveBeenCalledWith('   ');
+    expect(global.API.createPost).toHaveBeenCalledWith('   ', null);
   });
 });
 
@@ -591,8 +591,8 @@ describe('PostCreator — submit()', () => {
       fireEvent.click(screen.getByText('Post'));
     });
 
-    // onPost should be called with trimmed content
-    expect(mockOnPost).toHaveBeenCalledWith('My post');
+    // onPost should be called with trimmed content and null imageUrl (no image attached)
+    expect(mockOnPost).toHaveBeenCalledWith('My post', null);
 
     // Composer should be collapsed — Start a post button reappears
     expect(screen.getByText('Start a post')).toBeInTheDocument();
@@ -1795,6 +1795,7 @@ describe('FeedPost — render variants and action buttons', () => {
   // Spec: #52
   // Tests that clicking Send copies link via navigator.clipboard and shows 'Link copied!'
   test('Clicking Send copies link and shows Link copied toast', async () => {
+    const originalClipboard = Object.getOwnPropertyDescriptor(navigator, 'clipboard');
     const writeText = jest.fn().mockResolvedValue(undefined);
     Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
 
@@ -1813,6 +1814,11 @@ describe('FeedPost — render variants and action buttons', () => {
 
     expect(writeText).toHaveBeenCalled();
     expect(mockShowToast).toHaveBeenCalledWith('Link copied!');
+
+    // Restore original clipboard descriptor so this test doesn't affect others
+    if (originalClipboard) {
+      Object.defineProperty(navigator, 'clipboard', originalClipboard);
+    }
   });
 
   // 53

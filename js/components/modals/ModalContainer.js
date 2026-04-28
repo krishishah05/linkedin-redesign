@@ -9,6 +9,7 @@ function ModalContainer() {
   const modalMap = {
     'post':          <PostModal />,
     'image-viewer':  <ImageViewerModal />,
+    'imageViewer':   <ImageViewerModal />,
     'connect':       <ConnectModal />,
     'share':         <ShareModal />,
     'apply':         <ApplyModal />,

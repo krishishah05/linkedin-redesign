@@ -87,7 +87,7 @@ function FeedPage() {
     };
     setLocalPosts(prev => [newPost, ...(prev || [])]);
     setFeedSort('Recent');
-    API.createPost(content)
+    API.createPost(content, imageUrl || null)
       .then(() => showToast('Post shared!', 'success'))
       .catch(() => {
         setLocalPosts(prev => (prev || []).filter(p => p.id !== newPost.id));
@@ -258,7 +258,7 @@ function PostCreator({ user, onPost, openModal, showToast }) {
 
   function submit() {
     if (!draft.trim()) return;
-    onPost(draft.trim());
+    onPost(draft.trim(), imageUrl.trim() || null);
     setDraft('');
     setImageUrl('');
     setShowImageInput(false);
@@ -316,17 +316,19 @@ function PostCreator({ user, onPost, openModal, showToast }) {
       {expanded && (
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--border)' }}>
           <div style={{ display: 'flex', gap: 4 }}>
-            {[['Photo','Photo'],['Video','Video'],['Event','Event'],['Article','Article']].map(([icon, label]) => (
+            {[
+              { label: 'Photo', svg: <svg width="18" height="18" viewBox="0 0 24 24" fill="#378FE9"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>, action: handleImageBtn },
+              { label: 'Video', svg: <svg width="18" height="18" viewBox="0 0 24 24" fill="#5F9B41"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/></svg>, action: handleImageBtn },
+              { label: 'Event', svg: <svg width="18" height="18" viewBox="0 0 24 24" fill="#E06847"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>, action: () => navigate('events') },
+              { label: 'Article', svg: <svg width="18" height="18" viewBox="0 0 24 24" fill="#E06847"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>, action: () => navigate('article') },
+            ].map(({ label, svg, action }) => (
               <button key={label} title={label}
-                onClick={() => {
-                  if (label === 'Event') navigate('events');
-                  else if (label === 'Article') navigate('article');
-                  else handleImageBtn();
-                }}
+                onClick={action}
                 style={{ background: showImageInput && (label === 'Photo' || label === 'Video') ? 'var(--bg)' : 'none', border: 'none', cursor: 'pointer', padding: '6px 8px', borderRadius: 6, display: 'flex', alignItems: 'center', gap: 4, fontSize: 13, fontWeight: 600, color: 'var(--text-2)' }}
                 onMouseEnter={e => e.currentTarget.style.background = 'var(--bg)'}
                 onMouseLeave={e => e.currentTarget.style.background = showImageInput && (label === 'Photo' || label === 'Video') ? 'var(--bg)' : 'none'}>
-                <span style={{ fontSize: 13 }}>{icon}</span>
+                {svg}
+                <span>{label}</span>
               </button>
             ))}
           </div>
@@ -466,6 +468,7 @@ function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, followi
     const u = currentUser || {};
     const text = commentDraft.trim();
     setLocalComments(prev => [{
+      id: `c-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
       author: u.name || 'You',
       authorHeadline: u.headline,
       text,
@@ -679,11 +682,12 @@ function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, followi
 
           {/* Comment list */}
           {localComments.slice(0, showAllComments ? localComments.length : 3).map((c, i) => {
+            const cKey = c.id || `${c.author}-${c.timestamp}-${i}`;
             const cName = c.author?.name || c.authorName || c.author || 'User';
             const cText = c.text || c.content || '';
             const cHeadline = c.author?.headline || c.authorHeadline || '';
             return (
-              <div key={i} className="li-comment">
+              <div key={cKey} className="li-comment">
                 <div className="li-comment__photo" style={{ background: 'var(--blue)' }}>
                   {getInitials(cName)}
                 </div>
@@ -695,14 +699,14 @@ function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, followi
                   </div>
                   <div className="li-comment__actions">
                     {c.timestamp && <span style={{ fontSize: 12, color: 'var(--text-3)' }}>{typeof c.timestamp === 'string' ? c.timestamp : formatTime(c.timestamp)}</span>}
-                    <button style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 600, padding: 0, color: likedComments.has(i) ? 'var(--blue)' : 'var(--text-2)' }}
-                      onClick={() => setLikedComments(prev => { const next = new Set(prev); if (next.has(i)) next.delete(i); else next.add(i); return next; })}>
-                      {likedComments.has(i) ? 'Liked' : 'Like'}
+                    <button style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 600, padding: 0, color: likedComments.has(cKey) ? 'var(--blue)' : 'var(--text-2)' }}
+                      onClick={() => setLikedComments(prev => { const next = new Set(prev); if (next.has(cKey)) next.delete(cKey); else next.add(cKey); return next; })}>
+                      {likedComments.has(cKey) ? 'Liked' : 'Like'}
                     </button>
                     <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-2)', fontSize: 12, fontWeight: 600, padding: 0 }}
-                      onClick={() => setReplyingTo(i)}>Reply</button>
+                      onClick={() => setReplyingTo(cKey)}>Reply</button>
                   </div>
-                  {replyingTo === i && (
+                  {replyingTo === cKey && (
                     <div style={{ display: 'flex', gap: 8, marginTop: 6, marginLeft: 40 }}>
                       <input
                         autoFocus
@@ -712,7 +716,7 @@ function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, followi
                         onChange={e => setReplyDraft(e.target.value)}
                         onKeyDown={e => {
                           if (e.key === 'Enter' && replyDraft.trim()) {
-                            const reply = { author: currentUser?.name || 'You', text: `@${cName} ${replyDraft.trim()}`, timestamp: 'Just now', likes: 0 };
+                            const reply = { id: `r-${Date.now()}`, author: currentUser?.name || 'You', text: `@${cName} ${replyDraft.trim()}`, timestamp: 'Just now', likes: 0 };
                             setLocalComments(prev => { const next = [...prev]; next.splice(i + 1, 0, reply); return next; });
                             setReplyDraft(''); setReplyingTo(null);
                           } else if (e.key === 'Escape') { setReplyingTo(null); }
@@ -722,7 +726,7 @@ function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, followi
                       <button className="li-btn li-btn--primary" style={{ fontSize: 12, padding: '4px 10px' }}
                         onClick={() => {
                           if (!replyDraft.trim()) return;
-                          const reply = { author: currentUser?.name || 'You', text: `@${cName} ${replyDraft.trim()}`, timestamp: 'Just now', likes: 0 };
+                          const reply = { id: `r-${Date.now()}`, author: currentUser?.name || 'You', text: `@${cName} ${replyDraft.trim()}`, timestamp: 'Just now', likes: 0 };
                           setLocalComments(prev => { const next = [...prev]; next.splice(i + 1, 0, reply); return next; });
                           setReplyDraft(''); setReplyingTo(null);
                         }}>Reply</button>
@@ -732,10 +736,10 @@ function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, followi
               </div>
             );
           })}
-          {commentCount > 3 && (
+          {localComments.length > 3 && (
             <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-2)', fontSize: 13, fontWeight: 600 }}
-              onClick={() => localComments.length > 3 && setShowAllComments(v => !v)}>
-              {showAllComments ? 'Show fewer comments' : `View all ${formatNumber(commentCount)} comments`}
+              onClick={() => setShowAllComments(v => !v)}>
+              {showAllComments ? 'Show fewer comments' : `View all ${formatNumber(Math.max(commentCount, localComments.length))} comments`}
             </button>
           )}
         </div>

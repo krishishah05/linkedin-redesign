@@ -11,9 +11,8 @@ function AppProvider({ children }) {
   const [appError, setAppError] = React.useState(null);
 
   // ── UI state (mirrors App.state) ──────────────────────────
-  const [likedPosts, setLikedPosts] = React.useState(() => {
-    try { const s = localStorage.getItem('li-liked-posts'); return s ? new Set(JSON.parse(s)) : new Set(); } catch { return new Set(); }
-  });
+  // Loaded from user-scoped key once currentUser is known (see effect below)
+  const [likedPosts, setLikedPosts] = React.useState(() => new Set());
   const [savedJobs, setSavedJobs] = React.useState(() => {
     try { const s = localStorage.getItem('li-saved-jobs'); return s ? new Set(JSON.parse(s)) : new Set(); } catch { return new Set(); }
   });

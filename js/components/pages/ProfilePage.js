@@ -178,9 +178,20 @@ function ProfilePage({ userId }) {
                               onClick={() => {
                                 setMoreMenuOpen(false);
                                 const url = window.location.href.split('#')[0] + '#profile?id=' + user.id;
+                                function execCopyUrl() {
+                                  let ta;
+                                  try {
+                                    ta = document.createElement('textarea');
+                                    ta.value = url; ta.style.cssText = 'position:fixed;opacity:0';
+                                    document.body.appendChild(ta); ta.focus(); ta.select();
+                                    if (document.execCommand('copy')) showToast('Profile link copied!', 'success');
+                                    else showToast('Failed to copy link', 'error');
+                                  } catch { showToast('Failed to copy link', 'error'); }
+                                  finally { if (ta && ta.parentNode) ta.parentNode.removeChild(ta); }
+                                }
                                 if (navigator.clipboard?.writeText) {
-                                  navigator.clipboard.writeText(url).then(() => showToast('Profile link copied!', 'success')).catch(() => showToast('Failed to copy', 'error'));
-                                } else { showToast('Copy the URL from your address bar', 'info'); }
+                                  navigator.clipboard.writeText(url).then(() => showToast('Profile link copied!', 'success')).catch(() => execCopyUrl());
+                                } else { execCopyUrl(); }
                               }}>
                               Copy profile link
                             </button>
