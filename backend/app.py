@@ -206,6 +206,35 @@ def add_education():
     return jsonify(updated)
 
 
+@app.route("/api/me/experience", methods=["POST"])
+def add_experience():
+    """POST /api/me/experience — append a work experience entry to the current user."""
+    user = _auth_user()
+    if not user:
+        abort(401, description="Authentication required")
+    body = request.get_json(silent=True) or {}
+    title = (body.get("title") or "").strip()
+    if not title:
+        abort(400, description="title is required")
+    company = (body.get("company") or "").strip()
+    if not company:
+        abort(400, description="company is required")
+    entry = {
+        "title": title,
+        "company": company,
+        "type": (body.get("type") or "").strip(),
+        "location": (body.get("location") or "").strip(),
+        "startDate": (body.get("startDate") or "").strip(),
+        "current": bool(body.get("current", False)),
+        "description": (body.get("description") or "").strip(),
+        "skills": body.get("skills") if isinstance(body.get("skills"), list) else [],
+    }
+    updated = dbl.add_experience(user["id"], entry)
+    if not updated:
+        abort(404, description="User not found")
+    return jsonify(updated)
+
+
 @app.route("/api/me/skills", methods=["POST"])
 def add_skill():
     """POST /api/me/skills — append a skill to the current user."""

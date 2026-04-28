@@ -1,6 +1,26 @@
 /* ============================================================
    FEEDPAGE.JS — Main feed (matches original app.js quality)
    ============================================================ */
+
+function copyLink(url, showToast) {
+  if (navigator.clipboard?.writeText) {
+    navigator.clipboard.writeText(url)
+      .then(() => showToast('Link copied!'))
+      .catch(() => showToast('Failed to copy link', 'error'));
+  } else {
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = url;
+      ta.style.cssText = 'position:fixed;opacity:0';
+      document.body.appendChild(ta);
+      ta.focus(); ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      showToast('Link copied!');
+    } catch (_) { showToast('Failed to copy link', 'error'); }
+  }
+}
+
 function FeedPage() {
   const { currentUser, likedPosts, toggleLike, following, follow, connections, openModal, showToast } = React.useContext(AppContext);
   const { data: posts, loading, error } = useFetch(API.getFeed, []);
@@ -500,10 +520,7 @@ function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, followi
                       if (label === 'Delete post') { onDelete && onDelete(post.id); showToast('Post deleted'); }
                       else if (label === 'Report post') openModal('report', { post });
                       else if (label === 'Copy link to post') {
-                        const url = `${window.location.origin}${window.location.pathname}#feed`;
-                        if (navigator.clipboard?.writeText) {
-                          navigator.clipboard.writeText(url).then(() => showToast('Link copied!')).catch(() => showToast('Failed to copy link', 'error'));
-                        } else { showToast('Link copied!'); }
+                        copyLink(`${window.location.origin}${window.location.pathname}#feed`, showToast);
                       }
                       else if (label === 'Save post' || label === 'Unsave post') {
                         onSave && onSave(post.id);
@@ -621,12 +638,7 @@ function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, followi
           <span>Repost</span>
         </button>
 
-        <button className="li-post__action" onClick={() => {
-          const url = `${window.location.origin}${window.location.pathname}#feed`;
-          if (navigator.clipboard?.writeText) {
-            navigator.clipboard.writeText(url).then(() => showToast('Link copied!')).catch(() => showToast('Failed to copy link', 'error'));
-          } else { showToast('Link copied!'); }
-        }} style={{ flex: 1 }}>
+        <button className="li-post__action" onClick={() => copyLink(`${window.location.origin}${window.location.pathname}#feed`, showToast)} style={{ flex: 1 }}>
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.5">
             <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
@@ -707,10 +719,10 @@ function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, followi
               </div>
             );
           })}
-          {localComments.length > 3 && (
+          {(commentCount > 3 || localComments.length > 3) && (
             <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-2)', fontSize: 13, fontWeight: 600 }}
-              onClick={() => setShowAllComments(v => !v)}>
-              {showAllComments ? 'Show fewer comments' : `View all ${formatNumber(localComments.length)} comments`}
+              onClick={() => localComments.length > 3 && setShowAllComments(v => !v)}>
+              {showAllComments ? 'Show fewer comments' : `View all ${formatNumber(Math.max(commentCount, localComments.length))} comments`}
             </button>
           )}
         </div>

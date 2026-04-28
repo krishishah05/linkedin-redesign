@@ -86,6 +86,7 @@
 
     // ── Profile (education / skills) ──────────────────────────
     addEducation: (entry) => request('POST', '/me/education', entry),
+    addExperience: (entry) => request('POST', '/me/experience', entry),
     addSkill: (skill) => request('POST', '/me/skills', { skill }),
     createGroup: (data) => request('POST', '/groups', data),
 

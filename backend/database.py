@@ -537,6 +537,24 @@ def add_education(user_id: int, entry: dict):
     return data
 
 
+def add_experience(user_id: int, entry: dict):
+    """Append a work experience entry to a user's data. Returns updated user dict."""
+    conn = _connect()
+    row = _execute(conn, "SELECT data FROM users WHERE id=%s", (user_id,)).fetchone()
+    if not row:
+        conn.close()
+        return None
+    data = json.loads(row["data"])
+    exp_list = data.get("experience", [])
+    entry["id"] = max((e.get("id", 0) for e in exp_list), default=0) + 1
+    exp_list.append(entry)
+    data["experience"] = exp_list
+    _execute(conn, "UPDATE users SET data=%s WHERE id=%s", (json.dumps(data), user_id))
+    conn.commit()
+    conn.close()
+    return data
+
+
 def add_skill(user_id: int, skill: str):
     """Append a skill string to a user's skills list (no duplicates). Returns updated user dict."""
     conn = _connect()

@@ -25,8 +25,7 @@ function AddExpModal() {
       current: currentRole,
       skills: form.skills ? form.skills.split(',').map(s => s.trim()).filter(Boolean) : [],
     };
-    const updatedExp = [...((currentUser || {}).experience || []), newEntry];
-    API.updateMe({ experience: updatedExp })
+    API.addExperience(newEntry)
       .then(updated => { setCurrentUser(updated); showToast('Experience added!', 'success'); closeModal(); })
       .catch(() => { showToast('Failed to save experience', 'error'); setSaving(false); });
   }

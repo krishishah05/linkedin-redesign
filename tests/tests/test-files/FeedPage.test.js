@@ -1792,9 +1792,11 @@ describe('FeedPost — render variants and action buttons', () => {
   // 52
   // Type: WB
   // Spec: #52
-  // Exact line: onClick={() => showToast('Link copied!')}
-  // Tests that clicking Send calls showToast with 'Link copied!'
-  test('Clicking Send calls showToast with Link copied', async () => {
+  // Tests that clicking Send copies link via navigator.clipboard and shows 'Link copied!'
+  test('Clicking Send copies link and shows Link copied toast', async () => {
+    const writeText = jest.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
+
     render(
       React.createElement(sandbox.FeedPost, {
         ...baseProps,
@@ -1805,7 +1807,10 @@ describe('FeedPost — render variants and action buttons', () => {
     await act(async () => {
       fireEvent.click(screen.getByText('Send'));
     });
+    // Flush the resolved Promise microtask so .then() callback runs
+    await act(async () => {});
 
+    expect(writeText).toHaveBeenCalled();
     expect(mockShowToast).toHaveBeenCalledWith('Link copied!');
   });
 

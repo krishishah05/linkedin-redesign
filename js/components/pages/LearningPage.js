@@ -113,7 +113,9 @@ function LearningPage() {
               return (
               <div key={course.id} className="li-card" style={{ padding: 0, overflow: 'hidden', cursor: 'pointer' }}
                 onClick={() => {
-                  if (!isEnrolled) {
+                  if (isEnrolled) {
+                    showToast(`Continuing "${course.title}"…`, 'success');
+                  } else {
                     setEnrolledIds(prev => new Set([...prev, course.id]));
                     setTab('my-learning');
                     showToast(`Enrolled in "${course.title}"`, 'success');
