@@ -76,7 +76,11 @@ function ShortlistPanel() {
     <>
       {/* Backdrop */}
       <div
+        role="button"
+        tabIndex={0}
+        aria-label="Close shortlist panel"
         onClick={() => setRecruiterPanelOpen(false)}
+        onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ' || e.key === 'Escape') { e.preventDefault(); setRecruiterPanelOpen(false); } }}
         style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 1100 }}
       />
 

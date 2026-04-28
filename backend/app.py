@@ -72,6 +72,11 @@ def unauthorized(e):
     return jsonify({"error": str(e)}), 401
 
 
+@app.errorhandler(403)
+def forbidden(e):
+    return jsonify({"error": str(e)}), 403
+
+
 @app.errorhandler(409)
 def conflict(e):
     return jsonify({"error": str(e)}), 409

@@ -72,7 +72,9 @@ function AppProvider({ children }) {
     setShortlisted(prev => {
       const next = new Map(prev);
       next.set(String(user.id), user);
-      try { localStorage.setItem(`li-shortlisted-${userIdRef.current}`, JSON.stringify([...next])); } catch {}
+      if (userIdRef.current) {
+        try { localStorage.setItem(`li-shortlisted-${userIdRef.current}`, JSON.stringify([...next])); } catch {}
+      }
       return next;
     });
   }
@@ -81,14 +83,18 @@ function AppProvider({ children }) {
     setShortlisted(prev => {
       const next = new Map(prev);
       next.delete(String(userId));
-      try { localStorage.setItem(`li-shortlisted-${userIdRef.current}`, JSON.stringify([...next])); } catch {}
+      if (userIdRef.current) {
+        try { localStorage.setItem(`li-shortlisted-${userIdRef.current}`, JSON.stringify([...next])); } catch {}
+      }
       return next;
     });
   }
 
   function clearShortlist() {
     setShortlisted(new Map());
-    try { localStorage.removeItem(`li-shortlisted-${userIdRef.current}`); } catch {}
+    if (userIdRef.current) {
+      try { localStorage.removeItem(`li-shortlisted-${userIdRef.current}`); } catch {}
+    }
   }
 
   const [settings, setSettings] = React.useState(() => {

@@ -81,20 +81,17 @@ describe('ArticlePage — initial state', () => {
   });
 });
 
-describe('ArticlePage — validation toasts', () => {
-  test('shows error toast when publishing without a title', () => {
+describe('ArticlePage — publish button disabled state', () => {
+  test('Publish button stays disabled when only body is filled (no title)', () => {
     renderArticlePage();
-    // Fill body but leave title empty — click the toolbar Publish button
     const bodyArea = screen.getByPlaceholderText(/write your article/i);
     fireEvent.change(bodyArea, { target: { value: 'Some body text' } });
 
-    // The publish button should still be disabled (title empty), so we can't
-    // click it normally. Verify the button remains disabled.
     const publishBtns = screen.getAllByRole('button', { name: /publish/i });
     publishBtns.forEach(btn => expect(btn).toBeDisabled());
   });
 
-  test('shows error toast when publishing without body text', () => {
+  test('Publish button stays disabled when only title is filled (no body)', () => {
     renderArticlePage();
     const titleArea = screen.getByPlaceholderText(/headline/i);
     fireEvent.change(titleArea, { target: { value: 'My Title' } });
