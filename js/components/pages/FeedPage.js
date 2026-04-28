@@ -2,33 +2,6 @@
    FEEDPAGE.JS — Main feed (matches original app.js quality)
    ============================================================ */
 
-function copyLink(url, showToast) {
-  function execCopy() {
-    let ta;
-    try {
-      ta = document.createElement('textarea');
-      ta.value = url;
-      ta.style.cssText = 'position:fixed;opacity:0';
-      document.body.appendChild(ta);
-      ta.focus(); ta.select();
-      const copied = document.execCommand('copy');
-      if (copied) { showToast('Link copied!'); }
-      else { showToast('Failed to copy link', 'error'); }
-    } catch (_) {
-      showToast('Failed to copy link', 'error');
-    } finally {
-      if (ta && ta.parentNode) { ta.parentNode.removeChild(ta); }
-    }
-  }
-  if (navigator.clipboard?.writeText) {
-    navigator.clipboard.writeText(url)
-      .then(() => showToast('Link copied!'))
-      .catch(() => execCopy());
-  } else {
-    execCopy();
-  }
-}
-
 function FeedPage() {
   const { currentUser, likedPosts, toggleLike, following, follow, connections, openModal, showToast } = React.useContext(AppContext);
   const { data: posts, loading, error } = useFetch(API.getFeed, []);
@@ -682,7 +655,8 @@ function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, followi
 
           {/* Comment list */}
           {localComments.slice(0, showAllComments ? localComments.length : 3).map((c, i) => {
-            const cKey = c.id || `${c.author}-${c.timestamp}-${i}`;
+            const authorStr = typeof c.author === 'string' ? c.author : (c.author?.id || c.author?.name || '');
+            const cKey = c.id || `${authorStr}-${c.timestamp}`;
             const cName = c.author?.name || c.authorName || c.author || 'User';
             const cText = c.text || c.content || '';
             const cHeadline = c.author?.headline || c.authorHeadline || '';
@@ -736,9 +710,9 @@ function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, followi
               </div>
             );
           })}
-          {localComments.length > 3 && (
+          {Math.max(commentCount, localComments.length) > 3 && (
             <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-2)', fontSize: 13, fontWeight: 600 }}
-              onClick={() => setShowAllComments(v => !v)}>
+              onClick={() => localComments.length > 3 && setShowAllComments(v => !v)}>
               {showAllComments ? 'Show fewer comments' : `View all ${formatNumber(Math.max(commentCount, localComments.length))} comments`}
             </button>
           )}

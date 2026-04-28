@@ -110,31 +110,7 @@ function ProfilePage({ userId }) {
                       <button className="li-btn li-btn--outline li-btn--sm" onClick={() => openModal('edit-profile')}>Edit profile</button>
                       <button className="li-btn li-btn--ghost li-btn--sm" onClick={() => {
                         const url = window.location.href.split('#')[0] + '#profile?id=' + user.id;
-                        if (navigator.clipboard?.writeText) {
-                          navigator.clipboard.writeText(url)
-                            .then(() => showToast('Profile link copied!', 'success'))
-                            .catch(() => {
-                              let ta;
-                              try {
-                                ta = document.createElement('textarea');
-                                ta.value = url; ta.style.cssText = 'position:fixed;opacity:0';
-                                document.body.appendChild(ta); ta.focus(); ta.select();
-                                if (document.execCommand('copy')) showToast('Profile link copied!', 'success');
-                                else showToast('Failed to copy profile link', 'error');
-                              } catch { showToast('Failed to copy profile link', 'error'); }
-                              finally { if (ta && ta.parentNode) ta.parentNode.removeChild(ta); }
-                            });
-                        } else {
-                          let ta;
-                          try {
-                            ta = document.createElement('textarea');
-                            ta.value = url; ta.style.cssText = 'position:fixed;opacity:0';
-                            document.body.appendChild(ta); ta.focus(); ta.select();
-                            if (document.execCommand('copy')) showToast('Profile link copied!', 'success');
-                            else showToast('Failed to copy profile link', 'error');
-                          } catch { showToast('Failed to copy profile link', 'error'); }
-                          finally { if (ta && ta.parentNode) ta.parentNode.removeChild(ta); }
-                        }
+                        copyLink(url, showToast);
                       }}>Share</button>
                       <button
                         className="li-btn li-btn--ghost li-btn--sm"
@@ -178,20 +154,7 @@ function ProfilePage({ userId }) {
                               onClick={() => {
                                 setMoreMenuOpen(false);
                                 const url = window.location.href.split('#')[0] + '#profile?id=' + user.id;
-                                function execCopyUrl() {
-                                  let ta;
-                                  try {
-                                    ta = document.createElement('textarea');
-                                    ta.value = url; ta.style.cssText = 'position:fixed;opacity:0';
-                                    document.body.appendChild(ta); ta.focus(); ta.select();
-                                    if (document.execCommand('copy')) showToast('Profile link copied!', 'success');
-                                    else showToast('Failed to copy link', 'error');
-                                  } catch { showToast('Failed to copy link', 'error'); }
-                                  finally { if (ta && ta.parentNode) ta.parentNode.removeChild(ta); }
-                                }
-                                if (navigator.clipboard?.writeText) {
-                                  navigator.clipboard.writeText(url).then(() => showToast('Profile link copied!', 'success')).catch(() => execCopyUrl());
-                                } else { execCopyUrl(); }
+                                copyLink(url, showToast);
                               }}>
                               Copy profile link
                             </button>

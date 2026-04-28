@@ -274,7 +274,7 @@ function SettingsPage() {
                 <div style={{ marginTop: 24, padding: 16, background: 'var(--bg-2)', borderRadius: 8 }}>
                   <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 8 }}>Download your data</h3>
                   <p style={{ fontSize: 13, color: 'var(--text-2)', marginBottom: 12 }}>
-                    Get a copy of your Nexus data including your connections, messages, and posts.
+                    Get a copy of your Nexus data including your profile and settings.
                   </p>
                   <button className="li-btn li-btn--outline li-btn--sm" onClick={() => {
                     try {
@@ -292,7 +292,7 @@ function SettingsPage() {
                       const a = document.createElement('a');
                       a.href = url; a.download = 'nexus-data-export.json';
                       document.body.appendChild(a); a.click();
-                      document.body.removeChild(a); URL.revokeObjectURL(url);
+                      document.body.removeChild(a); setTimeout(() => URL.revokeObjectURL(url), 0);
                       showToast('Data exported successfully!', 'success');
                     } catch { showToast('Export failed — please try again', 'error'); }
                   }}>

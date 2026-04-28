@@ -30,6 +30,15 @@ global.API = {
   deletePost: jest.fn(() => Promise.resolve({ deleted: true })),
 };
 global.useFetch = jest.fn();
+global.copyLink = function(url, showToast) {
+  if (navigator.clipboard?.writeText) {
+    navigator.clipboard.writeText(url)
+      .then(() => showToast('Link copied!'))
+      .catch(() => showToast('Failed to copy link', 'error'));
+  } else {
+    showToast('Failed to copy link', 'error');
+  }
+};
 global.LoadingSpinner = ({ text }) => React.createElement('div', { 'data-testid': 'spinner' }, text);
 global.navigate = jest.fn();
 global.getInitials = (name) => (name || '').slice(0, 2).toUpperCase();
@@ -1818,6 +1827,8 @@ describe('FeedPost — render variants and action buttons', () => {
     // Restore original clipboard descriptor so this test doesn't affect others
     if (originalClipboard) {
       Object.defineProperty(navigator, 'clipboard', originalClipboard);
+    } else {
+      delete navigator.clipboard;
     }
   });
 
