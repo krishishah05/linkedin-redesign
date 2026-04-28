@@ -1,19 +1,26 @@
 <!DOCTYPE html>
 <!-- Nexus frontend -->
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Nexus: Log In or Sign Up</title>
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
     :root {
       --blue: #0F5DBD;
       --blue-hover: #004182;
       --blue-light: #EAF4FF;
-      --text-primary: rgba(0,0,0,0.9);
-      --text-secondary: rgba(0,0,0,0.6);
+      --text-primary: rgba(0, 0, 0, 0.9);
+      --text-secondary: rgba(0, 0, 0, 0.6);
       --border: #E0DFDC;
       --border-input: #86888A;
       --bg-page: #F3F2EF;
@@ -29,965 +36,1369 @@
       min-height: 100vh;
     }
 
-    .view { display: none; }
-    .view.active { display: block; }
+    .view {
+      display: none;
+    }
+
+    .view.active {
+      display: block;
+    }
 
     nav {
       background: var(--bg-white);
-      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-      position: sticky; top: 0; z-index: 100;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+      position: sticky;
+      top: 0;
+      z-index: 100;
     }
+
     .nav-inner {
-      max-width: 1128px; margin: 0 auto;
-      display: flex; align-items: center; gap: 8px;
-      padding: 0 24px; height: 56px;
+      max-width: 1128px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 24px;
+      height: 56px;
     }
-    .nav-logo { flex-shrink: 0; margin-right: 8px; }
+
+    .nav-logo {
+      flex-shrink: 0;
+      margin-right: 8px;
+    }
+
     .nav-links {
-      display: flex; align-items: center; gap: 2px;
-      flex: 1; flex-wrap: wrap;
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      flex: 1;
+      flex-wrap: wrap;
     }
+
     .nav-links a {
-      font-size: 14px; color: var(--text-secondary);
-      text-decoration: none; padding: 4px 8px; border-radius: 4px;
-      white-space: nowrap; transition: color 0.15s;
+      font-size: 14px;
+      color: var(--text-secondary);
+      text-decoration: none;
+      padding: 4px 8px;
+      border-radius: 4px;
+      white-space: nowrap;
+      transition: color 0.15s;
     }
-    .nav-links a:hover { color: var(--text-primary); }
-    .nav-actions { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+
+    .nav-links a:hover {
+      color: var(--text-primary);
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+
     .nav-signin {
-      font-size: 16px; font-weight: 600;
-      color: var(--blue); text-decoration: none;
-      padding: 6px 16px; border-radius: 24px;
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--blue);
+      text-decoration: none;
+      padding: 6px 16px;
+      border-radius: 24px;
       transition: background 0.15s;
     }
-    .nav-signin:hover { background: var(--blue-light); }
-    .nav-join {
-      font-size: 16px; font-weight: 600;
-      color: var(--text-secondary); text-decoration: none;
-      padding: 6px 16px; border: 1px solid var(--text-secondary);
-      border-radius: 24px; transition: border-color 0.15s, color 0.15s;
+
+    .nav-signin:hover {
+      background: var(--blue-light);
     }
-    .nav-join:hover { color: var(--text-primary); border-color: var(--text-primary); }
+
+    .nav-join {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-decoration: none;
+      padding: 6px 16px;
+      border: 1px solid var(--text-secondary);
+      border-radius: 24px;
+      transition: border-color 0.15s, color 0.15s;
+    }
+
+    .nav-join:hover {
+      color: var(--text-primary);
+      border-color: var(--text-primary);
+    }
 
     .hero {
-      max-width: 1128px; margin: 0 auto;
-      display: flex; align-items: center; justify-content: space-between;
+      max-width: 1128px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       padding: 32px 24px 0;
       min-height: calc(100vh - 56px - 200px);
     }
-    .hero-left { flex: 0 0 400px; max-width: 400px; }
-    .hero-tagline {
-      font-size: 32px; font-weight: 400; line-height: 1.25;
-      color: #8F5849; margin-bottom: 32px; font-family: Georgia, serif;
+
+    .hero-left {
+      flex: 0 0 400px;
+      max-width: 400px;
     }
+
+    .hero-tagline {
+      font-size: 32px;
+      font-weight: 400;
+      line-height: 1.25;
+      color: #8F5849;
+      margin-bottom: 32px;
+      font-family: Georgia, serif;
+    }
+
     .hero-right {
-      flex: 1; display: flex; justify-content: center; align-items: center;
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
       padding-left: 48px;
     }
-    .hero-illustration { width: 100%; max-width: 580px; }
+
+    .hero-illustration {
+      width: 100%;
+      max-width: 580px;
+    }
 
     .login-card {
       background: var(--bg-white);
       border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
       padding: 24px;
-      width: 100%; max-width: 400px;
-    }
-    .login-card h1 {
-      font-size: 28px; font-weight: 700;
-      margin-bottom: 20px; color: var(--text-primary);
+      width: 100%;
+      max-width: 400px;
     }
 
-    .form-group { margin-bottom: 16px; position: relative; }
-    .form-group label {
-      display: block; font-size: 14px; font-weight: 600;
-      color: var(--text-secondary); margin-bottom: 4px;
+    .login-card h1 {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 20px;
+      color: var(--text-primary);
     }
-    .form-group input, .form-group select {
-      width: 100%; height: 52px;
+
+    .form-group {
+      margin-bottom: 16px;
+      position: relative;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 4px;
+    }
+
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      height: 52px;
       border: 1px solid var(--border-input);
       border-radius: 4px;
       padding: 14px 12px;
-      font-size: 16px; color: var(--text-primary);
+      font-size: 16px;
+      color: var(--text-primary);
       outline: none;
       transition: border-color 0.15s, box-shadow 0.15s;
       background: var(--bg-white);
-      appearance: none; -webkit-appearance: none;
+      appearance: none;
+      -webkit-appearance: none;
     }
-    .form-group input:focus, .form-group select:focus {
-      border-color: var(--blue);
-      box-shadow: 0 0 0 2px rgba(10,102,194,0.25);
-    }
-    .form-group input.error { border-color: var(--red); }
-    .form-group .error-msg {
-      font-size: 12px; color: var(--red); margin-top: 4px; display: none;
-    }
-    .form-group .error-msg.show { display: block; }
 
-    .pw-wrap { position: relative; }
-    .pw-wrap input { padding-right: 56px; }
+    .form-group input:focus,
+    .form-group select:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 2px rgba(10, 102, 194, 0.25);
+    }
+
+    .form-group input.error {
+      border-color: var(--red);
+    }
+
+    .form-group .error-msg {
+      font-size: 12px;
+      color: var(--red);
+      margin-top: 4px;
+      display: none;
+    }
+
+    .form-group .error-msg.show {
+      display: block;
+    }
+
+    .pw-wrap {
+      position: relative;
+    }
+
+    .pw-wrap input {
+      padding-right: 56px;
+    }
+
     .pw-toggle {
-      position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
-      background: none; border: none; cursor: pointer;
-      font-size: 14px; font-weight: 600; color: var(--blue);
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--blue);
       padding: 4px;
     }
-    .pw-toggle:hover { text-decoration: underline; }
+
+    .pw-toggle:hover {
+      text-decoration: underline;
+    }
 
     .btn-primary {
-      width: 100%; height: 48px;
-      background: var(--blue); color: #fff;
-      border: none; border-radius: 24px;
-      font-size: 16px; font-weight: 600;
-      cursor: pointer; transition: background 0.15s;
+      width: 100%;
+      height: 48px;
+      background: var(--blue);
+      color: #fff;
+      border: none;
+      border-radius: 24px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
     }
-    .btn-primary:hover { background: var(--blue-hover); }
-    .btn-primary:disabled { background: #9CA3AF; cursor: not-allowed; }
+
+    .btn-primary:hover {
+      background: var(--blue-hover);
+    }
+
+    .btn-primary:disabled {
+      background: #9CA3AF;
+      cursor: not-allowed;
+    }
 
     .btn-outline {
-      width: 100%; height: 48px;
-      background: transparent; color: var(--text-primary);
-      border: 1px solid rgba(0,0,0,0.6); border-radius: 24px;
-      font-size: 16px; font-weight: 600;
-      cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+      width: 100%;
+      height: 48px;
+      background: transparent;
+      color: var(--text-primary);
+      border: 1px solid rgba(0, 0, 0, 0.6);
+      border-radius: 24px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
       transition: background 0.15s, border-color 0.15s;
       text-decoration: none;
     }
-    .btn-outline:hover { background: var(--bg-page); border-color: var(--text-primary); }
+
+    .btn-outline:hover {
+      background: var(--bg-page);
+      border-color: var(--text-primary);
+    }
 
     .or-divider {
-      display: flex; align-items: center; gap: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
       margin: 16px 0;
     }
-    .or-divider::before, .or-divider::after {
-      content: ''; flex: 1; height: 1px; background: var(--border-input);
-    }
-    .or-divider span {
-      font-size: 14px; color: var(--text-secondary);
-      font-weight: 600; white-space: nowrap;
+
+    .or-divider::before,
+    .or-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border-input);
     }
 
-    .social-btns { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+    .or-divider span {
+      font-size: 14px;
+      color: var(--text-secondary);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .social-btns {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
 
     .join-link {
-      text-align: center; font-size: 14px;
-      color: var(--text-secondary); margin-top: 16px;
+      text-align: center;
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-top: 16px;
     }
-    .join-link a { color: var(--blue); font-weight: 600; text-decoration: none; }
-    .join-link a:hover { text-decoration: underline; }
+
+    .join-link a {
+      color: var(--blue);
+      font-weight: 600;
+      text-decoration: none;
+    }
+
+    .join-link a:hover {
+      text-decoration: underline;
+    }
 
     footer {
       background: var(--bg-page);
       padding: 32px 24px;
       margin-top: 40px;
     }
+
     .footer-inner {
-      max-width: 1128px; margin: 0 auto;
-      display: flex; flex-direction: column; align-items: center; gap: 16px;
-    }
-    .footer-links {
-      display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 16px;
-    }
-    .footer-links a {
-      font-size: 12px; color: var(--text-secondary); text-decoration: none;
-    }
-    .footer-links a:hover { text-decoration: underline; }
-    .footer-copy { font-size: 12px; color: var(--text-secondary); }
-    .lang-select {
-      display: flex; align-items: center; gap: 6px;
-      border: 1px solid var(--text-secondary); border-radius: 4px;
-      padding: 4px 10px; cursor: pointer; font-size: 13px; color: var(--text-secondary);
-      background: transparent;
-    }
-    .lang-select select {
-      border: none; background: transparent; font-size: 13px;
-      color: var(--text-secondary); cursor: pointer; outline: none;
+      max-width: 1128px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
     }
 
-    #view-signup { min-height: 100vh; background: var(--bg-page); }
-    .signup-container { max-width: 500px; margin: 0 auto; padding: 32px 24px; }
+    .footer-links {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 4px 16px;
+    }
+
+    .footer-links a {
+      font-size: 12px;
+      color: var(--text-secondary);
+      text-decoration: none;
+    }
+
+    .footer-links a:hover {
+      text-decoration: underline;
+    }
+
+    .footer-copy {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .lang-select {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid var(--text-secondary);
+      border-radius: 4px;
+      padding: 4px 10px;
+      cursor: pointer;
+      font-size: 13px;
+      color: var(--text-secondary);
+      background: transparent;
+    }
+
+    .lang-select select {
+      border: none;
+      background: transparent;
+      font-size: 13px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      outline: none;
+    }
+
+    #view-signup {
+      min-height: 100vh;
+      background: var(--bg-page);
+    }
+
+    .signup-container {
+      max-width: 500px;
+      margin: 0 auto;
+      padding: 32px 24px;
+    }
+
     .signup-card {
       background: var(--bg-white);
       border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
       padding: 32px;
     }
+
     .progress-bar-wrap {
-      height: 4px; background: #E0DFDC; border-radius: 2px;
-      margin-bottom: 28px; overflow: hidden;
+      height: 4px;
+      background: #E0DFDC;
+      border-radius: 2px;
+      margin-bottom: 28px;
+      overflow: hidden;
     }
+
     .progress-bar-fill {
-      height: 100%; background: var(--blue);
-      border-radius: 2px; transition: width 0.35s ease;
+      height: 100%;
+      background: var(--blue);
+      border-radius: 2px;
+      transition: width 0.35s ease;
     }
-    .step { display: none; }
-    .step.active { display: block; }
-    .step-heading { font-size: 24px; font-weight: 700; margin-bottom: 6px; color: var(--text-primary); }
-    .step-sub { font-size: 14px; color: var(--text-secondary); margin-bottom: 20px; }
-    .step-actions { display: flex; flex-direction: column; gap: 12px; margin-top: 20px; }
-    .step-back-link { text-align: center; font-size: 14px; color: var(--text-secondary); cursor: pointer; }
-    .step-back-link a { color: var(--blue); text-decoration: none; font-weight: 600; }
-    .step-back-link a:hover { text-decoration: underline; }
+
+    .step {
+      display: none;
+    }
+
+    .step.active {
+      display: block;
+    }
+
+    .step-heading {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      color: var(--text-primary);
+    }
+
+    .step-sub {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: 20px;
+    }
+
+    .step-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .step-back-link {
+      text-align: center;
+      font-size: 14px;
+      color: var(--text-secondary);
+      cursor: pointer;
+    }
+
+    .step-back-link a {
+      color: var(--blue);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .step-back-link a:hover {
+      text-decoration: underline;
+    }
 
     .radio-option {
-      display: flex; align-items: center; gap: 12px;
-      padding: 14px 16px; border: 1px solid var(--border-input);
-      border-radius: 4px; cursor: pointer; margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      border: 1px solid var(--border-input);
+      border-radius: 4px;
+      cursor: pointer;
+      margin-bottom: 8px;
       transition: border-color 0.15s, background 0.15s;
     }
-    .radio-option:hover { border-color: var(--blue); background: var(--blue-light); }
-    .radio-option input[type="radio"] { accent-color: var(--blue); width: 18px; height: 18px; flex-shrink: 0; }
-    .radio-option { font-size: 15px; font-weight: 500; }
 
-    .yes-no-btns { display: flex; gap: 12px; margin-top: 8px; }
+    .radio-option:hover {
+      border-color: var(--blue);
+      background: var(--blue-light);
+    }
+
+    .radio-option input[type="radio"] {
+      accent-color: var(--blue);
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+    }
+
+    .radio-option {
+      font-size: 15px;
+      font-weight: 500;
+    }
+
+    .yes-no-btns {
+      display: flex;
+      gap: 12px;
+      margin-top: 8px;
+    }
+
     .yes-no-btns button {
-      flex: 1; height: 48px;
-      border: 1px solid var(--border-input); border-radius: 4px;
-      background: var(--bg-white); font-size: 16px; font-weight: 600;
-      cursor: pointer; transition: border-color 0.15s, background 0.15s;
+      flex: 1;
+      height: 48px;
+      border: 1px solid var(--border-input);
+      border-radius: 4px;
+      background: var(--bg-white);
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
     }
-    .yes-no-btns button:hover { border-color: var(--blue); background: var(--blue-light); }
-    .yes-no-btns button.selected { border-color: var(--blue); background: var(--blue-light); color: var(--blue); }
 
-    .bday-selects { display: flex; gap: 8px; }
-    .bday-selects select {
-      flex: 1; height: 52px; border: 1px solid var(--border-input);
-      border-radius: 4px; padding: 0 10px; font-size: 14px;
-      color: var(--text-primary); background: var(--bg-white);
-      outline: none; cursor: pointer;
+    .yes-no-btns button:hover {
+      border-color: var(--blue);
+      background: var(--blue-light);
     }
-    .bday-selects select:focus { border-color: var(--blue); box-shadow: 0 0 0 2px rgba(10,102,194,0.25); }
+
+    .yes-no-btns button.selected {
+      border-color: var(--blue);
+      background: var(--blue-light);
+      color: var(--blue);
+    }
+
+    .bday-selects {
+      display: flex;
+      gap: 8px;
+    }
+
+    .bday-selects select {
+      flex: 1;
+      height: 52px;
+      border: 1px solid var(--border-input);
+      border-radius: 4px;
+      padding: 0 10px;
+      font-size: 14px;
+      color: var(--text-primary);
+      background: var(--bg-white);
+      outline: none;
+      cursor: pointer;
+    }
+
+    .bday-selects select:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 2px rgba(10, 102, 194, 0.25);
+    }
 
     .industry-grid {
-      display: grid; grid-template-columns: 1fr 1fr;
-      gap: 8px; max-height: 300px; overflow-y: auto; padding-right: 4px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      max-height: 300px;
+      overflow-y: auto;
+      padding-right: 4px;
     }
+
     .industry-option {
-      display: flex; align-items: center; gap: 8px;
-      padding: 10px 12px; border: 1px solid var(--border-input);
-      border-radius: 4px; cursor: pointer;
-      transition: border-color 0.15s, background 0.15s; font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      border: 1px solid var(--border-input);
+      border-radius: 4px;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+      font-size: 13px;
     }
-    .industry-option:hover { border-color: var(--blue); background: var(--blue-light); }
-    .industry-option input[type="checkbox"] { accent-color: var(--blue); }
-    .industry-option.selected { border-color: var(--blue); background: var(--blue-light); }
+
+    .industry-option:hover {
+      border-color: var(--blue);
+      background: var(--blue-light);
+    }
+
+    .industry-option input[type="checkbox"] {
+      accent-color: var(--blue);
+    }
+
+    .industry-option.selected {
+      border-color: var(--blue);
+      background: var(--blue-light);
+    }
 
     .toast {
-      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
-      background: #1D2226; color: #fff;
-      padding: 12px 24px; border-radius: 4px;
-      font-size: 14px; z-index: 9999;
-      opacity: 0; pointer-events: none; transition: opacity 0.3s;
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1D2226;
+      color: #fff;
+      padding: 12px 24px;
+      border-radius: 4px;
+      font-size: 14px;
+      z-index: 9999;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
     }
-    .toast.show { opacity: 1; }
+
+    .toast.show {
+      opacity: 1;
+    }
 
     @media (max-width: 900px) {
-      .hero { flex-direction: column-reverse; align-items: center; padding-top: 24px; }
-      .hero-left { max-width: 100%; flex: none; width: 100%; }
-      .hero-right { padding-left: 0; padding-bottom: 24px; }
-      .hero-tagline { font-size: 24px; text-align: center; }
-      .hero-illustration { max-width: 360px; }
+      .hero {
+        flex-direction: column-reverse;
+        align-items: center;
+        padding-top: 24px;
+      }
+
+      .hero-left {
+        max-width: 100%;
+        flex: none;
+        width: 100%;
+      }
+
+      .hero-right {
+        padding-left: 0;
+        padding-bottom: 24px;
+      }
+
+      .hero-tagline {
+        font-size: 24px;
+        text-align: center;
+      }
+
+      .hero-illustration {
+        max-width: 360px;
+      }
     }
+
     @media (max-width: 600px) {
-      .nav-links { display: none; }
-      .login-card { box-shadow: none; border-radius: 0; padding: 20px 16px; }
-      .hero { padding: 16px 16px 0; }
-      .signup-card { padding: 20px 16px; }
-.bday-selects { flex-direction: column; }
+      .nav-links {
+        display: none;
+      }
+
+      .login-card {
+        box-shadow: none;
+        border-radius: 0;
+        padding: 20px 16px;
+      }
+
+      .hero {
+        padding: 16px 16px 0;
+      }
+
+      .signup-card {
+        padding: 20px 16px;
+      }
+
+      .bday-selects {
+        flex-direction: column;
+      }
     }
   </style>
 </head>
+
 <body>
 
-<!-- VIEW: LOGIN -->
-<div id="view-login" class="view active">
-  <nav>
-    <div class="nav-inner">
-      <a class="nav-logo" href="#" onclick="return false;">
-        <svg width="84" height="21" viewBox="0 0 84 21" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <rect width="21" height="21" rx="4" fill="#0F5DBD"/>
-          <text x="5.5" y="15.5" font-family="Arial,Helvetica,sans-serif" font-size="13" font-weight="bold" fill="#fff">N</text>
-          <text x="26" y="15.5" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" font-size="14" font-weight="700" fill="#0F5DBD">Nexus</text>
-        </svg>
-      </a>
-      <div class="nav-links">
-        <a href="#">About</a>
-        <a href="#">Talent Solutions</a>
-        <a href="#">Marketing Solutions</a>
-        <a href="#">Sales Solutions</a>
-        <a href="#">Small Business</a>
-        <a href="#">Safety Center</a>
-      </div>
-      <div class="nav-actions">
-        <a href="#" class="nav-signin" onclick="showView('login'); return false;">Sign in</a>
-        <a href="#" class="nav-join" onclick="startSignup(); return false;">Join now</a>
-      </div>
-    </div>
-  </nav>
+  <!-- VIEW: LOGIN -->
+  <div id="view-login" class="view active">
+    <nav>
+      <div class="nav-inner">
+        <a class="nav-logo" href="#" onclick="return false;">
+          <svg width="84" height="21" viewBox="0 0 84 21" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="21" height="21" rx="4" fill="#0F5DBD" />
+            <text x="5.5" y="15.5" font-family="Arial,Helvetica,sans-serif" font-size="13" font-weight="bold"
+              fill="#fff">N</text>
+            <text x="26" y="15.5" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" font-size="14"
+              font-weight="700" fill="#0F5DBD">Nexus</text>
+          </svg>
+        </a>
 
-  <section class="hero">
-    <div class="hero-left">
-      <p class="hero-tagline">Build your professional future</p>
-      <div class="login-card">
-        <h1>Sign in</h1>
-        <div class="form-group">
-          <label for="login-email">Email</label>
-          <input type="text" id="login-email" autocomplete="email" />
-          <span class="error-msg" id="login-email-err">Please enter a valid email address.</span>
+        <div class="nav-actions">
+          <a href="#" class="nav-signin" onclick="showView('login'); return false;">Sign in</a>
+          <a href="#" class="nav-join" onclick="startSignup(); return false;">Join now</a>
         </div>
-        <div class="form-group">
-          <label for="login-pw">Password</label>
-          <div class="pw-wrap">
-            <input type="password" id="login-pw" autocomplete="current-password" />
-            <button
-            type="button"
-            class="pw-toggle"
-            onclick="togglePw('login-pw', this)"
-            aria-controls="login-pw"
-            aria-pressed="false">
-              Show
-            </button>
+      </div>
+    </nav>
+
+    <section class="hero">
+      <div class="hero-left">
+        <p class="hero-tagline">Build your professional future</p>
+        <div class="login-card">
+          <h1>Sign in</h1>
+          <div class="form-group">
+            <label for="login-email">Email</label>
+            <input type="text" id="login-email" autocomplete="email" />
+            <span class="error-msg" id="login-email-err">Please enter a valid email address.</span>
           </div>
-          <span class="error-msg" id="login-pw-err">Please enter your password.</span>
-        </div>
-<button class="btn-primary" id="login-btn" onclick="handleLogin()">Sign in</button>
-        <div class="join-link" style="margin-top:16px;">
-          New to Nexus? <a href="#" onclick="startSignup(); return false;">Join now</a>
-        </div>
-      </div>
-    </div>
-
-    <div class="hero-right">
-      <svg class="hero-illustration" viewBox="0 0 580 460" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" style="stop-color:#F3F2EF"/>
-            <stop offset="100%" style="stop-color:#EAF4FF"/>
-          </linearGradient>
-          <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
-            <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="rgba(0,0,0,0.12)"/>
-          </filter>
-        </defs>
-        <rect width="580" height="460" fill="url(#bgGrad)" rx="16"/>
-        <circle cx="520" cy="60" r="60" fill="#0F5DBD" opacity="0.08"/>
-        <circle cx="60" cy="400" r="80" fill="#057642" opacity="0.08"/>
-        <line x1="145" y1="180" x2="290" y2="110" stroke="#0F5DBD" stroke-width="1.5" stroke-dasharray="6,4" opacity="0.4"/>
-        <line x1="435" y1="180" x2="290" y2="110" stroke="#0F5DBD" stroke-width="1.5" stroke-dasharray="6,4" opacity="0.4"/>
-        <line x1="145" y1="310" x2="290" y2="110" stroke="#057642" stroke-width="1.5" stroke-dasharray="6,4" opacity="0.3"/>
-        <line x1="435" y1="310" x2="290" y2="110" stroke="#8F5849" stroke-width="1.5" stroke-dasharray="6,4" opacity="0.3"/>
-        <!-- Center avatar -->
-        <g filter="url(#shadow)">
-          <rect x="240" y="60" width="100" height="100" rx="50" fill="#0F5DBD"/>
-          <circle cx="290" cy="95" r="20" fill="#fff" opacity="0.9"/>
-          <ellipse cx="290" cy="145" rx="28" ry="22" fill="#fff" opacity="0.9"/>
-        </g>
-        <rect x="318" y="60" width="26" height="26" rx="6" fill="#fff"/>
-        <text x="323" y="78" font-family="Arial,Helvetica,sans-serif" font-size="12" font-weight="bold" fill="#0F5DBD">N</text>
-        <!-- Card TL -->
-        <g filter="url(#shadow)">
-          <rect x="60" y="135" width="170" height="90" rx="10" fill="#fff"/>
-          <rect x="70" y="148" width="44" height="44" rx="22" fill="#0F5DBD"/>
-          <circle cx="92" cy="163" r="9" fill="#fff" opacity="0.9"/>
-          <ellipse cx="92" cy="185" rx="12" ry="9" fill="#fff" opacity="0.9"/>
-          <rect x="124" y="150" width="90" height="8" rx="4" fill="#E0DFDC"/>
-          <rect x="124" y="164" width="70" height="6" rx="3" fill="#E0DFDC"/>
-          <rect x="124" y="176" width="80" height="6" rx="3" fill="#E0DFDC"/>
-          <rect x="64" y="196" width="68" height="22" rx="11" fill="#0F5DBD"/>
-          <text x="72" y="211" font-family="sans-serif" font-size="10" fill="#fff" font-weight="600">Connected</text>
-        </g>
-        <!-- Card TR -->
-        <g filter="url(#shadow)">
-          <rect x="350" y="135" width="170" height="90" rx="10" fill="#fff"/>
-          <rect x="360" y="148" width="44" height="44" rx="22" fill="#057642"/>
-          <circle cx="382" cy="163" r="9" fill="#fff" opacity="0.9"/>
-          <ellipse cx="382" cy="185" rx="12" ry="9" fill="#fff" opacity="0.9"/>
-          <rect x="414" y="150" width="90" height="8" rx="4" fill="#E0DFDC"/>
-          <rect x="414" y="164" width="70" height="6" rx="3" fill="#E0DFDC"/>
-          <rect x="414" y="176" width="80" height="6" rx="3" fill="#E0DFDC"/>
-          <rect x="354" y="196" width="60" height="22" rx="11" fill="#057642"/>
-          <text x="364" y="211" font-family="sans-serif" font-size="10" fill="#fff" font-weight="600">Follow</text>
-        </g>
-        <!-- Card BL -->
-        <g filter="url(#shadow)">
-          <rect x="60" y="265" width="170" height="90" rx="10" fill="#fff"/>
-          <rect x="70" y="278" width="44" height="44" rx="22" fill="#8F5849"/>
-          <circle cx="92" cy="293" r="9" fill="#fff" opacity="0.9"/>
-          <ellipse cx="92" cy="315" rx="12" ry="9" fill="#fff" opacity="0.9"/>
-          <rect x="124" y="280" width="90" height="8" rx="4" fill="#E0DFDC"/>
-          <rect x="124" y="294" width="70" height="6" rx="3" fill="#E0DFDC"/>
-          <rect x="124" y="306" width="80" height="6" rx="3" fill="#E0DFDC"/>
-          <rect x="64" y="326" width="78" height="22" rx="11" fill="#0F5DBD"/>
-          <text x="70" y="341" font-family="sans-serif" font-size="10" fill="#fff" font-weight="600">+ Connect</text>
-        </g>
-        <!-- Card BR -->
-        <g filter="url(#shadow)">
-          <rect x="350" y="265" width="170" height="90" rx="10" fill="#fff"/>
-          <rect x="360" y="278" width="44" height="44" rx="22" fill="#915907"/>
-          <circle cx="382" cy="293" r="9" fill="#fff" opacity="0.9"/>
-          <ellipse cx="382" cy="315" rx="12" ry="9" fill="#fff" opacity="0.9"/>
-          <rect x="414" y="280" width="90" height="8" rx="4" fill="#E0DFDC"/>
-          <rect x="414" y="294" width="70" height="6" rx="3" fill="#E0DFDC"/>
-          <rect x="414" y="306" width="80" height="6" rx="3" fill="#E0DFDC"/>
-          <rect x="354" y="326" width="74" height="22" rx="11" fill="#0F5DBD"/>
-          <text x="360" y="341" font-family="sans-serif" font-size="10" fill="#fff" font-weight="600">+ Connect</text>
-        </g>
-        <!-- Notification -->
-        <g filter="url(#shadow)">
-          <rect x="195" y="370" width="190" height="52" rx="10" fill="#fff"/>
-          <text x="214" y="402" font-family="sans-serif" font-size="16">!</text>
-          <rect x="244" y="383" width="120" height="8" rx="4" fill="#E0DFDC"/>
-          <rect x="244" y="397" width="90" height="6" rx="3" fill="#E0DFDC"/>
-          <circle cx="374" cy="383" r="7" fill="#CC1016"/>
-          <text x="371" y="387" font-family="sans-serif" font-size="9" fill="#fff" font-weight="bold">3</text>
-        </g>
-      </svg>
-    </div>
-  </section>
-
-  <footer>
-    <div class="footer-inner">
-      <div class="footer-copy">Nexus Corp &copy; 2026</div>
-    </div>
-  </footer>
-</div>
-
-<!-- VIEW: SIGNUP WIZARD -->
-<div id="view-signup" class="view">
-  <nav>
-    <div class="nav-inner">
-      <a class="nav-logo" href="#" onclick="return false;">
-        <svg width="84" height="21" viewBox="0 0 84 21" fill="none">
-          <rect width="21" height="21" rx="4" fill="#0F5DBD"/>
-          <text x="5.5" y="15.5" font-family="Arial,Helvetica,sans-serif" font-size="13" font-weight="bold" fill="#fff">N</text>
-          <text x="26" y="15.5" font-family="sans-serif" font-size="14" font-weight="700" fill="#0F5DBD">Nexus</text>
-        </svg>
-      </a>
-    </div>
-  </nav>
-  <div class="signup-container">
-    <div class="signup-card">
-      <div class="progress-bar-wrap">
-        <div class="progress-bar-fill" id="signup-progress" style="width:11%"></div>
-      </div>
-
-      <!-- Step 1 -->
-      <div class="step active" id="step-1">
-        <h2 class="step-heading">Make the most of your professional life</h2>
-        <p class="step-sub">Enter your email address</p>
-        <div class="form-group">
-          <label for="s-email">Email</label>
-          <input type="text" id="s-email" autocomplete="email" />
-          <span class="error-msg" id="s-email-err">Please enter a valid email address.</span>
-        </div>
-        <div class="step-actions">
-          <button class="btn-primary" onclick="nextStep(1)">Agree &amp; Join</button>
-          <p style="font-size:11px;color:rgba(0,0,0,0.6);text-align:center;line-height:1.4;">
-            By clicking Agree &amp; Join, you agree to Nexus's
-            <a href="#" style="color:#0F5DBD;">User Agreement</a>,
-            <a href="#" style="color:#0F5DBD;">Privacy Policy</a>, and
-            <a href="#" style="color:#0F5DBD;">Cookie Policy</a>.
-          </p>
-          <div class="step-back-link">Already on Nexus? <a href="#" onclick="showView('login'); return false;">Sign in</a></div>
-        </div>
-      </div>
-
-      <!-- Step 2 -->
-      <div class="step" id="step-2">
-        <h2 class="step-heading">Create a password</h2>
-        <p class="step-sub">Must be at least 8 characters and include a number or symbol.</p>
-        <div class="form-group">
-          <label for="s-pw">Password</label>
-          <div class="pw-wrap">
-            <input type="password" id="s-pw" autocomplete="new-password" />
-            <button class="pw-toggle" onclick="togglePw('s-pw', this)">Show</button>
+          <div class="form-group">
+            <label for="login-pw">Password</label>
+            <div class="pw-wrap">
+              <input type="password" id="login-pw" autocomplete="current-password" />
+              <button type="button" class="pw-toggle" onclick="togglePw('login-pw', this)" aria-controls="login-pw"
+                aria-pressed="false">
+                Show
+              </button>
+            </div>
+            <span class="error-msg" id="login-pw-err">Please enter your password.</span>
           </div>
-          <span class="error-msg" id="s-pw-err">Password must be at least 8 characters and include a number or symbol.</span>
-          <ul style="font-size:12px;color:rgba(0,0,0,0.55);margin-top:8px;padding-left:18px;line-height:1.7;">
-            <li>At least 8 characters</li>
-            <li>At least 1 number (0–9) or symbol (!@#$%^&amp;*…)</li>
-          </ul>
-        </div>
-        <div class="step-actions">
-          <button class="btn-primary" onclick="nextStep(2)">Continue</button>
-          <div class="step-back-link"><a href="#" onclick="prevStep(2); return false;">Go back</a></div>
+          <button class="btn-primary" id="login-btn" onclick="handleLogin()">Sign in</button>
+          <div class="join-link" style="margin-top:16px;">
+            New to Nexus? <a href="#" onclick="startSignup(); return false;">Join now</a>
+          </div>
         </div>
       </div>
 
-      <!-- Step 3 -->
-      <div class="step" id="step-3">
-        <h2 class="step-heading">What's your name?</h2>
-        <p class="step-sub">Help your network find you by using your real name.</p>
-        <div class="form-group">
-          <label for="s-first">First name</label>
-          <input type="text" id="s-first" autocomplete="given-name" />
-          <span class="error-msg" id="s-first-err">First name is required.</span>
-        </div>
-        <div class="form-group">
-          <label for="s-last">Last name</label>
-          <input type="text" id="s-last" autocomplete="family-name" />
-          <span class="error-msg" id="s-last-err">Last name is required.</span>
-        </div>
-        <div class="step-actions">
-          <button class="btn-primary" onclick="nextStep(3)">Continue</button>
-          <div class="step-back-link"><a href="#" onclick="prevStep(3); return false;">Go back</a></div>
-        </div>
+      <div class="hero-right">
+        <svg class="hero-illustration" viewBox="0 0 580 460" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#F3F2EF" />
+              <stop offset="100%" style="stop-color:#EAF4FF" />
+            </linearGradient>
+            <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+              <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="rgba(0,0,0,0.12)" />
+            </filter>
+          </defs>
+          <rect width="580" height="460" fill="url(#bgGrad)" rx="16" />
+          <circle cx="520" cy="60" r="60" fill="#0F5DBD" opacity="0.08" />
+          <circle cx="60" cy="400" r="80" fill="#057642" opacity="0.08" />
+          <line x1="145" y1="180" x2="290" y2="110" stroke="#0F5DBD" stroke-width="1.5" stroke-dasharray="6,4"
+            opacity="0.4" />
+          <line x1="435" y1="180" x2="290" y2="110" stroke="#0F5DBD" stroke-width="1.5" stroke-dasharray="6,4"
+            opacity="0.4" />
+          <line x1="145" y1="310" x2="290" y2="110" stroke="#057642" stroke-width="1.5" stroke-dasharray="6,4"
+            opacity="0.3" />
+          <line x1="435" y1="310" x2="290" y2="110" stroke="#8F5849" stroke-width="1.5" stroke-dasharray="6,4"
+            opacity="0.3" />
+          <!-- Center avatar -->
+          <g filter="url(#shadow)">
+            <rect x="240" y="60" width="100" height="100" rx="50" fill="#0F5DBD" />
+            <circle cx="290" cy="95" r="20" fill="#fff" opacity="0.9" />
+            <ellipse cx="290" cy="145" rx="28" ry="22" fill="#fff" opacity="0.9" />
+          </g>
+          <rect x="318" y="60" width="26" height="26" rx="6" fill="#fff" />
+          <text x="323" y="78" font-family="Arial,Helvetica,sans-serif" font-size="12" font-weight="bold"
+            fill="#0F5DBD">N</text>
+          <!-- Card TL -->
+          <g filter="url(#shadow)">
+            <rect x="60" y="135" width="170" height="90" rx="10" fill="#fff" />
+            <rect x="70" y="148" width="44" height="44" rx="22" fill="#0F5DBD" />
+            <circle cx="92" cy="163" r="9" fill="#fff" opacity="0.9" />
+            <ellipse cx="92" cy="185" rx="12" ry="9" fill="#fff" opacity="0.9" />
+            <rect x="124" y="150" width="90" height="8" rx="4" fill="#E0DFDC" />
+            <rect x="124" y="164" width="70" height="6" rx="3" fill="#E0DFDC" />
+            <rect x="124" y="176" width="80" height="6" rx="3" fill="#E0DFDC" />
+            <rect x="64" y="196" width="68" height="22" rx="11" fill="#0F5DBD" />
+            <text x="72" y="211" font-family="sans-serif" font-size="10" fill="#fff" font-weight="600">Connected</text>
+          </g>
+          <!-- Card TR -->
+          <g filter="url(#shadow)">
+            <rect x="350" y="135" width="170" height="90" rx="10" fill="#fff" />
+            <rect x="360" y="148" width="44" height="44" rx="22" fill="#057642" />
+            <circle cx="382" cy="163" r="9" fill="#fff" opacity="0.9" />
+            <ellipse cx="382" cy="185" rx="12" ry="9" fill="#fff" opacity="0.9" />
+            <rect x="414" y="150" width="90" height="8" rx="4" fill="#E0DFDC" />
+            <rect x="414" y="164" width="70" height="6" rx="3" fill="#E0DFDC" />
+            <rect x="414" y="176" width="80" height="6" rx="3" fill="#E0DFDC" />
+            <rect x="354" y="196" width="60" height="22" rx="11" fill="#057642" />
+            <text x="364" y="211" font-family="sans-serif" font-size="10" fill="#fff" font-weight="600">Follow</text>
+          </g>
+          <!-- Card BL -->
+          <g filter="url(#shadow)">
+            <rect x="60" y="265" width="170" height="90" rx="10" fill="#fff" />
+            <rect x="70" y="278" width="44" height="44" rx="22" fill="#8F5849" />
+            <circle cx="92" cy="293" r="9" fill="#fff" opacity="0.9" />
+            <ellipse cx="92" cy="315" rx="12" ry="9" fill="#fff" opacity="0.9" />
+            <rect x="124" y="280" width="90" height="8" rx="4" fill="#E0DFDC" />
+            <rect x="124" y="294" width="70" height="6" rx="3" fill="#E0DFDC" />
+            <rect x="124" y="306" width="80" height="6" rx="3" fill="#E0DFDC" />
+            <rect x="64" y="326" width="78" height="22" rx="11" fill="#0F5DBD" />
+            <text x="70" y="341" font-family="sans-serif" font-size="10" fill="#fff" font-weight="600">+ Connect</text>
+          </g>
+          <!-- Card BR -->
+          <g filter="url(#shadow)">
+            <rect x="350" y="265" width="170" height="90" rx="10" fill="#fff" />
+            <rect x="360" y="278" width="44" height="44" rx="22" fill="#915907" />
+            <circle cx="382" cy="293" r="9" fill="#fff" opacity="0.9" />
+            <ellipse cx="382" cy="315" rx="12" ry="9" fill="#fff" opacity="0.9" />
+            <rect x="414" y="280" width="90" height="8" rx="4" fill="#E0DFDC" />
+            <rect x="414" y="294" width="70" height="6" rx="3" fill="#E0DFDC" />
+            <rect x="414" y="306" width="80" height="6" rx="3" fill="#E0DFDC" />
+            <rect x="354" y="326" width="74" height="22" rx="11" fill="#0F5DBD" />
+            <text x="360" y="341" font-family="sans-serif" font-size="10" fill="#fff" font-weight="600">+ Connect</text>
+          </g>
+          <!-- Notification -->
+          <g filter="url(#shadow)">
+            <rect x="195" y="370" width="190" height="52" rx="10" fill="#fff" />
+            <text x="214" y="402" font-family="sans-serif" font-size="16">!</text>
+            <rect x="244" y="383" width="120" height="8" rx="4" fill="#E0DFDC" />
+            <rect x="244" y="397" width="90" height="6" rx="3" fill="#E0DFDC" />
+            <circle cx="374" cy="383" r="7" fill="#CC1016" />
+            <text x="371" y="387" font-family="sans-serif" font-size="9" fill="#fff" font-weight="bold">3</text>
+          </g>
+        </svg>
       </div>
+    </section>
 
-      <!-- Step 4 -->
-      <div class="step" id="step-4">
-        <h2 class="step-heading">What's your location?</h2>
-        <p class="step-sub">We use this to help you find relevant jobs and people. <em style="color:rgba(0,0,0,0.45);font-style:normal;">(optional)</em></p>
-        <div class="form-group">
-          <label for="s-country">Country/Region</label>
-          <select id="s-country">
-            <option value="">Select country/region</option>
-            <option value="US" selected>United States</option>
-            <option value="CA">Canada</option>
-            <option value="GB">United Kingdom</option>
-            <option value="AU">Australia</option>
-            <option value="IN">India</option>
-            <option value="DE">Germany</option>
-            <option value="FR">France</option>
-            <option value="JP">Japan</option>
-            <option value="SG">Singapore</option>
-            <option value="AE">United Arab Emirates</option>
-            <option value="OTHER">Other</option>
-          </select>
-          <span class="error-msg" id="s-country-err">Please select your country/region.</span>
-        </div>
-        <div class="form-group">
-          <label for="s-postal">Postal code</label>
-          <input type="text" id="s-postal" placeholder="e.g. 10001" />
-          <span class="error-msg" id="s-postal-err">Please enter your postal code.</span>
-        </div>
-        <div class="step-actions">
-          <button class="btn-primary" onclick="nextStep(4)">Continue</button>
-          <div class="step-back-link"><a href="#" onclick="skipStep(4); return false;">Skip for now</a> &nbsp;·&nbsp; <a href="#" onclick="prevStep(4); return false;">Go back</a></div>
-        </div>
+    <footer>
+      <div class="footer-inner">
+        <div class="footer-copy">Nexus Corp &copy; 2026</div>
       </div>
+    </footer>
+  </div>
 
-      <!-- Step 5 -->
-      <div class="step" id="step-5">
-        <h2 class="step-heading">Your most recent job title</h2>
-        <p class="step-sub">Tell us a bit about your work experience. <em style="color:rgba(0,0,0,0.45);font-style:normal;">(optional)</em></p>
-        <div class="form-group">
-          <label for="s-title">Job title</label>
-          <input type="text" id="s-title" placeholder="e.g. Software Engineer" />
-          <span class="error-msg" id="s-title-err">Please enter your job title.</span>
-        </div>
-        <div class="form-group">
-          <label for="s-emptype">Employment type</label>
-          <select id="s-emptype">
-            <option value="">Please select</option>
-            <option>Full-time</option><option>Part-time</option>
-            <option>Self-employed</option><option>Freelance</option>
-            <option>Contract</option><option>Internship</option>
-            <option>Apprenticeship</option><option>Seasonal</option>
-          </select>
-          <span class="error-msg" id="s-emptype-err">Please select an employment type.</span>
-        </div>
-        <div class="form-group">
-          <label for="s-company">Most recent company</label>
-          <input type="text" id="s-company" placeholder="e.g. Google" />
-          <span class="error-msg" id="s-company-err">Please enter your most recent company.</span>
-        </div>
-        <div class="step-actions">
-          <button class="btn-primary" onclick="nextStep(5)">Continue</button>
-          <div class="step-back-link"><a href="#" onclick="skipStep(5); return false;">Skip for now</a> &nbsp;·&nbsp; <a href="#" onclick="prevStep(5); return false;">Go back</a></div>
-        </div>
+  <!-- VIEW: SIGNUP WIZARD -->
+  <div id="view-signup" class="view">
+    <nav>
+      <div class="nav-inner">
+        <a class="nav-logo" href="#" onclick="return false;">
+          <svg width="84" height="21" viewBox="0 0 84 21" fill="none">
+            <rect width="21" height="21" rx="4" fill="#0F5DBD" />
+            <text x="5.5" y="15.5" font-family="Arial,Helvetica,sans-serif" font-size="13" font-weight="bold"
+              fill="#fff">N</text>
+            <text x="26" y="15.5" font-family="sans-serif" font-size="14" font-weight="700" fill="#0F5DBD">Nexus</text>
+          </svg>
+        </a>
       </div>
-
-      <!-- Step 6 -->
-      <div class="step" id="step-6">
-        <h2 class="step-heading">What industry do you work in?</h2>
-        <p class="step-sub">This helps us personalize your experience. <em style="color:rgba(0,0,0,0.45);font-style:normal;">(optional)</em></p>
-        <div class="industry-grid" id="industry-grid"></div>
-        <span class="error-msg" id="s-industry-err" style="margin-top:8px;">Please select at least one industry.</span>
-        <div class="step-actions">
-          <button class="btn-primary" onclick="nextStep(6)">Continue</button>
-          <div class="step-back-link"><a href="#" onclick="skipStep(6); return false;">Skip for now</a> &nbsp;·&nbsp; <a href="#" onclick="prevStep(6); return false;">Go back</a></div>
+    </nav>
+    <div class="signup-container">
+      <div class="signup-card">
+        <div class="progress-bar-wrap">
+          <div class="progress-bar-fill" id="signup-progress" style="width:11%"></div>
         </div>
+
+        <!-- Step 1 -->
+        <div class="step active" id="step-1">
+          <h2 class="step-heading">Make the most of your professional life</h2>
+          <p class="step-sub">Enter your email address</p>
+          <div class="form-group">
+            <label for="s-email">Email</label>
+            <input type="text" id="s-email" autocomplete="email" />
+            <span class="error-msg" id="s-email-err">Please enter a valid email address.</span>
+          </div>
+          <div class="step-actions">
+            <button class="btn-primary" onclick="nextStep(1)">Agree &amp; Join</button>
+            <p style="font-size:11px;color:rgba(0,0,0,0.6);text-align:center;line-height:1.4;">
+              By clicking Agree &amp; Join, you agree to Nexus's
+              <a href="#" style="color:#0F5DBD;">User Agreement</a>,
+              <a href="#" style="color:#0F5DBD;">Privacy Policy</a>, and
+              <a href="#" style="color:#0F5DBD;">Cookie Policy</a>.
+            </p>
+            <div class="step-back-link">Already on Nexus? <a href="#" onclick="showView('login'); return false;">Sign
+                in</a></div>
+          </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="step" id="step-2">
+          <h2 class="step-heading">Create a password</h2>
+          <p class="step-sub">Must be at least 8 characters and include a number or symbol.</p>
+          <div class="form-group">
+            <label for="s-pw">Password</label>
+            <div class="pw-wrap">
+              <input type="password" id="s-pw" autocomplete="new-password" />
+              <button class="pw-toggle" onclick="togglePw('s-pw', this)">Show</button>
+            </div>
+            <span class="error-msg" id="s-pw-err">Password must be at least 8 characters and include a number or
+              symbol.</span>
+            <ul style="font-size:12px;color:rgba(0,0,0,0.55);margin-top:8px;padding-left:18px;line-height:1.7;">
+              <li>At least 8 characters</li>
+              <li>At least 1 number (0–9) or symbol (!@#$%^&amp;*…)</li>
+            </ul>
+          </div>
+          <div class="step-actions">
+            <button class="btn-primary" onclick="nextStep(2)">Continue</button>
+            <div class="step-back-link"><a href="#" onclick="prevStep(2); return false;">Go back</a></div>
+          </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="step" id="step-3">
+          <h2 class="step-heading">What's your name?</h2>
+          <p class="step-sub">Help your network find you by using your real name.</p>
+          <div class="form-group">
+            <label for="s-first">First name</label>
+            <input type="text" id="s-first" autocomplete="given-name" />
+            <span class="error-msg" id="s-first-err">First name is required.</span>
+          </div>
+          <div class="form-group">
+            <label for="s-last">Last name</label>
+            <input type="text" id="s-last" autocomplete="family-name" />
+            <span class="error-msg" id="s-last-err">Last name is required.</span>
+          </div>
+          <div class="step-actions">
+            <button class="btn-primary" onclick="nextStep(3)">Continue</button>
+            <div class="step-back-link"><a href="#" onclick="prevStep(3); return false;">Go back</a></div>
+          </div>
+        </div>
+
+        <!-- Step 4 -->
+        <div class="step" id="step-4">
+          <h2 class="step-heading">What's your location?</h2>
+          <p class="step-sub">We use this to help you find relevant jobs and people. <em
+              style="color:rgba(0,0,0,0.45);font-style:normal;">(optional)</em></p>
+          <div class="form-group">
+            <label for="s-country">Country/Region</label>
+            <select id="s-country">
+              <option value="">Select country/region</option>
+              <option value="US" selected>United States</option>
+              <option value="CA">Canada</option>
+              <option value="GB">United Kingdom</option>
+              <option value="AU">Australia</option>
+              <option value="IN">India</option>
+              <option value="DE">Germany</option>
+              <option value="FR">France</option>
+              <option value="JP">Japan</option>
+              <option value="SG">Singapore</option>
+              <option value="AE">United Arab Emirates</option>
+              <option value="OTHER">Other</option>
+            </select>
+            <span class="error-msg" id="s-country-err">Please select your country/region.</span>
+          </div>
+          <div class="form-group">
+            <label for="s-postal">Postal code</label>
+            <input type="text" id="s-postal" placeholder="e.g. 10001" />
+            <span class="error-msg" id="s-postal-err">Please enter your postal code.</span>
+          </div>
+          <div class="step-actions">
+            <button class="btn-primary" onclick="nextStep(4)">Continue</button>
+            <div class="step-back-link"><a href="#" onclick="skipStep(4); return false;">Skip for now</a> &nbsp;·&nbsp;
+              <a href="#" onclick="prevStep(4); return false;">Go back</a></div>
+          </div>
+        </div>
+
+        <!-- Step 5 -->
+        <div class="step" id="step-5">
+          <h2 class="step-heading">Your most recent job title</h2>
+          <p class="step-sub">Tell us a bit about your work experience. <em
+              style="color:rgba(0,0,0,0.45);font-style:normal;">(optional)</em></p>
+          <div class="form-group">
+            <label for="s-title">Job title</label>
+            <input type="text" id="s-title" placeholder="e.g. Software Engineer" />
+            <span class="error-msg" id="s-title-err">Please enter your job title.</span>
+          </div>
+          <div class="form-group">
+            <label for="s-emptype">Employment type</label>
+            <select id="s-emptype">
+              <option value="">Please select</option>
+              <option>Full-time</option>
+              <option>Part-time</option>
+              <option>Self-employed</option>
+              <option>Freelance</option>
+              <option>Contract</option>
+              <option>Internship</option>
+              <option>Apprenticeship</option>
+              <option>Seasonal</option>
+            </select>
+            <span class="error-msg" id="s-emptype-err">Please select an employment type.</span>
+          </div>
+          <div class="form-group">
+            <label for="s-company">Most recent company</label>
+            <input type="text" id="s-company" placeholder="e.g. Google" />
+            <span class="error-msg" id="s-company-err">Please enter your most recent company.</span>
+          </div>
+          <div class="step-actions">
+            <button class="btn-primary" onclick="nextStep(5)">Continue</button>
+            <div class="step-back-link"><a href="#" onclick="skipStep(5); return false;">Skip for now</a> &nbsp;·&nbsp;
+              <a href="#" onclick="prevStep(5); return false;">Go back</a></div>
+          </div>
+        </div>
+
+        <!-- Step 6 -->
+        <div class="step" id="step-6">
+          <h2 class="step-heading">What industry do you work in?</h2>
+          <p class="step-sub">This helps us personalize your experience. <em
+              style="color:rgba(0,0,0,0.45);font-style:normal;">(optional)</em></p>
+          <div class="industry-grid" id="industry-grid"></div>
+          <span class="error-msg" id="s-industry-err" style="margin-top:8px;">Please select at least one
+            industry.</span>
+          <div class="step-actions">
+            <button class="btn-primary" onclick="nextStep(6)">Continue</button>
+            <div class="step-back-link"><a href="#" onclick="skipStep(6); return false;">Skip for now</a> &nbsp;·&nbsp;
+              <a href="#" onclick="prevStep(6); return false;">Go back</a></div>
+          </div>
+        </div>
+
+        <!-- Step 7 -->
+        <div class="step" id="step-7">
+          <h2 class="step-heading">What kind of network do you want to build?</h2>
+          <p class="step-sub">We'll personalize your experience based on your goals. <em
+              style="color:rgba(0,0,0,0.45);font-style:normal;">(optional)</em></p>
+          <label class="radio-option" for="goal-1"><input type="radio" name="network-goal" id="goal-1" value="job">Find
+            a new job</label>
+          <label class="radio-option" for="goal-2"><input type="radio" name="network-goal" id="goal-2"
+              value="connect">Connect with colleagues &amp; classmates</label>
+          <label class="radio-option" for="goal-3"><input type="radio" name="network-goal" id="goal-3"
+              value="clients">Find clients or business partners</label>
+          <label class="radio-option" for="goal-4"><input type="radio" name="network-goal" id="goal-4"
+              value="skills">Build skills &amp; knowledge</label>
+          <label class="radio-option" for="goal-5"><input type="radio" name="network-goal" id="goal-5" value="hire">Hire
+            talent</label>
+          <label class="radio-option" for="goal-6"><input type="radio" name="network-goal" id="goal-6"
+              value="other">Something else</label>
+          <span class="error-msg" id="s-goal-err" style="margin-top:4px;">Please select an option.</span>
+          <div class="step-actions">
+            <button class="btn-primary" onclick="nextStep(7)">Continue</button>
+            <div class="step-back-link"><a href="#" onclick="skipStep(7); return false;">Skip for now</a> &nbsp;·&nbsp;
+              <a href="#" onclick="prevStep(7); return false;">Go back</a></div>
+          </div>
+        </div>
+
+        <!-- Step 8 -->
+        <div class="step" id="step-8">
+          <h2 class="step-heading">Are you a student?</h2>
+          <p class="step-sub">Students get exclusive Nexus features to help start their career. <em
+              style="color:rgba(0,0,0,0.45);font-style:normal;">(optional)</em></p>
+          <div class="yes-no-btns">
+            <button id="student-yes" onclick="selectStudent('yes')">Yes</button>
+            <button id="student-no" onclick="selectStudent('no')">No</button>
+          </div>
+          <span class="error-msg" id="s-student-err" style="margin-top:8px;">Please select an option.</span>
+          <div class="step-actions" style="margin-top:16px;">
+            <button class="btn-primary" onclick="nextStep(8)">Continue</button>
+            <div class="step-back-link"><a href="#" onclick="skipStep(8); return false;">Skip for now</a> &nbsp;·&nbsp;
+              <a href="#" onclick="prevStep(8); return false;">Go back</a></div>
+          </div>
+        </div>
+
+        <!-- Step 9 — Recruiter -->
+        <div class="step" id="step-9">
+          <h2 class="step-heading">Are you a recruiter?</h2>
+          <p class="step-sub">Recruiters get a <strong>Candidate Shortlist</strong> tool to save and export profiles.
+            <em style="color:rgba(0,0,0,0.45);font-style:normal;">(optional)</em></p>
+          <div class="yes-no-btns">
+            <button id="recruiter-yes" onclick="selectRecruiter('yes')">Yes, I hire talent</button>
+            <button id="recruiter-no" onclick="selectRecruiter('no')">No, I'm job seeking</button>
+          </div>
+          <span class="error-msg" id="s-recruiter-err" style="margin-top:8px;">Please select an option.</span>
+          <div class="step-actions" style="margin-top:16px;">
+            <button class="btn-primary" onclick="nextStep(9)">Continue</button>
+            <div class="step-back-link"><a href="#" onclick="skipStep(9); return false;">Skip for now</a> &nbsp;·&nbsp;
+              <a href="#" onclick="prevStep(9); return false;">Go back</a></div>
+          </div>
+        </div>
+
+        <!-- Step 10 — Birthday -->
+        <div class="step" id="step-10">
+          <h2 class="step-heading">What's your birthday?</h2>
+          <p class="step-sub">This won't be shown publicly on your profile. <em
+              style="color:rgba(0,0,0,0.45);font-style:normal;">(optional)</em></p>
+          <div class="bday-selects">
+            <select id="s-bday-month">
+              <option value="">Month</option>
+              <option value="1">January</option>
+              <option value="2">February</option>
+              <option value="3">March</option>
+              <option value="4">April</option>
+              <option value="5">May</option>
+              <option value="6">June</option>
+              <option value="7">July</option>
+              <option value="8">August</option>
+              <option value="9">September</option>
+              <option value="10">October</option>
+              <option value="11">November</option>
+              <option value="12">December</option>
+            </select>
+            <select id="s-bday-day">
+              <option value="">Day</option>
+            </select>
+            <select id="s-bday-year">
+              <option value="">Year</option>
+            </select>
+          </div>
+          <span class="error-msg" id="s-bday-err" style="margin-top:8px;">Please enter a valid birthday.</span>
+          <div class="step-actions">
+            <button class="btn-primary" onclick="nextStep(10)">Agree &amp; Join</button>
+            <div class="step-back-link"><a href="#" onclick="skipStep(10); return false;">Skip for now</a> &nbsp;·&nbsp;
+              <a href="#" onclick="prevStep(10); return false;">Go back</a></div>
+          </div>
+        </div>
+
       </div>
-
-      <!-- Step 7 -->
-      <div class="step" id="step-7">
-        <h2 class="step-heading">What kind of network do you want to build?</h2>
-        <p class="step-sub">We'll personalize your experience based on your goals. <em style="color:rgba(0,0,0,0.45);font-style:normal;">(optional)</em></p>
-        <label class="radio-option" for="goal-1"><input type="radio" name="network-goal" id="goal-1" value="job">Find a new job</label>
-        <label class="radio-option" for="goal-2"><input type="radio" name="network-goal" id="goal-2" value="connect">Connect with colleagues &amp; classmates</label>
-        <label class="radio-option" for="goal-3"><input type="radio" name="network-goal" id="goal-3" value="clients">Find clients or business partners</label>
-        <label class="radio-option" for="goal-4"><input type="radio" name="network-goal" id="goal-4" value="skills">Build skills &amp; knowledge</label>
-        <label class="radio-option" for="goal-5"><input type="radio" name="network-goal" id="goal-5" value="hire">Hire talent</label>
-        <label class="radio-option" for="goal-6"><input type="radio" name="network-goal" id="goal-6" value="other">Something else</label>
-        <span class="error-msg" id="s-goal-err" style="margin-top:4px;">Please select an option.</span>
-        <div class="step-actions">
-          <button class="btn-primary" onclick="nextStep(7)">Continue</button>
-          <div class="step-back-link"><a href="#" onclick="skipStep(7); return false;">Skip for now</a> &nbsp;·&nbsp; <a href="#" onclick="prevStep(7); return false;">Go back</a></div>
-        </div>
-      </div>
-
-      <!-- Step 8 -->
-      <div class="step" id="step-8">
-        <h2 class="step-heading">Are you a student?</h2>
-        <p class="step-sub">Students get exclusive Nexus features to help start their career. <em style="color:rgba(0,0,0,0.45);font-style:normal;">(optional)</em></p>
-        <div class="yes-no-btns">
-          <button id="student-yes" onclick="selectStudent('yes')">Yes</button>
-          <button id="student-no" onclick="selectStudent('no')">No</button>
-        </div>
-        <span class="error-msg" id="s-student-err" style="margin-top:8px;">Please select an option.</span>
-        <div class="step-actions" style="margin-top:16px;">
-          <button class="btn-primary" onclick="nextStep(8)">Continue</button>
-          <div class="step-back-link"><a href="#" onclick="skipStep(8); return false;">Skip for now</a> &nbsp;·&nbsp; <a href="#" onclick="prevStep(8); return false;">Go back</a></div>
-        </div>
-      </div>
-
-      <!-- Step 9 — Recruiter -->
-      <div class="step" id="step-9">
-        <h2 class="step-heading">Are you a recruiter?</h2>
-        <p class="step-sub">Recruiters get a <strong>Candidate Shortlist</strong> tool to save and export profiles. <em style="color:rgba(0,0,0,0.45);font-style:normal;">(optional)</em></p>
-        <div class="yes-no-btns">
-          <button id="recruiter-yes" onclick="selectRecruiter('yes')">Yes, I hire talent</button>
-          <button id="recruiter-no" onclick="selectRecruiter('no')">No, I'm job seeking</button>
-        </div>
-        <span class="error-msg" id="s-recruiter-err" style="margin-top:8px;">Please select an option.</span>
-        <div class="step-actions" style="margin-top:16px;">
-          <button class="btn-primary" onclick="nextStep(9)">Continue</button>
-          <div class="step-back-link"><a href="#" onclick="skipStep(9); return false;">Skip for now</a> &nbsp;·&nbsp; <a href="#" onclick="prevStep(9); return false;">Go back</a></div>
-        </div>
-      </div>
-
-      <!-- Step 10 — Birthday -->
-      <div class="step" id="step-10">
-        <h2 class="step-heading">What's your birthday?</h2>
-        <p class="step-sub">This won't be shown publicly on your profile. <em style="color:rgba(0,0,0,0.45);font-style:normal;">(optional)</em></p>
-        <div class="bday-selects">
-          <select id="s-bday-month">
-            <option value="">Month</option>
-            <option value="1">January</option><option value="2">February</option>
-            <option value="3">March</option><option value="4">April</option>
-            <option value="5">May</option><option value="6">June</option>
-            <option value="7">July</option><option value="8">August</option>
-            <option value="9">September</option><option value="10">October</option>
-            <option value="11">November</option><option value="12">December</option>
-          </select>
-          <select id="s-bday-day"><option value="">Day</option></select>
-          <select id="s-bday-year"><option value="">Year</option></select>
-        </div>
-        <span class="error-msg" id="s-bday-err" style="margin-top:8px;">Please enter a valid birthday.</span>
-        <div class="step-actions">
-          <button class="btn-primary" onclick="nextStep(10)">Agree &amp; Join</button>
-          <div class="step-back-link"><a href="#" onclick="skipStep(10); return false;">Skip for now</a> &nbsp;·&nbsp; <a href="#" onclick="prevStep(10); return false;">Go back</a></div>
-        </div>
-      </div>
-
     </div>
   </div>
-</div>
 
-<div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+  <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 
-<script>
-  const API_BASE = 'https://linkedin-redesign-z364.onrender.com/api';
-  const TOTAL_STEPS = 10;
-  let currentStep = 1;
-  let _registered = false;
-  let studentChoice = null;
-  let recruiterChoice = null;
+  <script>
+    const API_BASE = 'https://linkedin-redesign-z364.onrender.com/api';
+    const TOTAL_STEPS = 10;
+    let currentStep = 1;
+    let _registered = false;
+    let studentChoice = null;
+    let recruiterChoice = null;
 
-  // ── Auto-redirect returning users with a valid session ────────────────────
-  (function checkExistingSession() {
-    try {
-      const token = localStorage.getItem('nx-token');
-      const storedUid = localStorage.getItem('nx-uid');
-      if (!token || !storedUid) return;
-      fetch(API_BASE + '/me', { headers: { 'Authorization': 'Bearer ' + token } })
-        .then(res => res.json())
-        .then(data => {
-          // Only redirect if the returned user matches the stored uid.
-          // The backend falls back to id=1 for invalid tokens, so without
-          // this check every stale token would redirect to Alex Johnson.
-          if (data && String(data.id) === String(storedUid)) {
-            window.location.href = 'app.html';
-          } else {
-            // Stale / invalid token — clear it so the login page shows
-            localStorage.removeItem('nx-token');
-            localStorage.removeItem('nx-uid');
-          }
-        })
-        .catch(() => {});
-    } catch (_) {}
-  })();
+    // ── Auto-redirect returning users with a valid session ────────────────────
+    (function checkExistingSession() {
+      try {
+        const token = localStorage.getItem('nx-token');
+        const storedUid = localStorage.getItem('nx-uid');
+        if (!token || !storedUid) return;
+        fetch(API_BASE + '/me', { headers: { 'Authorization': 'Bearer ' + token } })
+          .then(res => res.json())
+          .then(data => {
+            // Only redirect if the returned user matches the stored uid.
+            // The backend falls back to id=1 for invalid tokens, so without
+            // this check every stale token would redirect to Alex Johnson.
+            if (data && String(data.id) === String(storedUid)) {
+              window.location.href = 'app.html';
+            } else {
+              // Stale / invalid token — clear it so the login page shows
+              localStorage.removeItem('nx-token');
+              localStorage.removeItem('nx-uid');
+            }
+          })
+          .catch(() => { });
+      } catch (_) { }
+    })();
 
-  // ── Helpers ──────────────────────────────────────────────────────────────
+    // ── Helpers ──────────────────────────────────────────────────────────────
 
-  function showView(name) {
-    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-    document.getElementById('view-' + name).classList.add('active');
-    window.scrollTo(0, 0);
-  }
-
-  function showToast(msg, isError) {
-    const t = document.getElementById('toast');
-    t.textContent = msg;
-    t.style.background = isError ? '#CC1016' : '#1D2226';
-    t.classList.add('show');
-    setTimeout(() => t.classList.remove('show'), 3500);
-  }
-
-  function setLoading(btnId, loading, label) {
-    const btn = document.getElementById(btnId);
-    if (!btn) return;
-    btn.disabled = loading;
-    if (label) btn.textContent = loading ? 'Please wait…' : label;
-  }
-
-  function isValidEmail(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v); }
-  function isValidPhone(v) { return /^[\d\s\-().+]{7,15}$/.test(v); }
-  function isValidEmailOrPhone(v) { return isValidEmail(v) || isValidPhone(v); }
-  function isStrongPassword(v) { return v.length >= 8 && /[0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(v); }
-
-  function fieldErr(inputId, msg) {
-    const el = document.getElementById(inputId);
-    const err = document.getElementById(inputId + '-err');
-    if (el) el.classList.add('error');
-    if (err) { if (msg) err.textContent = msg; err.classList.add('show'); err.style.display = 'block'; }
-  }
-  function fieldOk(inputId) {
-    const el = document.getElementById(inputId);
-    const err = document.getElementById(inputId + '-err');
-    if (el) el.classList.remove('error');
-    if (err) { err.classList.remove('show'); err.style.display = 'none'; }
-  }
-
-  function saveSession(token, userId) {
-    try {
-      localStorage.setItem('nx-token', token);
-      if (userId) localStorage.setItem('nx-uid', String(userId));
-    } catch (_) {}
-  }
-
-  // ── Login ─────────────────────────────────────────────────────────────────
-
-  async function handleLogin() {
-    const email = document.getElementById('login-email').value.trim();
-    const pw    = document.getElementById('login-pw').value;
-    let ok = true;
-
-    if (!isValidEmail(email)) { fieldErr('login-email', 'Please enter your email address.'); ok = false; }
-    else fieldOk('login-email');
-
-    if (!pw) { fieldErr('login-pw', 'Please enter your password.'); ok = false; }
-    else fieldOk('login-pw');
-
-    if (!ok) return;
-
-    setLoading('login-btn', true, 'Sign in');
-    try {
-      const res = await fetch(API_BASE + '/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password: pw }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        showToast(data.error || 'Invalid email or password.', true);
-        setLoading('login-btn', false, 'Sign in');
-        return;
-      }
-      saveSession(data.token, data.user?.id);
-      window.location.href = 'app.html';
-    } catch (_) {
-      showToast('Could not reach the server. Is the backend running?', true);
-      setLoading('login-btn', false, 'Sign in');
+    function showView(name) {
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      document.getElementById('view-' + name).classList.add('active');
+      window.scrollTo(0, 0);
     }
-  }
 
-  // ── Signup wizard ─────────────────────────────────────────────────────────
-
-  function startSignup() { showView('signup'); goToStep(1); }
-
-  function goToStep(n) {
-    document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
-    const el = document.getElementById('step-' + n);
-    if (el) { el.classList.add('active'); currentStep = n; }
-    document.getElementById('signup-progress').style.width = Math.round((n / TOTAL_STEPS) * 100) + '%';
-    window.scrollTo(0, 0);
-  }
-
-  function prevStep(from) { if (from > 1) goToStep(from - 1); }
-
-  function skipStep(from) {
-    if (from < TOTAL_STEPS) goToStep(from + 1);
-    else if (_registered) window.location.href = 'app.html';
-    else handleRegister();
-  }
-
-  async function nextStep(from) {
-    if (!validateStep(from)) return;
-    if (from < TOTAL_STEPS) {
-      goToStep(from + 1);
-    } else {
-      // Final step — register with backend
-      await handleRegister();
+    function showToast(msg, isError) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.style.background = isError ? '#CC1016' : '#1D2226';
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 3500);
     }
-  }
 
-  async function handleRegister() {
-    const email    = document.getElementById('s-email').value.trim().toLowerCase();
-    const pw       = document.getElementById('s-pw').value;
-    const first    = document.getElementById('s-first').value.trim();
-    const last     = document.getElementById('s-last').value.trim();
-    const name     = (first + ' ' + last).trim();
-
-    const btn = document.querySelector('#step-10 .btn-primary');
-    if (btn) { btn.disabled = true; btn.textContent = 'Creating account…'; }
-
-    try {
-      const res = await fetch(API_BASE + '/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password: pw, isRecruiter: recruiterChoice === 'yes' }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        if (btn) { btn.disabled = false; btn.textContent = 'Agree & Join'; }
-        if (data.error === 'email_taken' || (data.error || '').includes('email')) {
-          showToast('That email is already registered. Try signing in.', true);
-        } else {
-          showToast(data.error || 'Registration failed. Please try again.', true);
-        }
-        return;
-      }
-      _registered = true;
-      saveSession(data.token, data.user?.id);
-      showToast('Welcome to Nexus!');
-      setTimeout(() => { window.location.href = 'app.html'; }, 1200);
-    } catch (_) {
-      if (btn) { btn.disabled = false; btn.textContent = 'Agree & Join'; }
-      showToast('Could not reach the server. Is the backend running?', true);
+    function setLoading(btnId, loading, label) {
+      const btn = document.getElementById(btnId);
+      if (!btn) return;
+      btn.disabled = loading;
+      if (label) btn.textContent = loading ? 'Please wait…' : label;
     }
-  }
 
-  function validateStep(step) {
-    switch (step) {
-      case 1: {
-        const v = document.getElementById('s-email').value.trim();
-        if (!isValidEmail(v)) { fieldErr('s-email', 'Please enter a valid email address.'); return false; }
-        fieldOk('s-email'); return true;
-      }
-      case 2: {
-        const v = document.getElementById('s-pw').value;
-        if (!isStrongPassword(v)) { fieldErr('s-pw', 'Password must be at least 8 characters and include a number or symbol.'); return false; }
-        fieldOk('s-pw'); return true;
-      }
-      case 3: {
-        let ok = true;
-        ['s-first', 's-last'].forEach(f => {
-          if (!document.getElementById(f).value.trim()) { fieldErr(f); ok = false; } else fieldOk(f);
+    function isValidEmail(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v); }
+    function isValidPhone(v) { return /^[\d\s\-().+]{7,15}$/.test(v); }
+    function isValidEmailOrPhone(v) { return isValidEmail(v) || isValidPhone(v); }
+    function isStrongPassword(v) { return v.length >= 8 && /[0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(v); }
+
+    function fieldErr(inputId, msg) {
+      const el = document.getElementById(inputId);
+      const err = document.getElementById(inputId + '-err');
+      if (el) el.classList.add('error');
+      if (err) { if (msg) err.textContent = msg; err.classList.add('show'); err.style.display = 'block'; }
+    }
+    function fieldOk(inputId) {
+      const el = document.getElementById(inputId);
+      const err = document.getElementById(inputId + '-err');
+      if (el) el.classList.remove('error');
+      if (err) { err.classList.remove('show'); err.style.display = 'none'; }
+    }
+
+    function saveSession(token, userId) {
+      try {
+        localStorage.setItem('nx-token', token);
+        if (userId) localStorage.setItem('nx-uid', String(userId));
+      } catch (_) { }
+    }
+
+    // ── Login ─────────────────────────────────────────────────────────────────
+
+    async function handleLogin() {
+      const email = document.getElementById('login-email').value.trim();
+      const pw = document.getElementById('login-pw').value;
+      let ok = true;
+
+      if (!isValidEmail(email)) { fieldErr('login-email', 'Please enter your email address.'); ok = false; }
+      else fieldOk('login-email');
+
+      if (!pw) { fieldErr('login-pw', 'Please enter your password.'); ok = false; }
+      else fieldOk('login-pw');
+
+      if (!ok) return;
+
+      setLoading('login-btn', true, 'Sign in');
+      try {
+        const res = await fetch(API_BASE + '/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password: pw }),
         });
-        return ok;
-      }
-      case 4: {
-        // Optional step — only validate if partially filled
-        const country = document.getElementById('s-country').value;
-        const postal = document.getElementById('s-postal').value.trim();
-        if (country && !postal) { fieldErr('s-postal'); return false; }
-        if (postal && !country) { fieldErr('s-country'); return false; }
-        fieldOk('s-country'); fieldOk('s-postal'); return true;
-      }
-      case 5: {
-        // Optional step — only validate if title/company partially filled
-        const title = document.getElementById('s-title').value.trim();
-        const company = document.getElementById('s-company').value.trim();
-        if (title && !company) { fieldErr('s-company'); return false; }
-        if (company && !title) { fieldErr('s-title'); return false; }
-        fieldOk('s-title'); fieldOk('s-emptype'); fieldOk('s-company'); return true;
-      }
-      case 6: {
-        // Optional step — allow proceeding with no industry selected
-        document.getElementById('s-industry-err').style.display = 'none'; return true;
-      }
-      case 7: {
-        // Optional step — allow proceeding with no goal selected
-        document.getElementById('s-goal-err').style.display = 'none'; return true;
-      }
-      case 8: {
-        // Optional step — allow proceeding with no student choice
-        document.getElementById('s-student-err').style.display = 'none'; return true;
-      }
-      case 9: {
-        // Optional step — allow proceeding with no recruiter choice
-        document.getElementById('s-recruiter-err').style.display = 'none'; return true;
-      }
-      case 10: {
-        // Optional step — only validate if birthday is partially filled
-        const m = document.getElementById('s-bday-month').value;
-        const d = document.getElementById('s-bday-day').value;
-        const y = document.getElementById('s-bday-year').value;
-        const err = document.getElementById('s-bday-err');
-        if ((m || d || y) && (!m || !d || !y)) { err.style.display = 'block'; return false; }
-        err.style.display = 'none'; return true;
+        const data = await res.json();
+        if (!res.ok) {
+          showToast(data.error || 'Invalid email or password.', true);
+          setLoading('login-btn', false, 'Sign in');
+          return;
+        }
+        saveSession(data.token, data.user?.id);
+        window.location.href = 'app.html';
+      } catch (_) {
+        showToast('Could not reach the server. Is the backend running?', true);
+        setLoading('login-btn', false, 'Sign in');
       }
     }
-    return true;
-  }
 
-  function selectStudent(choice) {
-    studentChoice = choice;
-    document.getElementById('student-yes').classList.toggle('selected', choice === 'yes');
-    document.getElementById('student-no').classList.toggle('selected', choice === 'no');
-    document.getElementById('s-student-err').style.display = 'none';
-  }
+    // ── Signup wizard ─────────────────────────────────────────────────────────
 
-  function selectRecruiter(choice) {
-    recruiterChoice = choice;
-    document.getElementById('recruiter-yes').classList.toggle('selected', choice === 'yes');
-    document.getElementById('recruiter-no').classList.toggle('selected', choice === 'no');
-    document.getElementById('s-recruiter-err').style.display = 'none';
-  }
+    function startSignup() { showView('signup'); goToStep(1); }
 
-  function togglePw(inputId, btn) {
-    const input = document.getElementById(inputId);
-    const isHidden = input.type === 'password';
-    if (isHidden) { input.type = 'text'; btn.textContent = 'Hide'; btn.setAttribute('aria-pressed', 'true'); }
-    else { input.type = 'password'; btn.textContent = 'Show'; btn.setAttribute('aria-pressed', 'false'); }
-  }
+    function goToStep(n) {
+      document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+      const el = document.getElementById('step-' + n);
+      if (el) { el.classList.add('active'); currentStep = n; }
+      document.getElementById('signup-progress').style.width = Math.round((n / TOTAL_STEPS) * 100) + '%';
+      window.scrollTo(0, 0);
+    }
 
-  // ── Build industry grid ───────────────────────────────────────────────────
-  const industries = ['Technology','Finance','Healthcare','Education','Marketing','Design',
-    'Engineering','Sales','Human Resources','Legal','Consulting','Manufacturing',
-    'Real Estate','Media & Entertainment','Retail','Government','Non-profit',
-    'Research','Arts & Culture','Transportation & Logistics'];
-  const grid = document.getElementById('industry-grid');
-  industries.forEach((ind, i) => {
-    const div = document.createElement('div');
-    div.className = 'industry-option';
-    div.innerHTML = `<input type="checkbox" id="ind-${i}" value="${ind}"><label for="ind-${i}">${ind}</label>`;
-    div.addEventListener('click', function(e) {
-      if (e.target.tagName !== 'INPUT') { const cb = this.querySelector('input'); cb.checked = !cb.checked; }
-      div.classList.toggle('selected', div.querySelector('input').checked);
+    function prevStep(from) { if (from > 1) goToStep(from - 1); }
+
+    function skipStep(from) {
+      if (from < TOTAL_STEPS) goToStep(from + 1);
+      else if (_registered) window.location.href = 'app.html';
+      else handleRegister();
+    }
+
+    async function nextStep(from) {
+      if (!validateStep(from)) return;
+      if (from < TOTAL_STEPS) {
+        goToStep(from + 1);
+      } else {
+        // Final step — register with backend
+        await handleRegister();
+      }
+    }
+
+    async function handleRegister() {
+      const email = document.getElementById('s-email').value.trim().toLowerCase();
+      const pw = document.getElementById('s-pw').value;
+      const first = document.getElementById('s-first').value.trim();
+      const last = document.getElementById('s-last').value.trim();
+      const name = (first + ' ' + last).trim();
+
+      const btn = document.querySelector('#step-10 .btn-primary');
+      if (btn) { btn.disabled = true; btn.textContent = 'Creating account…'; }
+
+      try {
+        const res = await fetch(API_BASE + '/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, password: pw, isRecruiter: recruiterChoice === 'yes' }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          if (btn) { btn.disabled = false; btn.textContent = 'Agree & Join'; }
+          if (data.error === 'email_taken' || (data.error || '').includes('email')) {
+            showToast('That email is already registered. Try signing in.', true);
+          } else {
+            showToast(data.error || 'Registration failed. Please try again.', true);
+          }
+          return;
+        }
+        _registered = true;
+        saveSession(data.token, data.user?.id);
+        showToast('Welcome to Nexus!');
+        setTimeout(() => { window.location.href = 'app.html'; }, 1200);
+      } catch (_) {
+        if (btn) { btn.disabled = false; btn.textContent = 'Agree & Join'; }
+        showToast('Could not reach the server. Is the backend running?', true);
+      }
+    }
+
+    function validateStep(step) {
+      switch (step) {
+        case 1: {
+          const v = document.getElementById('s-email').value.trim();
+          if (!isValidEmail(v)) { fieldErr('s-email', 'Please enter a valid email address.'); return false; }
+          fieldOk('s-email'); return true;
+        }
+        case 2: {
+          const v = document.getElementById('s-pw').value;
+          if (!isStrongPassword(v)) { fieldErr('s-pw', 'Password must be at least 8 characters and include a number or symbol.'); return false; }
+          fieldOk('s-pw'); return true;
+        }
+        case 3: {
+          let ok = true;
+          ['s-first', 's-last'].forEach(f => {
+            if (!document.getElementById(f).value.trim()) { fieldErr(f); ok = false; } else fieldOk(f);
+          });
+          return ok;
+        }
+        case 4: {
+          // Optional step — only validate if partially filled
+          const country = document.getElementById('s-country').value;
+          const postal = document.getElementById('s-postal').value.trim();
+          if (country && !postal) { fieldErr('s-postal'); return false; }
+          if (postal && !country) { fieldErr('s-country'); return false; }
+          fieldOk('s-country'); fieldOk('s-postal'); return true;
+        }
+        case 5: {
+          // Optional step — only validate if title/company partially filled
+          const title = document.getElementById('s-title').value.trim();
+          const company = document.getElementById('s-company').value.trim();
+          if (title && !company) { fieldErr('s-company'); return false; }
+          if (company && !title) { fieldErr('s-title'); return false; }
+          fieldOk('s-title'); fieldOk('s-emptype'); fieldOk('s-company'); return true;
+        }
+        case 6: {
+          // Optional step — allow proceeding with no industry selected
+          document.getElementById('s-industry-err').style.display = 'none'; return true;
+        }
+        case 7: {
+          // Optional step — allow proceeding with no goal selected
+          document.getElementById('s-goal-err').style.display = 'none'; return true;
+        }
+        case 8: {
+          // Optional step — allow proceeding with no student choice
+          document.getElementById('s-student-err').style.display = 'none'; return true;
+        }
+        case 9: {
+          // Optional step — allow proceeding with no recruiter choice
+          document.getElementById('s-recruiter-err').style.display = 'none'; return true;
+        }
+        case 10: {
+          // Optional step — only validate if birthday is partially filled
+          const m = document.getElementById('s-bday-month').value;
+          const d = document.getElementById('s-bday-day').value;
+          const y = document.getElementById('s-bday-year').value;
+          const err = document.getElementById('s-bday-err');
+          if ((m || d || y) && (!m || !d || !y)) { err.style.display = 'block'; return false; }
+          err.style.display = 'none'; return true;
+        }
+      }
+      return true;
+    }
+
+    function selectStudent(choice) {
+      studentChoice = choice;
+      document.getElementById('student-yes').classList.toggle('selected', choice === 'yes');
+      document.getElementById('student-no').classList.toggle('selected', choice === 'no');
+      document.getElementById('s-student-err').style.display = 'none';
+    }
+
+    function selectRecruiter(choice) {
+      recruiterChoice = choice;
+      document.getElementById('recruiter-yes').classList.toggle('selected', choice === 'yes');
+      document.getElementById('recruiter-no').classList.toggle('selected', choice === 'no');
+      document.getElementById('s-recruiter-err').style.display = 'none';
+    }
+
+    function togglePw(inputId, btn) {
+      const input = document.getElementById(inputId);
+      const isHidden = input.type === 'password';
+      if (isHidden) { input.type = 'text'; btn.textContent = 'Hide'; btn.setAttribute('aria-pressed', 'true'); }
+      else { input.type = 'password'; btn.textContent = 'Show'; btn.setAttribute('aria-pressed', 'false'); }
+    }
+
+    // ── Build industry grid ───────────────────────────────────────────────────
+    const industries = ['Technology', 'Finance', 'Healthcare', 'Education', 'Marketing', 'Design',
+      'Engineering', 'Sales', 'Human Resources', 'Legal', 'Consulting', 'Manufacturing',
+      'Real Estate', 'Media & Entertainment', 'Retail', 'Government', 'Non-profit',
+      'Research', 'Arts & Culture', 'Transportation & Logistics'];
+    const grid = document.getElementById('industry-grid');
+    industries.forEach((ind, i) => {
+      const div = document.createElement('div');
+      div.className = 'industry-option';
+      div.innerHTML = `<input type="checkbox" id="ind-${i}" value="${ind}"><label for="ind-${i}">${ind}</label>`;
+      div.addEventListener('click', function (e) {
+        if (e.target.tagName !== 'INPUT') { const cb = this.querySelector('input'); cb.checked = !cb.checked; }
+        div.classList.toggle('selected', div.querySelector('input').checked);
+      });
+      grid.appendChild(div);
     });
-    grid.appendChild(div);
-  });
 
-  // ── Build birthday selects ────────────────────────────────────────────────
-  const dayEl = document.getElementById('s-bday-day');
-  for (let d = 1; d <= 31; d++) { const o = document.createElement('option'); o.value = d; o.textContent = d; dayEl.appendChild(o); }
-  const yearEl = document.getElementById('s-bday-year');
-  const curY = new Date().getFullYear();
-  for (let y = curY - 13; y >= curY - 100; y--) { const o = document.createElement('option'); o.value = y; o.textContent = y; yearEl.appendChild(o); }
+    // ── Build birthday selects ────────────────────────────────────────────────
+    const dayEl = document.getElementById('s-bday-day');
+    for (let d = 1; d <= 31; d++) { const o = document.createElement('option'); o.value = d; o.textContent = d; dayEl.appendChild(o); }
+    const yearEl = document.getElementById('s-bday-year');
+    const curY = new Date().getFullYear();
+    for (let y = curY - 13; y >= curY - 100; y--) { const o = document.createElement('option'); o.value = y; o.textContent = y; yearEl.appendChild(o); }
 
-  document.addEventListener('input', function(e) {
-    if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') e.target.classList.remove('error');
-  });
+    document.addEventListener('input', function (e) {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') e.target.classList.remove('error');
+    });
 
-  document.addEventListener('keydown', function(e) {
-    if (e.key !== 'Enter') return;
-    const view = document.querySelector('.view.active');
-    if (!view) return;
-    if (view.id === 'view-login') handleLogin();
-    else if (view.id === 'view-signup') nextStep(currentStep);
-  });
-</script>
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Enter') return;
+      const view = document.querySelector('.view.active');
+      if (!view) return;
+      if (view.id === 'view-login') handleLogin();
+      else if (view.id === 'view-signup') nextStep(currentStep);
+    });
+  </script>
 </body>
+
 </html>
