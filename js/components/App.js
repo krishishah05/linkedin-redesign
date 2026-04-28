@@ -43,6 +43,7 @@ function Router() {
     'events':        <EventsPage />,
     'learning':      <LearningPage />,
     'settings':      <SettingsPage />,
+    'article':       <ArticlePage />,
   };
 
   return pageMap[route] || pageMap['feed'];

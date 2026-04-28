@@ -129,12 +129,16 @@ describe('MessagingPage Component Tests', () => {
     });
 
     // 5 — WB
-    test("Calls setUnreadMessages(0) once on mount", () => {
-        global.useFetch.mockReturnValue({ loading: true, data: null });
+    test("Sets unreadMessages to total unread count when conversations load", () => {
+        global.useFetch.mockReturnValue({
+            loading: false,
+            data: [
+                { id: 1, participantName: 'Alice', unreadCount: 2 },
+                { id: 2, participantName: 'Bob',   unreadCount: 3 },
+            ],
+        });
         render(React.createElement(MessagingPage));
-        expect(mockSetUnreadMessages).toHaveBeenCalledTimes(1);
-        expect(mockSetUnreadMessages).toHaveBeenCalledWith(0);
-        expect(mockSetUnreadMessages).not.toHaveBeenCalledWith(1);
+        expect(mockSetUnreadMessages).toHaveBeenCalledWith(5);
     });
 
     // 6 — WB
@@ -1190,21 +1194,20 @@ describe('MessagingPage Component Tests', () => {
     });
 
     // CX2 — WB
-    test("Write button triggers 'New message — coming soon' toast", async () => {
+    test("New Message button opens compose picker", async () => {
         global.useFetch.mockReturnValue({ loading: false, data: [{ id: 1, participantName: 'Alice' }] });
         await act(async () => render(React.createElement(MessagingPage)));
-        await act(async () => fireEvent.click(screen.getByText('Write')));
-        expect(mockShowToast).toHaveBeenCalledWith('New message \u2014 coming soon');
-        expect(mockShowToast).toHaveBeenCalledTimes(1);
+        expect(screen.queryByPlaceholderText('Search your network...')).not.toBeInTheDocument();
+        await act(async () => fireEvent.click(screen.getByText('New Message')));
+        expect(screen.getByPlaceholderText('Search your network...')).toBeInTheDocument();
+        expect(mockShowToast).not.toHaveBeenCalled();
     });
 
     // CX3 — WB
-    test("Settings button triggers 'Settings — coming soon' toast", async () => {
+    test("Settings button does not exist", async () => {
         global.useFetch.mockReturnValue({ loading: false, data: [{ id: 1, participantName: 'Alice' }] });
         await act(async () => render(React.createElement(MessagingPage)));
-        await act(async () => fireEvent.click(screen.getByText('Settings')));
-        expect(mockShowToast).toHaveBeenCalledWith('Settings \u2014 coming soon');
-        expect(mockShowToast).toHaveBeenCalledTimes(1);
+        expect(screen.queryByText('Settings')).not.toBeInTheDocument();
     });
 
     // CX4 — WB

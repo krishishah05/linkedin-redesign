@@ -2,7 +2,12 @@
    NETWORKPAGE.JS — My Network / People You May Know
    ============================================================ */
 function NetworkPage() {
-  const { connections, connect, acceptConnection, pendingConnections, showToast, pendingInvitations, dismissedInvitations, dismissInvitation } = React.useContext(AppContext);
+  const {
+    connections, connect, acceptConnection, pendingConnections, showToast,
+    pendingInvitations, dismissedInvitations, dismissInvitation,
+    recruiterMode, shortlisted, addToShortlist, removeFromShortlist,
+    currentUser,
+  } = React.useContext(AppContext);
   const { data: users, loading: usersLoading } = useFetch(API.getUsers, []);
   const [tab, setTab] = React.useState('suggestions');
 
@@ -85,7 +90,7 @@ function NetworkPage() {
                         </div>
                       )}
                     </div>
-                    <div style={{ flexShrink: 0 }}>
+                    <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-end' }}>
                       {iConnected ? (
                         <span style={{ fontSize: 13, color: 'var(--text-2)' }}>Connected</span>
                       ) : (
@@ -102,6 +107,32 @@ function NetworkPage() {
                           {isPending ? 'Pending' : '+ Connect'}
                         </button>
                       )}
+                      {currentUser?.isRecruiter && recruiterMode && (() => {
+                        const inPipeline = shortlisted.has(String(user.id));
+                        return (
+                          <button
+                            className="li-btn li-btn--sm"
+                            style={{
+                              fontSize: 12, padding: '3px 10px',
+                              background: inPipeline ? '#E6F4EA' : 'transparent',
+                              border: `1px solid ${inPipeline ? '#057642' : 'var(--border)'}`,
+                              color: inPipeline ? '#057642' : 'var(--text-2)',
+                              borderRadius: 14, cursor: 'pointer', whiteSpace: 'nowrap',
+                            }}
+                            onClick={() => {
+                              if (inPipeline) {
+                                removeFromShortlist(user.id);
+                                showToast(`Removed ${user.name} from shortlist`);
+                              } else {
+                                addToShortlist(user);
+                                showToast(`${user.name} added to shortlist`);
+                              }
+                            }}
+                          >
+                            {inPipeline ? '✓ Shortlisted' : '+ Shortlist'}
+                          </button>
+                        );
+                      })()}
                     </div>
                   </div>
                 );

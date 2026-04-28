@@ -1559,17 +1559,17 @@ describe('PostCreator — action buttons', () => {
   // 43
   // Type: WB
   // Spec: #43
-  // Exact line: { label: 'Write article', action: () => showToast('Article editor — coming soon') }
-  // Tests that clicking the Write article button in the collapsed composer calls showToast
-  test('Clicking Write article button calls showToast', async () => {
-    const mockShowToastLocal = jest.fn();
+  // Exact line: { label: 'Write article', action: () => navigate('article') }
+  // Tests that clicking the Write article button in the collapsed composer calls navigate('article')
+  test('Clicking Write article button calls navigate("article")', async () => {
+    global.navigate.mockClear();
 
     render(
       React.createElement(global.PostCreator, {
         user: { name: 'Alex', headline: 'Dev' },
         onPost: jest.fn(),
         openModal: jest.fn(),
-        showToast: mockShowToastLocal,
+        showToast: jest.fn(),
       })
     );
 
@@ -1577,23 +1577,21 @@ describe('PostCreator — action buttons', () => {
       fireEvent.click(screen.getByText('Write article'));
     });
 
-    expect(mockShowToastLocal).toHaveBeenCalledWith('Article editor — coming soon');
+    expect(global.navigate).toHaveBeenCalledWith('article');
   });
 
   // 44
   // Type: WB
   // Spec: #44
-  // Exact line: if (label === 'Event') navigate('events'); else showToast(`${label} upload — coming soon`)
-  // Tests the else branch — Photo in the expanded toolbar calls showToast with 'Photo upload — coming soon'
-  test('Clicking Photo in expanded toolbar calls showToast', async () => {
-    const mockShowToastLocal = jest.fn();
-
+  // Exact line: else handleImageBtn() — Photo in expanded toolbar toggles the image URL input
+  // Tests the else branch — Photo in the expanded toolbar opens the image URL input
+  test('Clicking Photo in expanded toolbar shows image input', async () => {
     render(
       React.createElement(global.PostCreator, {
         user: { name: 'Alex', headline: 'Dev' },
         onPost: jest.fn(),
         openModal: jest.fn(),
-        showToast: mockShowToastLocal,
+        showToast: jest.fn(),
       })
     );
 
@@ -1607,7 +1605,8 @@ describe('PostCreator — action buttons', () => {
       fireEvent.click(screen.getByTitle('Photo'));
     });
 
-    expect(mockShowToastLocal).toHaveBeenCalledWith('Photo upload — coming soon');
+    // Image URL input should now be visible
+    expect(screen.getByPlaceholderText('Paste image URL…')).toBeInTheDocument();
   });
 
   // 45
@@ -1905,12 +1904,14 @@ describe('FeedPost — render variants and action buttons', () => {
   // 57
   // Type: WB
   // Spec: #57
-  // Exact line: {post.image && (<img ... onClick={() => showToast('Image viewer — coming soon')} />)}
-  // Tests the post.image branch — image renders and clicking it calls showToast
-  test('Renders post image and shows toast on image click', async () => {
+  // Exact line: {post.image && (<img ... onClick={() => openModal('imageViewer', { src: post.image })} />)}
+  // Tests the post.image branch — image renders and clicking it opens the image viewer modal
+  test('Renders post image and opens image viewer modal on click', async () => {
+    const mockOpenModal = jest.fn();
     render(
       React.createElement(sandbox.FeedPost, {
         ...baseProps,
+        openModal: mockOpenModal,
         post: { id: 1, content: 'Post', comments: [], totalReactions: 0, repostCount: 0, image: 'http://example.com/img.png' },
       })
     );
@@ -1922,15 +1923,15 @@ describe('FeedPost — render variants and action buttons', () => {
       fireEvent.click(img);
     });
 
-    expect(mockShowToast).toHaveBeenCalledWith('Image viewer — coming soon');
+    expect(mockOpenModal).toHaveBeenCalledWith('imageViewer', { src: 'http://example.com/img.png' });
   });
 
   // 58
   // Type: WB
   // Spec: #58
-  // Exact line: onClick={() => showToast('Reactions — coming soon')} on .li-post__reaction-icons
-  // Tests that clicking the reactions icon bar calls showToast with 'Reactions — coming soon'
-  test('Clicking reactions bar shows Reactions coming soon toast', async () => {
+  // Exact line: <div className="li-post__reaction-icons"> (no onClick — non-interactive display)
+  // Tests that the reactions icon bar renders when totalReactions > 0
+  test('Reactions bar renders when post has reactions', async () => {
     render(
       React.createElement(sandbox.FeedPost, {
         ...baseProps,
@@ -1939,11 +1940,7 @@ describe('FeedPost — render variants and action buttons', () => {
     );
 
     const reactionIcons = document.querySelector('.li-post__reaction-icons');
-    await act(async () => {
-      fireEvent.click(reactionIcons);
-    });
-
-    expect(mockShowToast).toHaveBeenCalledWith('Reactions — coming soon');
+    expect(reactionIcons).toBeInTheDocument();
   });
 
   // 59
@@ -1978,9 +1975,9 @@ describe('FeedPost — render variants and action buttons', () => {
   // 60
   // Type: WB
   // Spec: #60
-  // Exact line: onClick={() => showToast('Reply — coming soon')} on the comment Reply button
-  // Tests that clicking Reply on a comment calls showToast with 'Reply — coming soon'
-  test('Clicking Reply on a comment shows Reply coming soon toast', async () => {
+  // Exact line: onClick={() => setReplyingTo(i)} on the comment Reply button
+  // Tests that clicking Reply on a comment opens the inline reply input
+  test('Clicking Reply on a comment opens the reply input', async () => {
     const postWithComments = {
       id: 1, content: 'Post', totalReactions: 0, repostCount: 0,
       comments: [{ author: { name: 'Bob', headline: 'Eng' }, text: 'Nice!', timestamp: 'Yesterday' }],
@@ -1998,7 +1995,44 @@ describe('FeedPost — render variants and action buttons', () => {
       fireEvent.click(screen.getByText('Reply'));
     });
 
-    expect(mockShowToast).toHaveBeenCalledWith('Reply — coming soon');
+    expect(screen.getByPlaceholderText(/Reply to Bob/i)).toBeInTheDocument();
+  });
+
+  // 60b
+  // Type: WB
+  // Spec: #60b
+  // Tests that typing and submitting a reply inserts the reply text into the comment list
+  test('Submitting a reply inserts it into the comment list', async () => {
+    const postWithComments = {
+      id: 1, content: 'Post', totalReactions: 0, repostCount: 0,
+      comments: [{ author: { name: 'Bob', headline: 'Eng' }, text: 'Nice!', timestamp: 'Yesterday' }],
+    };
+
+    render(
+      React.createElement(sandbox.FeedPost, {
+        ...baseProps,
+        commentsOpen: true,
+        post: postWithComments,
+      })
+    );
+
+    // Open reply input
+    await act(async () => {
+      fireEvent.click(screen.getByText('Reply'));
+    });
+
+    const replyInput = screen.getByPlaceholderText(/Reply to Bob/i);
+
+    // Type a reply and submit via Enter
+    await act(async () => {
+      fireEvent.change(replyInput, { target: { value: 'Great point!' } });
+      fireEvent.keyDown(replyInput, { key: 'Enter' });
+    });
+
+    // Reply should appear in the comment list prefixed with @Bob
+    expect(screen.getByText('@Bob Great point!')).toBeInTheDocument();
+    // Reply input should be gone after submit
+    expect(screen.queryByPlaceholderText(/Reply to Bob/i)).not.toBeInTheDocument();
   });
 
   // 61

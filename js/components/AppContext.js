@@ -44,6 +44,59 @@ function AppProvider({ children }) {
     () => localStorage.getItem('li-dark-mode') === '1'
   );
 
+  // ── Recruiter mode (only active for users with isRecruiter flag) ─────────
+  const [recruiterMode, setRecruiterModeState] = React.useState(
+    () => localStorage.getItem('li-recruiter-mode') === '1'
+  );
+  const [recruiterPanelOpen, setRecruiterPanelOpen] = React.useState(false);
+  // Disable recruiter mode if the current user is not a recruiter
+  React.useEffect(() => {
+    if (currentUser && !currentUser.isRecruiter) {
+      setRecruiterModeState(false);
+      setRecruiterPanelOpen(false);
+      localStorage.removeItem('li-recruiter-mode');
+    }
+  }, [currentUser]);
+  const [shortlisted, setShortlisted] = React.useState(new Map());
+
+  function toggleRecruiterMode() {
+    setRecruiterModeState(prev => {
+      const next = !prev;
+      localStorage.setItem('li-recruiter-mode', next ? '1' : '0');
+      if (!next) setRecruiterPanelOpen(false);
+      return next;
+    });
+  }
+
+  function addToShortlist(user) {
+    setShortlisted(prev => {
+      const next = new Map(prev);
+      next.set(String(user.id), user);
+      if (userIdRef.current) {
+        try { localStorage.setItem(`li-shortlisted-${userIdRef.current}`, JSON.stringify([...next])); } catch {}
+      }
+      return next;
+    });
+  }
+
+  function removeFromShortlist(userId) {
+    setShortlisted(prev => {
+      const next = new Map(prev);
+      next.delete(String(userId));
+      if (userIdRef.current) {
+        try { localStorage.setItem(`li-shortlisted-${userIdRef.current}`, JSON.stringify([...next])); } catch {}
+      }
+      return next;
+    });
+  }
+
+  function clearShortlist() {
+    setShortlisted(new Map());
+    if (userIdRef.current) {
+      try { localStorage.removeItem(`li-shortlisted-${userIdRef.current}`); } catch {}
+    }
+  }
+
   const [settings, setSettings] = React.useState(() => {
     try {
       const s = localStorage.getItem('li-settings');
@@ -92,6 +145,8 @@ function AppProvider({ children }) {
       if (f) setFollowing(new Set(JSON.parse(f)));
       const l = localStorage.getItem(`li-liked-posts-${uid}`);
       if (l) setLikedPosts(new Set(JSON.parse(l)));
+      const sl = localStorage.getItem(`li-shortlisted-${uid}`);
+      setShortlisted(sl ? new Map(JSON.parse(sl)) : new Map());
     } catch (_) {}
   }, [currentUser?.id]);
 
@@ -351,6 +406,15 @@ function AppProvider({ children }) {
     follow,
     setDarkMode,
     setSettings,
+    // Recruiter mode
+    recruiterMode,
+    toggleRecruiterMode,
+    recruiterPanelOpen,
+    setRecruiterPanelOpen,
+    shortlisted,
+    addToShortlist,
+    removeFromShortlist,
+    clearShortlist,
     setUnreadMessages,
     setUnreadNotifications,
     openModal,

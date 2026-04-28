@@ -287,8 +287,7 @@ function PostCreator({ user, onPost, openModal, showToast }) {
               <button key={label} title={label}
                 onClick={() => {
                   if (label === 'Event') navigate('events');
-                  else if (label === 'Article') showToast('Article editor — coming soon');
-                  else if (label === 'Photo') showToast('Photo upload — coming soon');
+                  else if (label === 'Article') navigate('article');
                   else handleImageBtn();
                 }}
                 style={{ background: showImageInput && (label === 'Photo' || label === 'Video') ? 'var(--bg)' : 'none', border: 'none', cursor: 'pointer', padding: '6px 8px', borderRadius: 6, display: 'flex', alignItems: 'center', gap: 4, fontSize: 13, fontWeight: 600, color: 'var(--text-2)' }}
@@ -320,10 +319,10 @@ function PostCreator({ user, onPost, openModal, showToast }) {
       {!expanded && (
         <div className="li-post-creator__actions">
           {[
-            { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="#378FE9"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>, label: 'Photo', action: () => setExpanded(true) },
-            { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="#5F9B41"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/></svg>, label: 'Video', action: () => setExpanded(true) },
+            { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="#378FE9"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>, label: 'Photo', action: () => { setExpanded(true); setShowImageInput(true); } },
+            { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="#5F9B41"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/></svg>, label: 'Video', action: () => { setExpanded(true); setShowImageInput(true); } },
             { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="#E06847"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>, label: 'Event', action: () => navigate('events') },
-            { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="#E06847"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>, label: 'Write article', action: () => showToast('Article editor — coming soon') },
+            { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="#E06847"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>, label: 'Write article', action: () => navigate('article') },
           ].map(item => (
             <button key={item.label} className="li-post-creator__action" onClick={item.action}>
               {item.icon}
@@ -523,13 +522,13 @@ function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, followi
       {post.image && (
         <img src={post.image} alt="" className="li-post__image"
           style={{ cursor: 'zoom-in' }}
-          onClick={() => showToast('Image viewer — coming soon')} />
+          onClick={() => openModal('imageViewer', { src: post.image })} />
       )}
 
       {/* Reactions count row */}
       {(totalReactions > 0 || commentCount > 0 || repostCount > 0) && (
         <div className="li-post__reactions">
-          <div className="li-post__reaction-icons" style={{ cursor: 'pointer' }} onClick={() => showToast('Reactions — coming soon')}>
+          <div className="li-post__reaction-icons">
             {topReactLabels.length > 0 && (
               <span style={{ display: 'flex', marginRight: 4 }}>
                 {topReactLabels.map((e, i) => (
@@ -653,7 +652,7 @@ function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, followi
                     <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-2)', fontSize: 12, fontWeight: 600, padding: 0 }}
                       onClick={() => showToast('Liked comment!')}>Like</button>
                     <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-2)', fontSize: 12, fontWeight: 600, padding: 0 }}
-                      onClick={() => showToast('Reply — coming soon')}>Reply</button>
+                      onClick={() => setReplyingTo(i)}>Reply</button>
                   </div>
                   {replyingTo === i && (
                     <div style={{ display: 'flex', gap: 8, marginTop: 6, marginLeft: 40 }}>
@@ -666,7 +665,7 @@ function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, followi
                         onKeyDown={e => {
                           if (e.key === 'Enter' && replyDraft.trim()) {
                             const reply = { author: currentUser?.name || 'You', text: `@${cName} ${replyDraft.trim()}`, timestamp: 'Just now', likes: 0 };
-                            setLocalComments(prev => { const next = [...prev]; next.splice(ci + 1, 0, reply); return next; });
+                            setLocalComments(prev => { const next = [...prev]; next.splice(i + 1, 0, reply); return next; });
                             setReplyDraft(''); setReplyingTo(null);
                           } else if (e.key === 'Escape') { setReplyingTo(null); }
                         }}
@@ -676,7 +675,7 @@ function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, followi
                         onClick={() => {
                           if (!replyDraft.trim()) return;
                           const reply = { author: currentUser?.name || 'You', text: `@${cName} ${replyDraft.trim()}`, timestamp: 'Just now', likes: 0 };
-                          setLocalComments(prev => { const next = [...prev]; next.splice(ci + 1, 0, reply); return next; });
+                          setLocalComments(prev => { const next = [...prev]; next.splice(i + 1, 0, reply); return next; });
                           setReplyDraft(''); setReplyingTo(null);
                         }}>Reply</button>
                     </div>

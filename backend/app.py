@@ -72,9 +72,24 @@ def unauthorized(e):
     return jsonify({"error": str(e)}), 401
 
 
+@app.errorhandler(403)
+def forbidden(e):
+    return jsonify({"error": str(e)}), 403
+
+
 @app.errorhandler(409)
 def conflict(e):
     return jsonify({"error": str(e)}), 409
+
+
+@app.errorhandler(502)
+def bad_gateway(e):
+    return jsonify({"error": str(e)}), 502
+
+
+@app.errorhandler(503)
+def service_unavailable(e):
+    return jsonify({"error": str(e)}), 503
 
 
 
@@ -117,6 +132,10 @@ def register():
     name = (body.get("name") or "").strip()
     email = (body.get("email") or "").strip().lower()
     password = body.get("password") or ""
+    is_recruiter_raw = body.get("isRecruiter", False)
+    if not isinstance(is_recruiter_raw, bool):
+        abort(400, description="isRecruiter must be a boolean")
+    is_recruiter = is_recruiter_raw
 
     if not name:
         abort(400, description="name is required")
@@ -126,7 +145,7 @@ def register():
         abort(400, description="password must be at least 8 characters")
 
     try:
-        user = dbl.create_user(name, email, password)
+        user = dbl.create_user(name, email, password, is_recruiter=is_recruiter)
     except ValueError as exc:
         abort(409, description=str(exc))
 
@@ -140,10 +159,10 @@ def register():
 
 @app.route("/api/me")
 def get_me():
-    """GET /api/me — current logged-in user profile. Falls back to user id=1."""
-    user = _auth_user() or dbl.get_current_user(1)
+    """GET /api/me — current logged-in user profile."""
+    user = _auth_user()
     if not user:
-        abort(404, description="Current user not found")
+        abort(401, description="Not authenticated")
     return jsonify(user)
 
 
@@ -387,14 +406,19 @@ def create_conversation():
 @app.route("/api/conversations")
 def get_conversations_list():
     """GET /api/conversations — message threads for the current user."""
-    return jsonify(dbl.get_all_conversations())
+    user = _auth_user()
+    if not user:
+        abort(401, description="Authentication required")
+    return jsonify(dbl.get_conversations_for_user(user["id"]))
 
 
 @app.route("/api/conversations/<int:conv_id>")
 def get_conversation(conv_id):
     """GET /api/conversations/:id — single conversation with full messages."""
     user = _auth_user()
-    uid = user["id"] if user else 1
+    if not user:
+        abort(401, description="Authentication required")
+    uid = user["id"]
     conv = dbl.get_conversation_by_id(conv_id)
     if not conv:
         abort(404, description=f"Conversation {conv_id} not found")
@@ -651,6 +675,103 @@ def outreach_readiness():
             abort(401, description="Authentication required")
 
     return jsonify(outreach_mod.compute_outreach_readiness(user)), 200
+
+
+# ══════════════════════════════════════════════════════════════
+# AI Profile Improvement  (OpenRouter)
+# ══════════════════════════════════════════════════════════════
+
+@app.route("/api/profile/improve", methods=["POST"])
+def profile_improve():
+    """POST /api/profile/improve — ask an LLM for actionable profile tips."""
+    user = _auth_user()
+    if not user:
+        abort(401, description="Authentication required")
+
+    api_key = os.environ.get("OPENROUTER_API_KEY", "")
+    if not api_key:
+        abort(503, description="AI service not configured — set OPENROUTER_API_KEY")
+
+    # Build a concise profile summary for the prompt
+    exp_lines = []
+    for e in (user.get("experience") or [])[:4]:
+        exp_lines.append(f"- {e.get('title','?')} at {e.get('company','?')} ({e.get('startDate','')}–{e.get('endDate','Present')})")
+
+    edu_lines = []
+    for e in (user.get("education") or [])[:3]:
+        edu_lines.append(f"- {e.get('degree','?')} at {e.get('school','?')}")
+
+    skills_sample = ", ".join(
+        (s["name"] if isinstance(s, dict) else s)
+        for s in (user.get("skills") or [])[:12]
+    )
+
+    cert_lines = [c.get("name", "") for c in (user.get("certifications") or [])[:4]]
+
+    about_len = len(user.get("about") or "")
+    headline = user.get("headline") or ""
+
+    profile_text = f"""Name: {user.get('name', 'Unknown')}
+Headline: {headline if headline else '(none)'}
+Location: {user.get('location') or '(not set)'}
+About section: {about_len} characters{'' if about_len == 0 else ' — present'}
+Experience ({len(user.get('experience') or [])} entries):
+{chr(10).join(exp_lines) or '  (none)'}
+Education ({len(user.get('education') or [])} entries):
+{chr(10).join(edu_lines) or '  (none)'}
+Skills: {skills_sample or '(none)'}
+Certifications: {', '.join(cert_lines) or '(none)'}
+Open to Work: {user.get('openToWork', False)}"""
+
+    system_prompt = (
+        "You are a LinkedIn profile coach. Analyze the profile below and return "
+        "EXACTLY 5 concise, actionable improvement tips as a JSON array of strings. "
+        "Each tip should be one sentence and start with an action verb. "
+        "Focus on gaps, weak sections, and LinkedIn best practices. "
+        "Respond ONLY with valid JSON — no markdown, no explanation outside the array."
+    )
+
+    model = os.environ.get("OPENROUTER_MODEL", "meta-llama/llama-3.1-8b-instruct:free")
+
+    try:
+        import requests as req_lib
+        resp = req_lib.post(
+            "https://openrouter.ai/api/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+                "HTTP-Referer": "https://linkedin-redesign-z364.onrender.com",
+                "X-Title": "Nexus LinkedIn Redesign",
+            },
+            json={
+                "model": model,
+                "messages": [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": profile_text},
+                ],
+                "max_tokens": 512,
+                "temperature": 0,
+            },
+            timeout=20,
+        )
+        resp.raise_for_status()
+        raw = resp.json()["choices"][0]["message"]["content"].strip()
+        # Strip markdown code fences if the model wrapped the JSON
+        if raw.startswith("```"):
+            raw = raw.split("```")[1]
+            if raw.startswith("json"):
+                raw = raw[4:]
+            raw = raw.strip()
+        import json as _json
+        tips = _json.loads(raw)
+        if not isinstance(tips, list):
+            raise ValueError("Expected a JSON array")
+        tips = [str(t) for t in tips[:5]]
+    except Exception as exc:
+        app.logger.exception("AI service request failed: %s", exc)
+        abort(502, description="AI service error")
+
+    return jsonify({"tips": tips}), 200
 
 
 # ══════════════════════════════════════════════════════════════

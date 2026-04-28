@@ -641,8 +641,23 @@
         </div>
       </div>
 
-      <!-- Step 9 -->
+      <!-- Step 9 — Recruiter -->
       <div class="step" id="step-9">
+        <h2 class="step-heading">Are you a recruiter?</h2>
+        <p class="step-sub">Recruiters get a <strong>Candidate Shortlist</strong> tool to save and export profiles. <em style="color:rgba(0,0,0,0.45);font-style:normal;">(optional)</em></p>
+        <div class="yes-no-btns">
+          <button id="recruiter-yes" onclick="selectRecruiter('yes')">Yes, I hire talent</button>
+          <button id="recruiter-no" onclick="selectRecruiter('no')">No, I'm job seeking</button>
+        </div>
+        <span class="error-msg" id="s-recruiter-err" style="margin-top:8px;">Please select an option.</span>
+        <div class="step-actions" style="margin-top:16px;">
+          <button class="btn-primary" onclick="nextStep(9)">Continue</button>
+          <div class="step-back-link"><a href="#" onclick="skipStep(9); return false;">Skip for now</a> &nbsp;·&nbsp; <a href="#" onclick="prevStep(9); return false;">Go back</a></div>
+        </div>
+      </div>
+
+      <!-- Step 10 — Birthday -->
+      <div class="step" id="step-10">
         <h2 class="step-heading">What's your birthday?</h2>
         <p class="step-sub">This won't be shown publicly on your profile. <em style="color:rgba(0,0,0,0.45);font-style:normal;">(optional)</em></p>
         <div class="bday-selects">
@@ -660,8 +675,8 @@
         </div>
         <span class="error-msg" id="s-bday-err" style="margin-top:8px;">Please enter a valid birthday.</span>
         <div class="step-actions">
-          <button class="btn-primary" onclick="nextStep(9)">Agree &amp; Join</button>
-          <div class="step-back-link"><a href="#" onclick="skipStep(9); return false;">Skip for now</a> &nbsp;·&nbsp; <a href="#" onclick="prevStep(9); return false;">Go back</a></div>
+          <button class="btn-primary" onclick="nextStep(10)">Agree &amp; Join</button>
+          <div class="step-back-link"><a href="#" onclick="skipStep(10); return false;">Skip for now</a> &nbsp;·&nbsp; <a href="#" onclick="prevStep(10); return false;">Go back</a></div>
         </div>
       </div>
 
@@ -672,11 +687,12 @@
 <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 
 <script>
-  const API_BASE = '/api';
-  const TOTAL_STEPS = 9;
+  const API_BASE = 'https://linkedin-redesign-z364.onrender.com/api';
+  const TOTAL_STEPS = 10;
   let currentStep = 1;
   let _registered = false;
   let studentChoice = null;
+  let recruiterChoice = null;
 
   // ── Auto-redirect returning users with a valid session ────────────────────
   (function checkExistingSession() {
@@ -823,14 +839,14 @@
     const last     = document.getElementById('s-last').value.trim();
     const name     = (first + ' ' + last).trim();
 
-    const btn = document.querySelector('#step-9 .btn-primary');
+    const btn = document.querySelector('#step-10 .btn-primary');
     if (btn) { btn.disabled = true; btn.textContent = 'Creating account…'; }
 
     try {
       const res = await fetch(API_BASE + '/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password: pw }),
+        body: JSON.stringify({ name, email, password: pw, isRecruiter: recruiterChoice === 'yes' }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -900,6 +916,10 @@
         document.getElementById('s-student-err').style.display = 'none'; return true;
       }
       case 9: {
+        // Optional step — allow proceeding with no recruiter choice
+        document.getElementById('s-recruiter-err').style.display = 'none'; return true;
+      }
+      case 10: {
         // Optional step — only validate if birthday is partially filled
         const m = document.getElementById('s-bday-month').value;
         const d = document.getElementById('s-bday-day').value;
@@ -917,6 +937,13 @@
     document.getElementById('student-yes').classList.toggle('selected', choice === 'yes');
     document.getElementById('student-no').classList.toggle('selected', choice === 'no');
     document.getElementById('s-student-err').style.display = 'none';
+  }
+
+  function selectRecruiter(choice) {
+    recruiterChoice = choice;
+    document.getElementById('recruiter-yes').classList.toggle('selected', choice === 'yes');
+    document.getElementById('recruiter-no').classList.toggle('selected', choice === 'no');
+    document.getElementById('s-recruiter-err').style.display = 'none';
   }
 
   function togglePw(inputId, btn) {

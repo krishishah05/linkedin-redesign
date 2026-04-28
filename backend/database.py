@@ -556,7 +556,7 @@ def add_skill(user_id: int, skill: str):
     return data
 
 
-def create_user(name: str, email: str, password: str):
+def create_user(name: str, email: str, password: str, is_recruiter: bool = False):
     """Create a new user. Raises ValueError if email already taken."""
     conn = _connect()
     existing = _execute(conn,
@@ -582,6 +582,7 @@ def create_user(name: str, email: str, password: str):
         "avatarColor": "#0F5DBD",
         "isPremium": False,
         "openToWork": False,
+        "isRecruiter": is_recruiter,
         "about": "",
         "experience": [],
         "education": [],
