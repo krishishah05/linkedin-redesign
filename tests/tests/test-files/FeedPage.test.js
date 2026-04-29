@@ -1859,6 +1859,7 @@ describe('FeedPost — render variants and action buttons', () => {
     await act(async () => {});
 
     expect(writeText).toHaveBeenCalled();
+    expect(writeText).toHaveBeenCalledWith(expect.stringContaining('#post-1'));
     expect(mockShowToast).toHaveBeenCalledWith('Link copied!');
 
     // Restore original clipboard descriptor so this test doesn't affect others

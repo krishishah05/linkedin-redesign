@@ -542,7 +542,6 @@ def add_experience(user_id: int, entry: dict):
     conn = _connect()
     try:
         if _USE_PG:  # pragma: no cover
-            conn.execute("BEGIN")
             row = _execute(conn, "SELECT data FROM users WHERE id=%s FOR UPDATE", (user_id,)).fetchone()
         else:
             conn.execute("BEGIN EXCLUSIVE")

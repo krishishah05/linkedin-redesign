@@ -12,7 +12,7 @@ function FeedPage() {
   const [feedSort, setFeedSort] = React.useState('Top');
   const [expandedComments, setExpandedComments] = React.useState(new Set());
   const [savedPostIds, setSavedPostIds] = React.useState(new Set());
-  const [dismissedAdIndices, setDismissedAdIndices] = React.useState(new Set());
+  const [dismissedAdKeys, setDismissedAdKeys] = React.useState(new Set());
 
   React.useEffect(() => { if (posts) setLocalPosts(posts); }, [posts]);
 
@@ -165,8 +165,8 @@ function FeedPage() {
               }}
             />
             {/* Sponsored posts interspersed */}
-            {(i === 1 || i === 3) && !dismissedAdIndices.has(i) && (
-              <SponsoredPost key={`ad-${i}`} ad={sponsored[i === 1 ? 0 : 1]} showToast={showToast} onDismiss={() => setDismissedAdIndices(prev => new Set([...prev, i]))} />
+            {(i === 1 || i === 3) && !dismissedAdKeys.has(i === 1 ? 'ad-slot-1' : 'ad-slot-2') && (
+              <SponsoredPost key={i === 1 ? 'ad-slot-1' : 'ad-slot-2'} ad={sponsored[i === 1 ? 0 : 1]} showToast={showToast} onDismiss={() => { const k = i === 1 ? 'ad-slot-1' : 'ad-slot-2'; setDismissedAdKeys(prev => new Set([...prev, k])); }} />
             )}
           </React.Fragment>
         ))}
@@ -359,7 +359,7 @@ function PostCreator({ user, onPost, openModal, showToast }) {
         <div className="li-post-creator__actions">
           {[
             { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="#378FE9"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>, label: 'Photo', action: () => { setExpanded(true); setShowImageInput(true); } },
-            { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="#5F9B41"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/></svg>, label: 'Video', action: () => { setExpanded(true); setShowImageInput(true); } },
+            { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="#5F9B41"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/></svg>, label: 'Video', action: handleVideoBtn },
             { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="#E06847"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>, label: 'Event', action: () => navigate('events') },
             { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="#E06847"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>, label: 'Write article', action: () => navigate('article') },
           ].map(item => (
@@ -435,7 +435,7 @@ function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, followi
 
   const totalReactions = post.likeCount || post.totalReactions ||
     (post.reactions ? Object.values(post.reactions).reduce((a, b) => a + b, 0) : 0);
-  const commentCount = post.commentCount || (typeof post.comments === 'number' ? post.comments : (post.commentsList?.length || 0));
+  const commentCount = localComments.length || post.commentCount || (typeof post.comments === 'number' ? post.comments : 0);
   const repostCount = post.repostCount || post.reposts || 0;
 
   const reactionLabels = { like: 'Like', celebrate: 'Celebrate', love: 'Love', support: 'Support', insightful: 'Insightful', curious: 'Curious', funny: 'Funny' };
