@@ -16,9 +16,7 @@ function ModalContainer() {
     'add-exp':       <AddExpModal />,
     'add-education': <AddEducationModal />,
     'add-skill':     <AddSkillModal />,
-    'create-group':  <CreateGroupModal />,
     'report':        <ReportModal />,
-    'create-event':  <CreateEventModal />,
   };
 
   const modal = modalMap[activeModal];

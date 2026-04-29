@@ -6,9 +6,12 @@ function NetworkPage() {
     connections, connect, acceptConnection, pendingConnections, showToast,
     pendingInvitations, dismissedInvitations, dismissInvitation,
     recruiterMode, shortlisted, addToShortlist, removeFromShortlist, userStatus,
+    refreshInvitations,
   } = React.useContext(AppContext);
   const { data: users, loading: usersLoading } = useFetch(API.getUsers, []);
   const [tab, setTab] = React.useState('suggestions');
+
+  React.useEffect(() => { refreshInvitations && refreshInvitations(); }, []);
 
   if (usersLoading) return <LoadingSpinner text="Loading network..." />;
 

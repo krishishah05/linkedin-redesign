@@ -115,9 +115,9 @@ function ProfilePage({ userId }) {
         <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
 
           {/* Hero card */}
-          <div className="li-card" style={{ padding: 0, overflow: 'hidden' }}>
+          <div className="li-card" style={{ padding: 0, overflow: 'visible' }}>
             {/* Cover photo */}
-            <div style={{ height: 200, background: user.coverGradient || 'linear-gradient(135deg, #0F5DBD 0%, #0A4A9E 100%)', position: 'relative' }}>
+            <div style={{ height: 200, background: user.coverGradient || 'linear-gradient(135deg, #0F5DBD 0%, #0A4A9E 100%)', position: 'relative', overflow: 'hidden', borderRadius: '10px 10px 0 0' }}>
             </div>
             {/* Profile info */}
             <div style={{ padding: '0 24px 20px', position: 'relative' }}>
@@ -215,28 +215,6 @@ function ProfilePage({ userId }) {
                   </span>
                 )}
               </div>
-
-              {/* Stats (own profile only) */}
-              {isOwnProfile && (user.profileViews || user.postImpressions) && (
-                <div style={{ display: 'flex', gap: 24, marginBottom: 12, flexWrap: 'wrap', alignItems: 'flex-end' }}>
-                  {user.profileViews > 0 && (
-                    <div style={{ cursor: 'pointer' }}>
-                      <div style={{ fontSize: 16, fontWeight: 700 }}>{formatNumber(user.profileViews)}</div>
-                      <div style={{ fontSize: 12, color: 'var(--text-2)' }}>Profile views</div>
-                    </div>
-                  )}
-                  {user.postImpressions > 0 && (
-                    <div style={{ cursor: 'pointer' }}>
-                      <div style={{ fontSize: 16, fontWeight: 700 }}>{formatNumber(user.postImpressions)}</div>
-                      <div style={{ fontSize: 12, color: 'var(--text-2)' }}>Post impressions</div>
-                    </div>
-                  )}
-                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: 'var(--bg-2)', border: '1px solid var(--border)', borderRadius: 12, padding: '3px 8px', fontSize: 11, color: 'var(--text-3)', marginBottom: 2 }}>
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
-                    Only visible to you
-                  </div>
-                </div>
-              )}
 
               {/* Status badge + picker */}
               {(() => {
