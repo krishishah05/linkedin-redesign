@@ -522,17 +522,26 @@ def update_current_user(updates: dict, user_id: int = 1):
 def add_education(user_id: int, entry: dict):
     """Append an education entry to a user's data. Returns updated user dict."""
     conn = _connect()
-    row = _execute(conn, "SELECT data FROM users WHERE id=%s", (user_id,)).fetchone()
-    if not row:
+    try:
+        if _USE_PG:  # pragma: no cover
+            row = _execute(conn, "SELECT data FROM users WHERE id=%s FOR UPDATE", (user_id,)).fetchone()
+        else:
+            conn.execute("BEGIN EXCLUSIVE")
+            row = _execute(conn, "SELECT data FROM users WHERE id=%s", (user_id,)).fetchone()
+        if not row:
+            conn.close()
+            return None
+        data = json.loads(row["data"])
+        edu_list = data.get("education", [])
+        entry["id"] = max((e.get("id", 0) for e in edu_list), default=0) + 1
+        edu_list.append(entry)
+        data["education"] = edu_list
+        _execute(conn, "UPDATE users SET data=%s WHERE id=%s", (json.dumps(data), user_id))
+        conn.commit()
+    except Exception:
+        conn.rollback()
         conn.close()
-        return None
-    data = json.loads(row["data"])
-    edu_list = data.get("education", [])
-    entry["id"] = max((e.get("id", 0) for e in edu_list), default=0) + 1
-    edu_list.append(entry)
-    data["education"] = edu_list
-    _execute(conn, "UPDATE users SET data=%s WHERE id=%s", (json.dumps(data), user_id))
-    conn.commit()
+        raise
     conn.close()
     return data
 
@@ -567,18 +576,27 @@ def add_experience(user_id: int, entry: dict):
 def add_skill(user_id: int, skill: str):
     """Append a skill string to a user's skills list (no duplicates). Returns updated user dict."""
     conn = _connect()
-    row = _execute(conn, "SELECT data FROM users WHERE id=%s", (user_id,)).fetchone()
-    if not row:
+    try:
+        if _USE_PG:  # pragma: no cover
+            row = _execute(conn, "SELECT data FROM users WHERE id=%s FOR UPDATE", (user_id,)).fetchone()
+        else:
+            conn.execute("BEGIN EXCLUSIVE")
+            row = _execute(conn, "SELECT data FROM users WHERE id=%s", (user_id,)).fetchone()
+        if not row:
+            conn.close()
+            return None
+        data = json.loads(row["data"])
+        skills = data.get("skills", [])
+        skill_names = [s if isinstance(s, str) else s.get("name", "") for s in skills]
+        if skill not in skill_names:
+            skills.append(skill)
+        data["skills"] = skills
+        _execute(conn, "UPDATE users SET data=%s WHERE id=%s", (json.dumps(data), user_id))
+        conn.commit()
+    except Exception:
+        conn.rollback()
         conn.close()
-        return None
-    data = json.loads(row["data"])
-    skills = data.get("skills", [])
-    skill_names = [s if isinstance(s, str) else s.get("name", "") for s in skills]
-    if skill not in skill_names:
-        skills.append(skill)
-    data["skills"] = skills
-    _execute(conn, "UPDATE users SET data=%s WHERE id=%s", (json.dumps(data), user_id))
-    conn.commit()
+        raise
     conn.close()
     return data
 
