@@ -540,19 +540,28 @@ def add_education(user_id: int, entry: dict):
 def _delete_list_item(user_id: int, field: str, index: int):
     """Generic helper: remove item at index from a list field in user's JSON blob."""
     conn = _connect()
-    row = _execute(conn, "SELECT data FROM users WHERE id=%s", (user_id,)).fetchone()
-    if not row:
+    try:
+        if _USE_PG:  # pragma: no cover
+            row = _execute(conn, "SELECT data FROM users WHERE id=%s FOR UPDATE", (user_id,)).fetchone()
+        else:
+            conn.execute("BEGIN EXCLUSIVE")
+            row = _execute(conn, "SELECT data FROM users WHERE id=%s", (user_id,)).fetchone()
+        if not row:
+            conn.close()
+            return None
+        data = json.loads(row["data"])
+        lst = data.get(field, [])
+        if not (0 <= index < len(lst)):
+            conn.close()
+            return False
+        lst.pop(index)
+        data[field] = lst
+        _execute(conn, "UPDATE users SET data=%s WHERE id=%s", (json.dumps(data), user_id))
+        conn.commit()
+    except Exception:
+        conn.rollback()
         conn.close()
-        return None
-    data = json.loads(row["data"])
-    lst = data.get(field, [])
-    if not (0 <= index < len(lst)):
-        conn.close()
-        return False
-    lst.pop(index)
-    data[field] = lst
-    _execute(conn, "UPDATE users SET data=%s WHERE id=%s", (json.dumps(data), user_id))
-    conn.commit()
+        raise
     conn.close()
     return data
 
@@ -560,19 +569,28 @@ def _delete_list_item(user_id: int, field: str, index: int):
 def _update_list_item(user_id: int, field: str, index: int, entry: dict):
     """Generic helper: merge entry into item at index in a list field in user's JSON blob."""
     conn = _connect()
-    row = _execute(conn, "SELECT data FROM users WHERE id=%s", (user_id,)).fetchone()
-    if not row:
+    try:
+        if _USE_PG:  # pragma: no cover
+            row = _execute(conn, "SELECT data FROM users WHERE id=%s FOR UPDATE", (user_id,)).fetchone()
+        else:
+            conn.execute("BEGIN EXCLUSIVE")
+            row = _execute(conn, "SELECT data FROM users WHERE id=%s", (user_id,)).fetchone()
+        if not row:
+            conn.close()
+            return None
+        data = json.loads(row["data"])
+        lst = data.get(field, [])
+        if not (0 <= index < len(lst)):
+            conn.close()
+            return False
+        lst[index] = {**lst[index], **entry}
+        data[field] = lst
+        _execute(conn, "UPDATE users SET data=%s WHERE id=%s", (json.dumps(data), user_id))
+        conn.commit()
+    except Exception:
+        conn.rollback()
         conn.close()
-        return None
-    data = json.loads(row["data"])
-    lst = data.get(field, [])
-    if not (0 <= index < len(lst)):
-        conn.close()
-        return False
-    lst[index] = {**lst[index], **entry}
-    data[field] = lst
-    _execute(conn, "UPDATE users SET data=%s WHERE id=%s", (json.dumps(data), user_id))
-    conn.commit()
+        raise
     conn.close()
     return data
 
@@ -800,7 +818,7 @@ def get_all_posts():
     return result
 
 
-def create_post(author_id: int, content: str, image_url: str = None):
+def create_post(author_id: int, content: str, image_url: str | None = None):
     user = get_user_by_id(author_id)
     author_blob = {
         "id":          user["id"],
