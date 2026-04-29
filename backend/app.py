@@ -712,7 +712,7 @@ def create_post():
 @app.route("/api/feed/<int:post_id>", methods=["DELETE"])
 def delete_post(post_id):
     """DELETE /api/feed/:id — delete a post (owner only)."""
-    current_user = _auth_user()
+    current_user = _require_auth_user()
     result = dbl.delete_post(post_id, current_user["id"])
     if result == "not_found":
         abort(404, description=f"Post {post_id} not found")
@@ -724,7 +724,7 @@ def delete_post(post_id):
 @app.route("/api/feed/<int:post_id>/like", methods=["POST"])
 def toggle_post_like(post_id):
     """POST /api/feed/:id/like — toggle like on a post."""
-    current_user = _auth_user()
+    current_user = _require_auth_user()
     result = dbl.toggle_post_like(post_id, current_user["id"])
     return jsonify(result)
 
@@ -736,7 +736,7 @@ def add_post_comment(post_id):
     text = (body.get("text") or "").strip()
     if not text:
         abort(400, description="text is required")
-    current_user = _auth_user()
+    current_user = _require_auth_user()
     comment = dbl.add_post_comment(post_id, current_user["id"], text)
     if comment is None:
         abort(404, description=f"Post {post_id} not found")
@@ -929,7 +929,7 @@ def create_event():
     body = request.get_json(silent=True) or {}
     if not body.get("name"):
         abort(400, description="name is required")
-    current_user = _auth_user()
+    current_user = _require_auth_user()
     event = dbl.create_event(current_user["id"], body)
     return jsonify(event), 201
 
@@ -937,7 +937,7 @@ def create_event():
 @app.route("/api/events/<event_id>/attend", methods=["POST"])
 def toggle_event_attend(event_id):
     """POST /api/events/:id/attend — toggle attendance."""
-    current_user = _auth_user()
+    current_user = _require_auth_user()
     src = "user" if str(event_id).startswith("u") else "static"
     result = dbl.toggle_event_attend(event_id, src, current_user["id"])
     return jsonify(result)
