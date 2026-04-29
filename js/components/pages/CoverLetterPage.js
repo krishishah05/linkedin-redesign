@@ -352,13 +352,31 @@ function CoverLetterPage() {
 
   function handleCopy() {
     if (!generatedLetter) return;
-    navigator.clipboard.writeText(generatedLetter)
-      .then(() => showToast('Copied to clipboard!'))
-      .catch(() => showToast('Could not copy to clipboard.', 'error'));
+    function execCopyText() {
+      let ta;
+      try {
+        ta = document.createElement('textarea');
+        ta.value = generatedLetter;
+        ta.style.cssText = 'position:fixed;opacity:0';
+        document.body.appendChild(ta);
+        ta.focus(); ta.select();
+        if (document.execCommand('copy')) showToast('Copied to clipboard!');
+        else showToast('Could not copy to clipboard.', 'error');
+      } catch (_) { showToast('Could not copy to clipboard.', 'error'); }
+      finally { if (ta && ta.parentNode) ta.parentNode.removeChild(ta); }
+    }
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(generatedLetter)
+        .then(() => showToast('Copied to clipboard!'))
+        .catch(() => execCopyText());
+    } else {
+      execCopyText();
+    }
   }
 
   function handleDownload() {
     if (!generatedLetter) return;
+    if (!window.jspdf?.jsPDF) { showToast('PDF library not loaded — try refreshing.', 'error'); return; }
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
 

@@ -304,6 +304,7 @@ def update_experience(index):
     body = request.get_json(silent=True) or {}
     if not (body.get("title") or "").strip() or not (body.get("company") or "").strip():
         abort(400, description="title and company are required")
+    current_val = body.get("current")
     entry = {
         "title": (body.get("title") or "").strip(),
         "company": (body.get("company") or "").strip(),
@@ -311,6 +312,7 @@ def update_experience(index):
         "location": (body.get("location") or "").strip(),
         "startDate": (body.get("startDate") or "").strip(),
         "endDate": (body.get("endDate") or "").strip(),
+        "current": bool(current_val) if current_val is not None else False,
         "description": (body.get("description") or "").strip(),
         "skills": (body.get("skills") or "").strip(),
     }
