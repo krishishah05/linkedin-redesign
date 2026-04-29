@@ -212,7 +212,10 @@ def add_experience():
     user = _auth_user()
     if not user:
         abort(401, description="Authentication required")
-    body = request.get_json(silent=True) or {}
+    body = request.get_json(silent=True)
+    if body is not None and not isinstance(body, dict):
+        abort(400, description="Request body must be a JSON object")
+    body = body or {}
     title = (body.get("title") or "").strip()
     if not title:
         abort(400, description="title is required")
@@ -344,7 +347,7 @@ def create_post():
     if not current_user:
         abort(401, description="Authentication required")
 
-    post = dbl.create_post(current_user["id"], content)
+    post = dbl.create_post(current_user["id"], content, image_url=image_url)
     return jsonify(post), 201
 
 

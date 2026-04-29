@@ -15,12 +15,14 @@ function AddExpModal() {
   }
 
   function handleSave() {
-    if (!form.title || !form.company) { showToast('Title and company are required', 'error'); return; }
+    const trimmedTitle = (form.title || '').trim();
+    const trimmedCompany = (form.company || '').trim();
+    if (!trimmedTitle || !trimmedCompany) { showToast('Title and company are required', 'error'); return; }
     if (saving) return;
     setSaving(true);
     const newEntry = {
-      title: form.title, company: form.company, type: form.type,
-      location: form.location, description: form.description,
+      title: trimmedTitle, company: trimmedCompany, type: (form.type || '').trim(),
+      location: (form.location || '').trim(), description: (form.description || '').trim(),
       startDate: `${form.startMonth} ${form.startYear}`,
       current: currentRole,
       skills: form.skills ? form.skills.split(',').map(s => s.trim()).filter(Boolean) : [],

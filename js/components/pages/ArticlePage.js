@@ -26,7 +26,7 @@ function ArticlePage() {
   }
 
   function clearDraft() {
-    try { localStorage.removeItem(ARTICLE_DRAFT_KEY); } catch {}
+    try { localStorage.removeItem(ARTICLE_DRAFT_KEY); } catch (err) { console.error('Failed to clear draft:', err); }
   }
 
   function handlePublish() {

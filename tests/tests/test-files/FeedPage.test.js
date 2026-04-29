@@ -31,12 +31,16 @@ global.API = {
 };
 global.useFetch = jest.fn();
 global.copyLink = function(url, showToast) {
+  function execCopy() {
+    const copied = typeof document.execCommand === 'function' && document.execCommand('copy');
+    showToast(copied ? 'Link copied!' : 'Failed to copy link', copied ? undefined : 'error');
+  }
   if (navigator.clipboard?.writeText) {
     navigator.clipboard.writeText(url)
       .then(() => showToast('Link copied!'))
-      .catch(() => showToast('Failed to copy link', 'error'));
+      .catch(() => execCopy());
   } else {
-    showToast('Failed to copy link', 'error');
+    execCopy();
   }
 };
 global.LoadingSpinner = ({ text }) => React.createElement('div', { 'data-testid': 'spinner' }, text);

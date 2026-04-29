@@ -112,6 +112,7 @@ function LearningPage() {
               const isEnrolled = enrolledIds.has(course.id) || course.isInProgress;
               return (
               <div key={course.id} className="li-card" style={{ padding: 0, overflow: 'hidden', cursor: 'pointer' }}
+                role="button" tabIndex={0}
                 onClick={() => {
                   if (isEnrolled) {
                     showToast(`Continuing "${course.title}"…`, 'success');
@@ -119,6 +120,18 @@ function LearningPage() {
                     setEnrolledIds(prev => new Set([...prev, course.id]));
                     setTab('my-learning');
                     showToast(`Enrolled in "${course.title}"`, 'success');
+                  }
+                }}
+                onKeyDown={e => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    if (isEnrolled) {
+                      showToast(`Continuing "${course.title}"…`, 'success');
+                    } else {
+                      setEnrolledIds(prev => new Set([...prev, course.id]));
+                      setTab('my-learning');
+                      showToast(`Enrolled in "${course.title}"`, 'success');
+                    }
                   }
                 }}>
                 {/* Thumbnail */}

@@ -291,7 +291,9 @@ function SettingsPage() {
                       const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
                       url = URL.createObjectURL(blob);
                       a = document.createElement('a');
-                      a.href = url; a.download = 'nexus-data-export.json';
+                      a.href = url;
+                      const exportDate = new Date().toISOString().slice(0, 10);
+                      a.download = `nexus-data-export-${exportDate}.json`;
                       document.body.appendChild(a); a.click();
                       showToast('Data exported successfully!', 'success');
                     } catch { showToast('Export failed — please try again', 'error'); }
