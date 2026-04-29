@@ -56,6 +56,12 @@ def _require_auth_user():
     return user
 
 
+def _get_body():
+    """Parse request JSON body; silently returns {} for non-dict payloads."""
+    body = request.get_json(silent=True)
+    return body if isinstance(body, dict) else {}
+
+
 # ── Serve SPA ─────────────────────────────────────────────────
 
 @app.route("/")
@@ -113,7 +119,7 @@ def login():
     Body: { email, password }
     Returns { user, token } on success or 401 on failure.
     """
-    body = request.get_json(silent=True) or {}
+    body = _get_body()
     email = (body.get("email") or "").strip().lower()
     password = body.get("password") or ""
 
@@ -135,7 +141,7 @@ def register():
     Body: { name, email, password }
     Returns the new user dict (201) or 400/409 on validation failure.
     """
-    body = request.get_json(silent=True) or {}
+    body = _get_body()
 
     name = (body.get("name") or "").strip()
     email = (body.get("email") or "").strip().lower()
@@ -177,7 +183,7 @@ def get_me():
 @app.route("/api/me", methods=["PUT", "PATCH"])
 def update_me():
     """PUT /api/me — update current user profile fields."""
-    body = request.get_json(silent=True) or {}
+    body = _get_body()
     allowed = {"name", "headline", "location", "about", "pronouns", "industry"}
     updates = {k: v for k, v in body.items() if k in allowed and isinstance(v, str)}
     if not updates:
@@ -197,7 +203,7 @@ def add_education():
     user = _auth_user()
     if not user:
         abort(401, description="Authentication required")
-    body = request.get_json(silent=True) or {}
+    body = _get_body()
     school = (body.get("school") or "").strip()
     if not school:
         abort(400, description="school is required")
@@ -255,7 +261,7 @@ def add_skill():
     user = _auth_user()
     if not user:
         abort(401, description="Authentication required")
-    body = request.get_json(silent=True) or {}
+    body = _get_body()
     skill = (body.get("skill") or "").strip()
     if not skill:
         abort(400, description="skill is required")
@@ -271,7 +277,7 @@ def create_group():
     user = _auth_user()
     if not user:
         abort(401, description="Authentication required")
-    body = request.get_json(silent=True) or {}
+    body = _get_body()
     name = (body.get("name") or "").strip()
     if not name:
         abort(400, description="name is required")
@@ -344,7 +350,7 @@ def get_feed():
 @app.route("/api/feed", methods=["POST"])
 def create_post():
     """POST /api/feed — create a new post. Body: {content: str, imageUrl?: str}"""
-    body = request.get_json(silent=True) or {}
+    body = _get_body()
     content = (body.get("content") or "").strip()
     if not content:
         abort(400, description="content is required and must not be empty")
@@ -383,7 +389,7 @@ def toggle_post_like(post_id):
 @app.route("/api/feed/<int:post_id>/comments", methods=["POST"])
 def add_post_comment(post_id):
     """POST /api/feed/:id/comments — add a comment. Body: {text: str}"""
-    body = request.get_json(silent=True) or {}
+    body = _get_body()
     text = (body.get("text") or "").strip()
     if not text:
         abort(400, description="text is required")
@@ -436,7 +442,7 @@ def create_conversation():
     user = _auth_user()
     if not user:
         abort(401, description="Authentication required")
-    body = request.get_json(silent=True) or {}
+    body = _get_body()
     participant_id = body.get("participantId")
     if not participant_id:
         abort(400, description="participantId is required")
@@ -480,7 +486,7 @@ def post_message(conv_id):
     if not conv:
         abort(404, description=f"Conversation {conv_id} not found")
 
-    body = request.get_json(silent=True) or {}
+    body = _get_body()
     text = (body.get("text") or "").strip()
     if not text:
         abort(400, description="text is required")
@@ -533,7 +539,7 @@ def get_events():
 @app.route("/api/events", methods=["POST"])
 def create_event():
     """POST /api/events — create a new event."""
-    body = request.get_json(silent=True) or {}
+    body = _get_body()
     if not body.get("name"):
         abort(400, description="name is required")
     current_user = _require_auth_user()
@@ -648,7 +654,7 @@ def get_profile_readiness():
 @app.route("/api/outreach/generate", methods=["POST"])
 def outreach_generate():
     """POST /api/outreach/generate — personalised outreach draft."""
-    body = request.get_json(silent=True) or {}
+    body = _get_body()
 
     raw_id = body.get("recipientId")
     if raw_id is None:
@@ -888,7 +894,7 @@ def toggle_group(group_id):  # pragma: no cover
 @app.route("/api/me/invitations/dismiss", methods=["POST"])
 def dismiss_invitation():  # pragma: no cover
     """POST /api/me/invitations/dismiss — dismiss an invitation. Body: {key: str}"""
-    body = request.get_json(silent=True) or {}
+    body = _get_body()
     key = str(body.get("key") or "").strip()
     if not key:
         abort(400, description="key is required")
