@@ -7,7 +7,11 @@ function ArticlePage() {
   const { currentUser, showToast } = React.useContext(AppContext);
 
   const initialDraft = React.useMemo(() => {
-    try { return JSON.parse(localStorage.getItem(ARTICLE_DRAFT_KEY) || '{}'); } catch { return {}; }
+    try {
+      const parsed = JSON.parse(localStorage.getItem(ARTICLE_DRAFT_KEY) || '{}');
+      if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) return {};
+      return parsed;
+    } catch { return {}; }
   }, []);
   const [title, setTitle]    = React.useState(initialDraft.title || '');
   const [body, setBody]      = React.useState(initialDraft.body || '');
@@ -26,13 +30,13 @@ function ArticlePage() {
   }
 
   function clearDraft() {
-    try { localStorage.removeItem(ARTICLE_DRAFT_KEY); } catch (err) { console.error('Failed to clear draft:', err); }
+    try { localStorage.removeItem(ARTICLE_DRAFT_KEY); return true; } catch (err) { console.error('Failed to clear draft:', err); return false; }
   }
 
   function handlePublish() {
     if (!title.trim()) { showToast('Please add a title', 'error'); return; }
     if (!body.trim())  { showToast('Please write something in the article body', 'error'); return; }
-    clearDraft();
+    if (!clearDraft()) { showToast('Could not clear draft — please try again', 'error'); return; }
     setPublished(true);
     showToast('Article published!', 'success');
   }

@@ -109,7 +109,7 @@ def client(monkeypatch):
     # Feed
     monkeypatch.setattr(flask_app.dbl, "get_all_posts", lambda: [MOCK_POST])
     monkeypatch.setattr(flask_app.dbl, "create_post",
-                        lambda uid, content, image_url=None: {**MOCK_POST, "content": content, **({"image": image_url} if image_url else {})})
+                        lambda uid, content, image_url=None, video_url=None: {**MOCK_POST, "content": content, **({"image": image_url} if image_url else {}), **({"videoUrl": video_url} if video_url else {})})
     monkeypatch.setattr(flask_app.dbl, "get_post_likes_for_user", lambda uid: set())
     monkeypatch.setattr(flask_app.dbl, "toggle_post_like",
                         lambda pid, uid: {"liked": True, "likeCount": 1})
@@ -954,3 +954,15 @@ class TestAddExperience:
             json={"title": "Engineer", "company": "ACME", "current": False},
         )
         assert resp.status_code == 401
+
+    def test_T101_WB_non_object_json_returns_400(self, client, monkeypatch):
+        """WB: non-object JSON body (array) → 400 (locks in body-type validation)."""
+        monkeypatch.setattr(flask_app.dbl, "get_session_user_id", lambda token: 1)
+        monkeypatch.setattr(flask_app.dbl, "get_current_user", lambda uid: MOCK_USER)
+        monkeypatch.setattr(flask_app.dbl, "add_experience", lambda uid, e: self._mock_updated())
+        resp = client.post(
+            "/api/me/experience",
+            json=[],
+            headers={"Authorization": "Bearer mock-token"},
+        )
+        assert resp.status_code == 400

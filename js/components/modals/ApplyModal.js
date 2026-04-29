@@ -119,8 +119,9 @@ function ApplyModal() {
                 onClick={() => {
                   if (!currentUser) { showToast('Sign in to use your Nexus profile', 'error'); return; }
                   const parts = (currentUser.name || '').trim().split(/\s+/).filter(Boolean);
-                  update('firstName', parts[0] || '');
-                  update('lastName', parts.slice(1).join(' '));
+                  if (parts[0]) update('firstName', parts[0]);
+                  const lastName = parts.slice(1).join(' ');
+                  if (lastName) update('lastName', lastName);
                   update('email', currentUser.email || form.email);
                   update('phone', currentUser.phone || form.phone);
                   update('location', currentUser.location || form.location);

@@ -188,8 +188,8 @@ describe('FeedPage — handleNewPost', () => {
     expect(firstPostProps.post.author).toBe('Alex');
     expect(firstPostProps.post.authorId).toBe(1);
 
-    // API.createPost must have been called with the content string and null imageUrl
-    expect(global.API.createPost).toHaveBeenCalledWith('Hello world', null);
+    // API.createPost must have been called with content, null imageUrl, null videoUrl
+    expect(global.API.createPost).toHaveBeenCalledWith('Hello world', null, null);
   });
 
   // 2
@@ -267,7 +267,40 @@ describe('FeedPage — handleNewPost', () => {
     // does not validate — validation is in submit(). So we confirm the
     // post appears with whitespace content as-is.
     // The real guard is in PostCreator > submit() tested separately.
-    expect(global.API.createPost).toHaveBeenCalledWith('   ', null);
+    expect(global.API.createPost).toHaveBeenCalledWith('   ', null, null);
+  });
+
+  // 5 (server id replacement)
+  // Type: WB
+  // Spec: handleNewPost replaces optimistic id with server-returned id once API resolves
+  test('Replaces optimistic post id with server-assigned id on API resolve', async () => {
+    const serverPost = {
+      id: 42, content: 'Hello world', author: 'Alex', authorId: 1,
+      likeCount: 0, commentCount: 0, repostCount: 0, comments: [],
+    };
+    mockCreatePost.mockResolvedValue(serverPost);
+
+    renderWithContext(
+      React.createElement(global.FeedPage),
+      defaultContext()
+    );
+
+    const onPost = global.PostCreator.mock.calls[0][0].onPost;
+    const optimisticId = Date.now();
+    jest.spyOn(Date, 'now').mockReturnValue(optimisticId);
+
+    await act(async () => {
+      onPost('Hello world');
+    });
+
+    jest.restoreAllMocks();
+
+    const feedPostCalls = global.FeedPost.mock.calls;
+    const lastPost = feedPostCalls[feedPostCalls.length - 1][0].post;
+    // The server-assigned id (42) must replace the optimistic Date.now() stub
+    expect(lastPost.id).toBe(42);
+    expect(lastPost.id).not.toBe(optimisticId);
+    expect(mockShowToast).toHaveBeenCalledWith('Post shared!', 'success');
   });
 });
 
@@ -604,8 +637,8 @@ describe('PostCreator — submit()', () => {
       fireEvent.click(screen.getByText('Post'));
     });
 
-    // onPost should be called with trimmed content and null imageUrl (no image attached)
-    expect(mockOnPost).toHaveBeenCalledWith('My post', null);
+    // onPost should be called with trimmed content, null imageUrl, null videoUrl
+    expect(mockOnPost).toHaveBeenCalledWith('My post', null, null);
 
     // Composer should be collapsed — Start a post button reappears
     expect(screen.getByText('Start a post')).toBeInTheDocument();

@@ -541,8 +541,12 @@ def add_experience(user_id: int, entry: dict):
     """Append a work experience entry to a user's data. Returns updated user dict."""
     conn = _connect()
     try:
-        conn.execute("BEGIN EXCLUSIVE") if not _USE_PG else None  # atomic read-modify-write
-        row = _execute(conn, "SELECT data FROM users WHERE id=%s", (user_id,)).fetchone()
+        if _USE_PG:  # pragma: no cover
+            conn.execute("BEGIN")
+            row = _execute(conn, "SELECT data FROM users WHERE id=%s FOR UPDATE", (user_id,)).fetchone()
+        else:
+            conn.execute("BEGIN EXCLUSIVE")
+            row = _execute(conn, "SELECT data FROM users WHERE id=%s", (user_id,)).fetchone()
         if not row:
             conn.close()
             return None
@@ -668,7 +672,7 @@ def get_all_posts():
     return result
 
 
-def create_post(author_id: int, content: str, image_url: str = None):
+def create_post(author_id: int, content: str, image_url: str = None, video_url: str = None):
     user = get_user_by_id(author_id)
     author_blob = {
         "id":          user["id"],
@@ -693,6 +697,8 @@ def create_post(author_id: int, content: str, image_url: str = None):
     }
     if image_url:
         blob["image"] = image_url
+    if video_url:
+        blob["videoUrl"] = video_url
     conn   = _connect()
     new_id = _insert_id(conn,
         "INSERT INTO posts (author_id, content, created_at, data) VALUES (%s, %s, %s, %s)",

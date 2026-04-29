@@ -342,12 +342,13 @@ def create_post():
         abort(400, description="content is required and must not be empty")
 
     image_url = (body.get("imageUrl") or "").strip() or None
+    video_url = (body.get("videoUrl") or "").strip() or None
 
     current_user = _auth_user()
     if not current_user:
         abort(401, description="Authentication required")
 
-    post = dbl.create_post(current_user["id"], content, image_url=image_url)
+    post = dbl.create_post(current_user["id"], content, image_url=image_url, video_url=video_url)
     return jsonify(post), 201
 
 

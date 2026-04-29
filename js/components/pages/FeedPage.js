@@ -43,7 +43,7 @@ function FeedPage() {
       });
   const u = currentUser || {};
 
-  function handleNewPost(content, imageUrl) {
+  function handleNewPost(content, imageUrl, videoUrl) {
     const newPost = {
       id: Date.now(),
       author: u.name,
@@ -51,6 +51,7 @@ function FeedPage() {
       authorTitle: u.headline,
       content,
       image: imageUrl || null,
+      videoUrl: videoUrl || null,
       createdAt: Date.now(),
       timestamp: Date.now(),
       likeCount: 0,
@@ -60,8 +61,13 @@ function FeedPage() {
     };
     setLocalPosts(prev => [newPost, ...(prev || [])]);
     setFeedSort('Recent');
-    API.createPost(content, imageUrl || null)
-      .then(() => showToast('Post shared!', 'success'))
+    API.createPost(content, imageUrl || null, videoUrl || null)
+      .then((savedPost) => {
+        setLocalPosts(prev => (prev || []).map(p => (
+          p.id === newPost.id ? { ...p, ...savedPost } : p
+        )));
+        showToast('Post shared!', 'success');
+      })
       .catch(() => {
         setLocalPosts(prev => (prev || []).filter(p => p.id !== newPost.id));
         showToast('Failed to post. Please try again.', 'error');
@@ -233,7 +239,7 @@ function PostCreator({ user, onPost, openModal, showToast }) {
 
   function submit() {
     if (!draft.trim()) return;
-    onPost(draft.trim(), imageUrl.trim() || videoUrl.trim() || null);
+    onPost(draft.trim(), imageUrl.trim() || null, videoUrl.trim() || null);
     setDraft('');
     setImageUrl('');
     setVideoUrl('');
@@ -569,7 +575,10 @@ function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, followi
           </div>
         )}
       </div>
-      {post.image && (
+      {post.videoUrl && (
+        <video src={post.videoUrl} controls className="li-post__image" style={{ width: '100%' }} />
+      )}
+      {!post.videoUrl && post.image && (
         <img src={post.image} alt="" className="li-post__image"
           style={{ cursor: 'zoom-in' }}
           onClick={() => openModal('imageViewer', { src: post.image })} />
