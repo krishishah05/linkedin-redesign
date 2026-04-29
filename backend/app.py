@@ -130,6 +130,14 @@ def _auth_user():
     return dbl.get_current_user(uid) if uid else None
 
 
+def _require_auth_user():
+    """Like _auth_user() but aborts with 401 instead of returning None."""
+    user = _auth_user()
+    if not user:
+        abort(401, description="Authentication required")
+    return user
+
+
 # ── Serve SPA ─────────────────────────────────────────────────
 
 @app.route("/")
@@ -312,7 +320,6 @@ def update_experience(index):
     body = request.get_json(silent=True) or {}
     if not (body.get("title") or "").strip() or not (body.get("company") or "").strip():
         abort(400, description="title and company are required")
-    current_val = body.get("current")
     entry = {
         "title": (body.get("title") or "").strip(),
         "company": (body.get("company") or "").strip(),
@@ -320,10 +327,11 @@ def update_experience(index):
         "location": (body.get("location") or "").strip(),
         "startDate": (body.get("startDate") or "").strip(),
         "endDate": (body.get("endDate") or "").strip(),
-        "current": bool(current_val) if current_val is not None else False,
         "description": (body.get("description") or "").strip(),
         "skills": (body.get("skills") or "").strip(),
     }
+    if "current" in body:
+        entry["current"] = bool(body["current"])
     updated = dbl.update_experience(user["id"], index, entry)
     if updated is None:
         abort(404, description="User not found")
@@ -1324,28 +1332,28 @@ Open to Work: {user.get('openToWork', False)}"""
 @app.route("/api/me/social")
 def get_social_state():
     """GET /api/me/social — all social state for the current user."""
-    user = _auth_user()
+    user = _require_auth_user()
     return jsonify(dbl.get_social_state(user["id"]))
 
 
 @app.route("/api/me/saved-jobs/<int:job_id>", methods=["POST"])
 def toggle_saved_job(job_id):
     """POST /api/me/saved-jobs/:id — toggle saved job."""
-    user = _auth_user()
+    user = _require_auth_user()
     return jsonify(dbl.toggle_saved_job(user["id"], job_id))
 
 
 @app.route("/api/me/saved-jobs/<int:job_id>", methods=["PUT"])
 def save_job(job_id):
     """PUT /api/me/saved-jobs/:id — explicitly save a job (idempotent)."""
-    user = _auth_user()
+    user = _require_auth_user()
     return jsonify(dbl.save_job(user["id"], job_id))
 
 
 @app.route("/api/me/saved-jobs/<int:job_id>", methods=["DELETE"])
 def unsave_job(job_id):
     """DELETE /api/me/saved-jobs/:id — explicitly unsave a job (idempotent)."""
-    user = _auth_user()
+    user = _require_auth_user()
     return jsonify(dbl.unsave_job(user["id"], job_id))
 
 
@@ -1370,35 +1378,35 @@ def decline_connection_request(requester_id):
 @app.route("/api/me/connections/<int:target_id>", methods=["POST"])
 def connect_user(target_id):
     """POST /api/me/connections/:id — send a connection request."""
-    user = _auth_user()
+    user = _require_auth_user()
     return jsonify(dbl.connect_user(user["id"], target_id))
 
 
 @app.route("/api/me/connections/<int:target_id>/accept", methods=["POST"])
 def accept_connection(target_id):
     """POST /api/me/connections/:id/accept — confirm a connection."""
-    user = _auth_user()
-    return jsonify(dbl.accept_connection(user["id"], target_id))
+    user = _require_auth_user()
+    return jsonify(dbl.accept_connection(target_id, user["id"]))
 
 
 @app.route("/api/me/following/<int:target_id>", methods=["POST"])
 def toggle_following(target_id):
     """POST /api/me/following/:id — toggle follow."""
-    user = _auth_user()
+    user = _require_auth_user()
     return jsonify(dbl.toggle_following(user["id"], target_id))
 
 
 @app.route("/api/me/applied-jobs/<int:job_id>", methods=["POST"])
 def apply_to_job(job_id):
     """POST /api/me/applied-jobs/:id — mark a job as applied."""
-    user = _auth_user()
+    user = _require_auth_user()
     return jsonify(dbl.apply_to_job(user["id"], job_id))
 
 
 @app.route("/api/me/groups/<int:group_id>/toggle", methods=["POST"])
 def toggle_group(group_id):
     """POST /api/me/groups/:id/toggle — join or leave a group."""
-    user = _auth_user()
+    user = _require_auth_user()
     return jsonify(dbl.toggle_group(user["id"], group_id))
 
 
@@ -1409,7 +1417,7 @@ def dismiss_invitation():
     key = str(body.get("key") or "").strip()
     if not key:
         abort(400, description="key is required")
-    user = _auth_user()
+    user = _require_auth_user()
     return jsonify(dbl.dismiss_invitation(user["id"], key))
 
 

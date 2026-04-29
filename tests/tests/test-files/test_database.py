@@ -1134,8 +1134,8 @@ class TestAddExperience:
         seed_user(isolated_db, uid=1, email="a@a.com")
         database.add_experience(1, {"title": "Job A", "company": "X"})
         result = database.add_experience(1, {"title": "Job B", "company": "Y"})
-        ids = sorted(e["id"] for e in result["experience"])
-        assert ids == [1, 2]
+        ids = [e["id"] for e in result["experience"]]
+        assert ids == [2, 1]
 
     def test_T118_EC_add_experience_unknown_user_returns_none(self, isolated_db):
         """EC: Returns None for a user_id that does not exist."""
@@ -1157,18 +1157,18 @@ class TestAddProject:
     def test_T120_BB_adds_project_entry(self, isolated_db):
         """BB: add_project prepends entry and returns updated user dict."""
         seed_user(isolated_db, uid=1, email="a@a.com")
-        result = database.add_project(1, {"title": "Cool App", "description": "desc"})
+        result = database.add_project(1, {"name": "Cool App", "description": "desc"})
         assert result is not None
         assert len(result.get("projects", [])) == 1
-        assert result["projects"][0]["title"] == "Cool App"
+        assert result["projects"][0]["name"] == "Cool App"
 
     def test_T121_WB_project_gets_auto_id(self, isolated_db):
         """WB: Each project gets an auto-incremented id."""
         seed_user(isolated_db, uid=1, email="a@a.com")
-        database.add_project(1, {"title": "Project A"})
-        result = database.add_project(1, {"title": "Project B"})
-        ids = sorted(e["id"] for e in result["projects"])
-        assert ids == [1, 2]
+        database.add_project(1, {"name": "Project A"})
+        result = database.add_project(1, {"name": "Project B"})
+        ids = [e["id"] for e in result["projects"]]
+        assert ids == [2, 1]
 
     def test_T122_EC_add_project_unknown_user_returns_none(self, isolated_db):
         """EC: Returns None for a non-existent user."""
@@ -1190,7 +1190,7 @@ class TestAddVolunteering:
     def test_T124_BB_adds_volunteering_entry(self, isolated_db):
         """BB: add_volunteering prepends entry and returns updated user dict."""
         seed_user(isolated_db, uid=1, email="a@a.com")
-        result = database.add_volunteering(1, {"role": "Mentor", "org": "CodePath"})
+        result = database.add_volunteering(1, {"role": "Mentor", "organization": "CodePath"})
         assert result is not None
         assert len(result.get("volunteering", [])) == 1
 
@@ -1199,8 +1199,8 @@ class TestAddVolunteering:
         seed_user(isolated_db, uid=1, email="a@a.com")
         database.add_volunteering(1, {"role": "Vol A"})
         result = database.add_volunteering(1, {"role": "Vol B"})
-        ids = sorted(e["id"] for e in result["volunteering"])
-        assert ids == [1, 2]
+        ids = [e["id"] for e in result["volunteering"]]
+        assert ids == [2, 1]
 
     def test_T126_EC_add_volunteering_unknown_user_returns_none(self, isolated_db):
         """EC: Returns None for a non-existent user."""
@@ -1231,8 +1231,8 @@ class TestAddHonor:
         seed_user(isolated_db, uid=1, email="a@a.com")
         database.add_honor(1, {"title": "Honor A"})
         result = database.add_honor(1, {"title": "Honor B"})
-        ids = sorted(e["id"] for e in result["honors"])
-        assert ids == [1, 2]
+        ids = [e["id"] for e in result["honors"]]
+        assert ids == [2, 1]
 
     def test_T130_EC_add_honor_unknown_user_returns_none(self, isolated_db):
         """EC: Returns None for a non-existent user."""

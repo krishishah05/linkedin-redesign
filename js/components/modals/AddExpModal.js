@@ -47,6 +47,7 @@ function AddExpModal() {
       location: form.location.trim(),
       startDate: `${form.startMonth} ${form.startYear}`,
       endDate: currentRole ? 'Present' : `${form.endMonth} ${form.endYear}`,
+      current: currentRole,
       description: form.description.trim(), skills: form.skills.trim(),
     };
     const call = isEditing ? API.updateExperience(editIndex, entry) : API.addExperience(entry);

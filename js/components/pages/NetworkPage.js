@@ -42,7 +42,7 @@ function NetworkPage() {
 
   const allUsers = users || [];
   const visibleInvitations = pendingInvitations.filter(inv => !dismissedInvitations.has(String((inv.user || inv).id || inv.senderId || '')));
-  const totalRequests = incomingRequests.length + visibleInvitations.length;
+  const totalRequests = incomingRequests.length + Math.min(visibleInvitations.length, 3);
 
   return (
     <div className="li-page-inner">

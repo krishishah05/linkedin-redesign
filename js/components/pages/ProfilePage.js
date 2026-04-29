@@ -70,6 +70,7 @@ function ProfilePage({ userId }) {
   function fetchAiReadiness() {
     setAiReadinessLoading(true);
     setAiReadinessError(null);
+    setAiReadiness(null);
     API.getAIProfileReadiness()
       .then(res => { setAiReadiness(res); setAiReadinessLoading(false); })
       .catch(err => { setAiReadinessError(err.message || 'AI evaluation failed'); setAiReadinessLoading(false); });
@@ -439,7 +440,7 @@ function ProfilePage({ userId }) {
                         <div style={{ fontSize: 15, fontWeight: 700 }}>{proj.name}</div>
                         {proj.startDate && <div style={{ fontSize: 13, color: 'var(--text-3)' }}>{proj.startDate}{proj.endDate ? ` – ${proj.endDate}` : ''}</div>}
                         {proj.description && <p style={{ fontSize: 14, color: 'var(--text-2)', marginTop: 4, lineHeight: 1.5 }}>{proj.description}</p>}
-                        {proj.url && <a href={proj.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 13, color: 'var(--blue)' }}>{proj.url}</a>}
+                        {proj.url && /^https?:\/\//i.test(proj.url) && <a href={proj.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 13, color: 'var(--blue)' }}>{proj.url}</a>}
                       </div>
                       {isOwnProfile && <div style={{ display: 'flex', gap: 2 }}>
                         <PencilBtn onClick={() => openModal('add-project', { entry: proj, index: origIdx })} />

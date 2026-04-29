@@ -82,41 +82,41 @@ function JobsPage({ selectedJobId }) {
               {filtered.map((job, i) => (
                 <div
                   key={job.id}
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => setSelectedId(job.id)}
-                  onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedId(job.id); } }}
                   style={{
-                    padding: '16px',
                     background: job.id === selectedId ? '#EAF4FF' : 'var(--white)',
                     borderBottom: i < filtered.length - 1 ? '1px solid var(--border)' : 'none',
-                    cursor: 'pointer',
                     borderLeft: job.id === selectedId ? '3px solid var(--blue)' : '3px solid transparent',
                     transition: 'background 0.1s',
+                    position: 'relative',
                   }}
                 >
-                  <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-                    <div style={{
-                      width: 40, height: 40, borderRadius: 4, background: 'var(--bg-2)',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0, fontWeight: 700, color: 'var(--text-2)',
-                    }}>{(job.company || 'J')[0].toUpperCase()}</div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 2, color: job.id === selectedId ? 'var(--blue)' : 'var(--text)' }}>
-                        {job.title}
-                      </div>
-                      <div style={{ fontSize: 13, color: 'var(--text-2)' }}>{job.company}</div>
-                      <div style={{ fontSize: 12, color: 'var(--text-3)' }}>{job.location} · {job.type}</div>
-                      {job.salary && <div style={{ fontSize: 12, color: 'var(--text-2)', marginTop: 4 }}>{job.salary}</div>}
-                    </div>
+                  <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: '16px 16px 0' }}>
                     <button
-                      onClick={e => { e.stopPropagation(); toggleSaveJob(job.id); }}
-                      style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, fontSize: 16, color: savedJobs.has(String(job.id)) ? '#b45309' : 'var(--text-3)' }}
+                      onClick={() => setSelectedId(job.id)}
+                      style={{ display: 'flex', gap: 10, alignItems: 'flex-start', flex: 1, minWidth: 0, background: 'none', border: 'none', cursor: 'pointer', padding: 0, textAlign: 'left' }}
+                    >
+                      <div style={{
+                        width: 40, height: 40, borderRadius: 4, background: 'var(--bg-2)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0, fontWeight: 700, color: 'var(--text-2)',
+                      }}>{(job.company || 'J')[0].toUpperCase()}</div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 2, color: job.id === selectedId ? 'var(--blue)' : 'var(--text)' }}>
+                          {job.title}
+                        </div>
+                        <div style={{ fontSize: 13, color: 'var(--text-2)' }}>{job.company}</div>
+                        <div style={{ fontSize: 12, color: 'var(--text-3)' }}>{job.location} · {job.type}</div>
+                        {job.salary && <div style={{ fontSize: 12, color: 'var(--text-2)', marginTop: 4 }}>{job.salary}</div>}
+                      </div>
+                    </button>
+                    <button
+                      onClick={() => toggleSaveJob(job.id)}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, fontSize: 16, color: savedJobs.has(String(job.id)) ? '#b45309' : 'var(--text-3)', flexShrink: 0 }}
                       title={savedJobs.has(String(job.id)) ? 'Unsave' : 'Save'}
                     >
                       {savedJobs.has(String(job.id)) ? '★' : '☆'}
                     </button>
                   </div>
-                  <div style={{ marginTop: 8, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                  <div style={{ padding: '8px 16px 16px', display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                     {isApplied(job.id) && (
                       <span style={{ fontSize: 11, fontWeight: 700, color: '#1e7e34', background: '#E6F4EA', padding: '2px 6px', borderRadius: 4 }}>
                         Applied
