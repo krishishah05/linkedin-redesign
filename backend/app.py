@@ -81,7 +81,7 @@ def _fetch_muse_jobs():
                     dt     = datetime.fromisoformat(pub.replace("Z", "+00:00"))
                     delta  = (datetime.now(timezone.utc) - dt).days
                     posted = "Today" if delta == 0 else f"{delta}d ago"
-                except Exception:
+                except ValueError:
                     posted = pub[:10] if pub else ""
 
                 muse_id = j.get("id")
