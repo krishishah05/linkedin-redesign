@@ -890,3 +890,55 @@ class TestProfileImprove:
 
         resp = client.post("/api/profile/improve")
         assert resp.status_code == 502
+
+
+class TestEducationAndSkills:
+    def test_add_education_success(self, client, auth_header):
+        # Hits lines 181-198
+        payload = {
+            "school": "University of Waterloo",
+            "degree": "Bachelor of Science",
+            "field": "Computer Science",
+            "startDate": "2020",
+            "endDate": "2024"
+        }
+        resp = client.post("/api/me/education", json=payload, headers=auth_header)
+        assert resp.status_code == 200
+
+    def test_add_skill_success(self, client, auth_header):
+        # Hits lines 204-214
+        resp = client.post("/api/me/skills", json={"skill": "Python"}, headers=auth_header)
+        assert resp.status_code == 200
+
+class TestGroupCreation:
+    def test_create_group_success(self, client, auth_header):
+        # Hits lines 220-242
+        payload = {"name": "AI Engineers", "description": "A group for AI enthusiasts"}
+        resp = client.post("/api/groups", json=payload, headers=auth_header)
+        assert resp.status_code == 201
+        assert resp.get_json()["name"] == "AI Engineers"
+
+class TestErrorPathCoverage:
+    def test_create_conference_story_missing_fields(self, client, auth_header):
+        # Hits line 305 and adjacent error aborts
+        resp = client.post("/api/conference-stories", json={"tagline": "missing name"}, headers=auth_header)
+        assert resp.status_code == 400
+        assert "conferenceName is required" in resp.get_json()["error"]
+
+    def test_post_message_missing_conv_id(self, client, auth_header):
+        # Hits line 440/449 (Conversation errors)
+        resp = client.post("/api/conversations/9999/messages", json={"text": "hello"}, headers=auth_header)
+        assert resp.status_code == 404
+
+class TestEventsCoverage:
+    def test_create_event_success(self, client, auth_header):
+        # Hits lines 360-366
+        resp = client.post("/api/events", json={"name": "Tech Meetup"}, headers=auth_header)
+        assert resp.status_code == 201
+
+    def test_toggle_event_attendance(self, client, auth_header):
+        # Hits lines 370-379
+        # 'u1' prefix triggers the 'user' source logic in dbl.toggle_event_attend
+        resp = client.post("/api/events/u1/attend", headers=auth_header)
+        assert resp.status_code == 200
+
