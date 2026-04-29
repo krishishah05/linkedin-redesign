@@ -689,7 +689,7 @@ def get_all_posts():
     return result
 
 
-def create_post(author_id: int, content: str, image_url: str = None, video_url: str = None):
+def create_post(author_id: int, content: str, image_url: str | None = None, video_url: str | None = None):
     user = get_user_by_id(author_id)
     author_blob = {
         "id":          user["id"],
