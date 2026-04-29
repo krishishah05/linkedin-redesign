@@ -546,8 +546,10 @@ def _delete_list_item(user_id: int, field: str, index: int):
         return None
     data = json.loads(row["data"])
     lst = data.get(field, [])
-    if 0 <= index < len(lst):
-        lst.pop(index)
+    if not (0 <= index < len(lst)):
+        conn.close()
+        return False
+    lst.pop(index)
     data[field] = lst
     _execute(conn, "UPDATE users SET data=%s WHERE id=%s", (json.dumps(data), user_id))
     conn.commit()
@@ -556,7 +558,7 @@ def _delete_list_item(user_id: int, field: str, index: int):
 
 
 def _update_list_item(user_id: int, field: str, index: int, entry: dict):
-    """Generic helper: replace item at index in a list field in user's JSON blob."""
+    """Generic helper: merge entry into item at index in a list field in user's JSON blob."""
     conn = _connect()
     row = _execute(conn, "SELECT data FROM users WHERE id=%s", (user_id,)).fetchone()
     if not row:
@@ -564,8 +566,10 @@ def _update_list_item(user_id: int, field: str, index: int, entry: dict):
         return None
     data = json.loads(row["data"])
     lst = data.get(field, [])
-    if 0 <= index < len(lst):
-        lst[index] = entry
+    if not (0 <= index < len(lst)):
+        conn.close()
+        return False
+    lst[index] = {**lst[index], **entry}
     data[field] = lst
     _execute(conn, "UPDATE users SET data=%s WHERE id=%s", (json.dumps(data), user_id))
     conn.commit()

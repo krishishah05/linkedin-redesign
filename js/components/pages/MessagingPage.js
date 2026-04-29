@@ -826,7 +826,7 @@ function ProfileReadinessPanel({ readiness, loading, error, onClose, onRefresh }
                   <>
                     <div className="li-msg-score__card-title">Quick fixes</div>
                     <div className="li-msg-score__fixes">
-                      {(s.fixes || []).map(f => (
+                      {(s?.fixes ?? []).map(f => (
                         <div key={f.key} className="li-msg-score__fix">
                           <div className="li-msg-score__fix-left">
                             <span className={'li-msg-score__dot ' + f.status}></span>

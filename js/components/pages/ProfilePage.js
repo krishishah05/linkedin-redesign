@@ -75,8 +75,7 @@ function ProfilePage({ userId }) {
       .catch(err => { setAiReadinessError(err.message || 'AI evaluation failed'); setAiReadinessLoading(false); });
   }
 
-  // Auto-run quality analysis on own profile load
-  React.useEffect(() => { if (isOwnProfile) fetchAiReadiness(); }, [isOwnProfile]);
+  // AI readiness is triggered manually via the Analyze button — no auto-fetch on load
 
   function toggleSection(key) {
     setExpandedSections(prev => {
@@ -111,7 +110,7 @@ function ProfilePage({ userId }) {
   const deleteSkill = makeDeleter(API.deleteSkill,         'Skill');
 
   const PencilBtn = ({ onClick }) => (
-    <button onClick={onClick} title="Edit"
+    <button onClick={onClick} title="Edit" aria-label="Edit"
       style={{ flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-3)', padding: '4px', lineHeight: 0, borderRadius: 4 }}
       onMouseEnter={e => e.currentTarget.style.color = 'var(--blue)'}
       onMouseLeave={e => e.currentTarget.style.color = 'var(--text-3)'}>
@@ -122,7 +121,7 @@ function ProfilePage({ userId }) {
   );
 
   const TrashBtn = ({ onClick }) => (
-    <button onClick={onClick} title="Delete"
+    <button onClick={onClick} title="Delete" aria-label="Delete"
       style={{ flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-3)', padding: '4px', lineHeight: 0, borderRadius: 4 }}
       onMouseEnter={e => e.currentTarget.style.color = 'var(--red, #cc1016)'}
       onMouseLeave={e => e.currentTarget.style.color = 'var(--text-3)'}>

@@ -37,15 +37,17 @@ function AddExpModal() {
   function update(key, val) { setForm(prev => ({ ...prev, [key]: val })); }
 
   function handleSave() {
-    if (!form.title || !form.company) { showToast('Title and company are required', 'error'); return; }
+    const title = form.title.trim();
+    const company = form.company.trim();
+    if (!title || !company) { showToast('Title and company are required', 'error'); return; }
     if (saving) return;
     setSaving(true);
     const entry = {
-      title: form.title, company: form.company, type: form.type,
-      location: form.location,
+      title, company, type: form.type.trim(),
+      location: form.location.trim(),
       startDate: `${form.startMonth} ${form.startYear}`,
       endDate: currentRole ? 'Present' : `${form.endMonth} ${form.endYear}`,
-      description: form.description, skills: form.skills,
+      description: form.description.trim(), skills: form.skills.trim(),
     };
     const call = isEditing ? API.updateExperience(editIndex, entry) : API.addExperience(entry);
     call

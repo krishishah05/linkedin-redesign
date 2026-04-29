@@ -1004,6 +1004,11 @@ class TestAIProfileReadiness:
         assert "sections" in data
         assert "suggestions" in data
         assert 0 <= data["score"] <= 100
+        assert "level" in data and data["level"]
+        assert "summary" in data and data["summary"]
+        for section in data["sections"]:
+            assert "label" in section and section["label"]
+            assert "feedback" in section and section["feedback"]
 
     def test_T99_WB_out_of_range_scores_clamped_to_0_100(self, client, monkeypatch):
         """WB: LLM returns scores > 100 → endpoint clamps them."""

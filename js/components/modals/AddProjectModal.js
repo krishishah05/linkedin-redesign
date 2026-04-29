@@ -15,6 +15,7 @@ function AddProjectModal() {
   }
 
   const startParts = parseParts(editEntry?.startDate);
+  const endParts   = parseParts(editEntry?.endDate);
 
   const [saving, setSaving] = React.useState(false);
   const [ongoing, setOngoing] = React.useState(
@@ -26,6 +27,8 @@ function AddProjectModal() {
     url:         editEntry?.url         || '',
     startMonth:  startParts.month,
     startYear:   startParts.year,
+    endMonth:    endParts.month,
+    endYear:     endParts.year,
     skills:      editEntry?.skills      || '',
   });
 
@@ -38,7 +41,7 @@ function AddProjectModal() {
     const entry = {
       name: form.name, description: form.description, url: form.url,
       startDate: `${form.startMonth} ${form.startYear}`,
-      endDate: ongoing ? 'Present' : '',
+      endDate: ongoing ? 'Present' : (`${form.endMonth} ${form.endYear}`.trim() || editEntry?.endDate || ''),
       skills: form.skills,
     };
     const call = isEditing ? API.updateProject(editIndex, entry) : API.addProject(entry);
@@ -103,6 +106,22 @@ function AddProjectModal() {
               </select>
             </div>
           </div>
+          {!ongoing && (
+            <div className="li-settings-form-row">
+              <div style={{ flex: 1 }}>
+                <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 4 }}>End date</label>
+                <select className="li-settings-input" style={inputStyle} value={form.endMonth} onChange={e => update('endMonth', e.target.value)}>
+                  {months.map(m => <option key={m}>{m}</option>)}
+                </select>
+              </div>
+              <div style={{ flex: 1 }}>
+                <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 4 }}>&nbsp;</label>
+                <select className="li-settings-input" style={inputStyle} value={form.endYear} onChange={e => update('endYear', e.target.value)}>
+                  {years.map(y => <option key={y}>{y}</option>)}
+                </select>
+              </div>
+            </div>
+          )}
           <div style={{ marginBottom: 12 }}>
             <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 4 }}>Skills</label>
             <input className="li-settings-input" style={inputStyle} placeholder="Ex: React, Node.js, PostgreSQL" value={form.skills} onChange={e => update('skills', e.target.value)} />

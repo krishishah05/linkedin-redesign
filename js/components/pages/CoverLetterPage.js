@@ -3,22 +3,17 @@
    ============================================================ */
 
 // ── LLM integration point ─────────────────────────────────────
-// Your classmate replaces this function body with the real API call.
 // Input:  prompt (string) — complete context built from the form
 // Output: Promise<string> — the edited cover letter text
 async function generateCoverLetterFromLLM(prompt) {
-  const token = localStorage.getItem('nx-token') || '';
-  const res = await fetch('/api/cover-letter/generate', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer ' + token,
-    },
-    body: JSON.stringify({ prompt }),
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error || 'Generation failed');
+  const data = await API.coverLetterGenerate(prompt);
   return data.letter;
+}
+
+const MAX_EXTRACTED_CHARS = 20000;
+function trimExtractedText(text) {
+  if (!text || text.length <= MAX_EXTRACTED_CHARS) return text;
+  return text.slice(0, MAX_EXTRACTED_CHARS) + '\n... [truncated]';
 }
 
 // ── Pre-written templates ─────────────────────────────────────
@@ -211,7 +206,7 @@ function CoverLetterPage() {
         showToast('Could not extract text from this file.', 'error');
         return;
       }
-      setUploadedText(text);
+      setUploadedText(trimExtractedText(text));
       setUploadedFileName(file.name);
     } catch (err) {
       showToast('Could not read the file: ' + (err.message || 'unknown error'), 'error');
@@ -305,7 +300,7 @@ function CoverLetterPage() {
         profileBlock,
         '',
         'Cover letter to edit:',
-        uploadedText,
+        trimExtractedText(uploadedText),
         '',
         'Return only the updated cover letter. Do not include any explanation or commentary.',
       ].join('\n');

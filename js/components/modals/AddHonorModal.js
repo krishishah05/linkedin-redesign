@@ -28,11 +28,12 @@ function AddHonorModal() {
   function update(key, val) { setForm(prev => ({ ...prev, [key]: val })); }
 
   function handleSave() {
-    if (!form.title) { showToast('Title is required', 'error'); return; }
+    const trimmedTitle = form.title && form.title.trim();
+    if (!trimmedTitle) { showToast('Title is required', 'error'); return; }
     if (saving) return;
     setSaving(true);
     const entry = {
-      title: form.title, issuer: form.issuer,
+      title: trimmedTitle, issuer: form.issuer,
       issueDate: `${form.month} ${form.year}`,
       description: form.description,
     };

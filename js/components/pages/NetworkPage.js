@@ -20,15 +20,22 @@ function NetworkPage() {
   }, []);
 
   function handleAccept(requester) {
-    acceptConnection(requester.id);
-    setIncomingRequests(prev => prev.filter(r => r.id !== requester.id));
-    showToast(`Connected with ${requester.name}!`, 'success');
+    API.acceptConnection(requester.id)
+      .then(() => {
+        acceptConnection(requester.id);
+        setIncomingRequests(prev => prev.filter(r => r.id !== requester.id));
+        showToast(`Connected with ${requester.name}!`, 'success');
+      })
+      .catch(() => showToast('Failed to accept connection request', 'error'));
   }
 
   function handleDecline(requester) {
-    API.declineConnectionRequest(requester.id).catch(() => {});
-    setIncomingRequests(prev => prev.filter(r => r.id !== requester.id));
-    showToast('Connection request declined');
+    API.declineConnectionRequest(requester.id)
+      .then(() => {
+        setIncomingRequests(prev => prev.filter(r => r.id !== requester.id));
+        showToast('Connection request declined');
+      })
+      .catch(() => showToast('Failed to decline connection request', 'error'));
   }
 
   if (usersLoading) return <LoadingSpinner text="Loading network..." />;

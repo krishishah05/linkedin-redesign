@@ -52,9 +52,9 @@ def _fetch_muse_jobs():
     from datetime import datetime, timezone
 
     jobs = []
-    uid  = 10000  # IDs above static seed data so they don't collide
+    MUSE_ID_OFFSET = 10000  # public ids above static seed data so they don't collide
 
-    for page in range(5):  # 5 pages × 20 = up to 100 jobs
+    for page in range(5):  # 5 pages x 20 = up to 100 jobs
         try:
             r = req_lib.get(
                 "https://www.themuse.com/api/public/jobs",
@@ -84,10 +84,19 @@ def _fetch_muse_jobs():
                 except Exception:
                     posted = pub[:10] if pub else ""
 
+                muse_id = j.get("id")
+                # Derive a stable public id from the Muse job id so saved/applied
+                # records stay consistent across cache refreshes.
+                try:
+                    stable_id = MUSE_ID_OFFSET + int(muse_id)
+                except (TypeError, ValueError):
+                    import zlib
+                    stable_id = MUSE_ID_OFFSET + (zlib.crc32(str(muse_id).encode()) & 0x7FFFFFFF)
+
                 co_name = company.get("name", "")
                 jobs.append({
-                    "id":          uid,
-                    "museId":      j.get("id"),
+                    "id":          stable_id,
+                    "museId":      muse_id,
                     "title":       j.get("name", ""),
                     "company":     co_name,
                     "location":    loc,
@@ -104,7 +113,6 @@ def _fetch_muse_jobs():
                     "url":         j.get("refs", {}).get("landing_page", ""),
                     "source":      "muse",
                 })
-                uid += 1
         except Exception:
             break
 
@@ -317,8 +325,10 @@ def update_experience(index):
         "skills": (body.get("skills") or "").strip(),
     }
     updated = dbl.update_experience(user["id"], index, entry)
-    if not updated:
+    if updated is None:
         abort(404, description="User not found")
+    if updated is False:
+        abort(404, description="Index out of range")
     return jsonify(updated)
 
 
@@ -338,8 +348,10 @@ def update_education(index):
         "endDate": (body.get("endDate") or "").strip(),
     }
     updated = dbl.update_education(user["id"], index, entry)
-    if not updated:
+    if updated is None:
         abort(404, description="User not found")
+    if updated is False:
+        abort(404, description="Index out of range")
     return jsonify(updated)
 
 
@@ -360,8 +372,10 @@ def update_project(index):
         "skills": (body.get("skills") or "").strip(),
     }
     updated = dbl.update_project(user["id"], index, entry)
-    if not updated:
+    if updated is None:
         abort(404, description="User not found")
+    if updated is False:
+        abort(404, description="Index out of range")
     return jsonify(updated)
 
 
@@ -382,8 +396,10 @@ def update_volunteering(index):
         "description": (body.get("description") or "").strip(),
     }
     updated = dbl.update_volunteering(user["id"], index, entry)
-    if not updated:
+    if updated is None:
         abort(404, description="User not found")
+    if updated is False:
+        abort(404, description="Index out of range")
     return jsonify(updated)
 
 
@@ -402,8 +418,10 @@ def update_honor(index):
         "description": (body.get("description") or "").strip(),
     }
     updated = dbl.update_honor(user["id"], index, entry)
-    if not updated:
+    if updated is None:
         abort(404, description="User not found")
+    if updated is False:
+        abort(404, description="Index out of range")
     return jsonify(updated)
 
 
@@ -416,6 +434,8 @@ def delete_experience(index):
     updated = dbl.delete_experience(user["id"], index)
     if updated is None:
         abort(404, description="User not found")
+    if updated is False:
+        abort(404, description="Index out of range")
     return jsonify(updated)
 
 
@@ -428,6 +448,8 @@ def delete_education(index):
     updated = dbl.delete_education(user["id"], index)
     if updated is None:
         abort(404, description="User not found")
+    if updated is False:
+        abort(404, description="Index out of range")
     return jsonify(updated)
 
 
@@ -440,6 +462,8 @@ def delete_project(index):
     updated = dbl.delete_project(user["id"], index)
     if updated is None:
         abort(404, description="User not found")
+    if updated is False:
+        abort(404, description="Index out of range")
     return jsonify(updated)
 
 
@@ -452,6 +476,8 @@ def delete_volunteering(index):
     updated = dbl.delete_volunteering(user["id"], index)
     if updated is None:
         abort(404, description="User not found")
+    if updated is False:
+        abort(404, description="Index out of range")
     return jsonify(updated)
 
 
@@ -464,6 +490,8 @@ def delete_honor(index):
     updated = dbl.delete_honor(user["id"], index)
     if updated is None:
         abort(404, description="User not found")
+    if updated is False:
+        abort(404, description="Index out of range")
     return jsonify(updated)
 
 
@@ -476,6 +504,8 @@ def delete_skill(index):
     updated = dbl.delete_skill(user["id"], index)
     if updated is None:
         abort(404, description="User not found")
+    if updated is False:
+        abort(404, description="Index out of range")
     return jsonify(updated)
 
 
@@ -1402,6 +1432,9 @@ def generate_cover_letter():
     prompt = (body.get("prompt") or "").strip()
     if not prompt:
         abort(400, description="prompt is required")
+    MAX_PROMPT_LENGTH = 20000
+    if len(prompt) > MAX_PROMPT_LENGTH:
+        abort(400, description=f"prompt exceeds maximum length of {MAX_PROMPT_LENGTH} characters")
 
     try:
         import requests as req_lib

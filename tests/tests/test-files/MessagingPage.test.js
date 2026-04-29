@@ -76,6 +76,9 @@ describe('MessagingPage Component Tests', () => {
         global.API.getAIProfileReadiness.mockImplementation(() => Promise.resolve({
             score: 75, level: 'Strong', summary: 'Good profile.', sections: [], suggestions: []
         }));
+        global.API.getProfileReadiness.mockImplementation(() => Promise.resolve({
+            score: 75, sections: [], fixes: []
+        }));
     });
 
     // 1 — BB
@@ -1402,79 +1405,79 @@ describe('MessagingPage Component Tests', () => {
     });
 
     // M1 — WB: score threshold boundary 80
-    test("ProfileReadinessPanel: score exactly 80 → label 'Ready', badge class 'good'", async () => {
+    test("ProfileReadinessPanel: score exactly 80 → label 'All-Star', badge class 'good'", async () => {
         global.useFetch.mockReturnValue({ loading: false, data: [{ id: 1, participantName: 'Alice' }] });
-        global.API.getAIProfileReadiness.mockResolvedValue({ score: 80, level: 'Ready', summary: '.', sections: [], suggestions: [] });
+        global.API.getAIProfileReadiness.mockResolvedValue({ score: 80, level: 'All-Star', summary: '.', sections: [], suggestions: [] });
         await act(async () => render(React.createElement(MessagingPage)));
         await act(async () => fireEvent.click(screen.getByTitle('Profile Readiness')));
-        await waitFor(() => expect(screen.getByText('Ready')).toBeInTheDocument());
-        const badge = screen.getByText('Ready');
+        await waitFor(() => expect(screen.getByText('All-Star')).toBeInTheDocument());
+        const badge = screen.getByText('All-Star');
         expect(badge.classList.contains('good')).toBe(true);
         expect(badge.classList.contains('warn')).toBe(false);
         expect(badge.classList.contains('bad')).toBe(false);
-        expect(screen.queryByText('Almost there')).not.toBeInTheDocument();
-        expect(screen.queryByText('Needs improvement')).not.toBeInTheDocument();
+        expect(screen.queryByText('Strong')).not.toBeInTheDocument();
+        expect(screen.queryByText('Developing')).not.toBeInTheDocument();
     });
 
     // M2 — WB: score threshold boundary 79
-    test("ProfileReadinessPanel: score 79 → label 'Almost there', badge class 'warn'", async () => {
+    test("ProfileReadinessPanel: score 79 → label 'Strong', badge class 'warn'", async () => {
         global.useFetch.mockReturnValue({ loading: false, data: [{ id: 1, participantName: 'Alice' }] });
-        global.API.getAIProfileReadiness.mockResolvedValue({ score: 79, level: 'Almost there', summary: '.', sections: [], suggestions: [] });
+        global.API.getAIProfileReadiness.mockResolvedValue({ score: 79, level: 'Strong', summary: '.', sections: [], suggestions: [] });
         await act(async () => render(React.createElement(MessagingPage)));
         await act(async () => fireEvent.click(screen.getByTitle('Profile Readiness')));
-        await waitFor(() => expect(screen.getByText('Almost there')).toBeInTheDocument());
-        const badge = screen.getByText('Almost there');
+        await waitFor(() => expect(screen.getByText('Strong')).toBeInTheDocument());
+        const badge = screen.getByText('Strong');
         expect(badge.classList.contains('warn')).toBe(true);
         expect(badge.classList.contains('good')).toBe(false);
         expect(badge.classList.contains('bad')).toBe(false);
-        expect(screen.queryByText('Ready')).not.toBeInTheDocument();
-        expect(screen.queryByText('Needs improvement')).not.toBeInTheDocument();
+        expect(screen.queryByText('All-Star')).not.toBeInTheDocument();
+        expect(screen.queryByText('Developing')).not.toBeInTheDocument();
     });
 
     // M3 — WB: score threshold boundary 70
-    test("ProfileReadinessPanel: score exactly 70 → label 'Almost there', badge class 'warn'", async () => {
+    test("ProfileReadinessPanel: score exactly 70 → label 'Strong', badge class 'warn'", async () => {
         global.useFetch.mockReturnValue({ loading: false, data: [{ id: 1, participantName: 'Alice' }] });
-        global.API.getAIProfileReadiness.mockResolvedValue({ score: 70, level: 'Almost there', summary: '.', sections: [], suggestions: [] });
+        global.API.getAIProfileReadiness.mockResolvedValue({ score: 70, level: 'Strong', summary: '.', sections: [], suggestions: [] });
         await act(async () => render(React.createElement(MessagingPage)));
         await act(async () => fireEvent.click(screen.getByTitle('Profile Readiness')));
-        await waitFor(() => expect(screen.getByText('Almost there')).toBeInTheDocument());
-        const badge = screen.getByText('Almost there');
+        await waitFor(() => expect(screen.getByText('Strong')).toBeInTheDocument());
+        const badge = screen.getByText('Strong');
         expect(badge.classList.contains('warn')).toBe(true);
         expect(badge.classList.contains('good')).toBe(false);
-        expect(screen.queryByText('Needs improvement')).not.toBeInTheDocument();
+        expect(screen.queryByText('Developing')).not.toBeInTheDocument();
     });
 
     // M4 — WB: score threshold boundary 69
-    test("ProfileReadinessPanel: score 69 → label 'Needs improvement', badge class 'bad'", async () => {
+    test("ProfileReadinessPanel: score 69 → label 'Developing', badge class 'bad'", async () => {
         global.useFetch.mockReturnValue({ loading: false, data: [{ id: 1, participantName: 'Alice' }] });
-        global.API.getAIProfileReadiness.mockResolvedValue({ score: 69, level: 'Needs improvement', summary: '.', sections: [], suggestions: [] });
+        global.API.getAIProfileReadiness.mockResolvedValue({ score: 69, level: 'Developing', summary: '.', sections: [], suggestions: [] });
         await act(async () => render(React.createElement(MessagingPage)));
         await act(async () => fireEvent.click(screen.getByTitle('Profile Readiness')));
-        await waitFor(() => expect(screen.getByText('Needs improvement')).toBeInTheDocument());
-        const badge = screen.getByText('Needs improvement');
+        await waitFor(() => expect(screen.getByText('Developing')).toBeInTheDocument());
+        const badge = screen.getByText('Developing');
         expect(badge.classList.contains('bad')).toBe(true);
         expect(badge.classList.contains('good')).toBe(false);
         expect(badge.classList.contains('warn')).toBe(false);
-        expect(screen.queryByText('Almost there')).not.toBeInTheDocument();
-        expect(screen.queryByText('Ready')).not.toBeInTheDocument();
+        expect(screen.queryByText('Strong')).not.toBeInTheDocument();
+        expect(screen.queryByText('All-Star')).not.toBeInTheDocument();
     });
 
     // M5 — WB: score 0 edge case
-    test("ProfileReadinessPanel: score 0 → label 'Needs improvement'", async () => {
+    test("ProfileReadinessPanel: score 0 → label 'Beginner'", async () => {
         global.useFetch.mockReturnValue({ loading: false, data: [{ id: 1, participantName: 'Alice' }] });
-        global.API.getAIProfileReadiness.mockResolvedValue({ score: 0, level: 'Needs improvement', summary: '.', sections: [], suggestions: [] });
+        global.API.getAIProfileReadiness.mockResolvedValue({ score: 0, level: 'Beginner', summary: '.', sections: [], suggestions: [] });
         await act(async () => render(React.createElement(MessagingPage)));
         await act(async () => fireEvent.click(screen.getByTitle('Profile Readiness')));
-        await waitFor(() => expect(screen.getByText('Needs improvement')).toBeInTheDocument());
+        await waitFor(() => expect(screen.getByText('Beginner')).toBeInTheDocument());
     });
 
     // M6 — WB: score 100 edge case
-    test("ProfileReadinessPanel: score 100 → label 'Ready'", async () => {
+    test("ProfileReadinessPanel: score 100 → label 'All-Star'", async () => {
         global.useFetch.mockReturnValue({ loading: false, data: [{ id: 1, participantName: 'Alice' }] });
-        global.API.getAIProfileReadiness.mockResolvedValue({ score: 100, level: 'Ready', summary: '.', sections: [], suggestions: [] });
+        global.API.getAIProfileReadiness.mockResolvedValue({ score: 100, level: 'All-Star', summary: '.', sections: [], suggestions: [] });
         await act(async () => render(React.createElement(MessagingPage)));
         await act(async () => fireEvent.click(screen.getByTitle('Profile Readiness')));
-        await waitFor(() => expect(screen.getByText('Ready')).toBeInTheDocument());
+        await waitFor(() => expect(screen.getByText('All-Star')).toBeInTheDocument());
     });
 
     // M7 — WB: fix status 'done' renders 'Done' label

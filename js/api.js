@@ -129,6 +129,9 @@
     getProfileImprovementTips: () => request('POST', '/profile/improve'),
     getAIProfileReadiness: () => request('POST', '/profile-readiness/ai'),
 
+    // ── Cover Letter ──────────────────────────────────────────
+    coverLetterGenerate: (prompt) => request('POST', '/cover-letter/generate', { prompt }),
+
     // ── Account ───────────────────────────────────────────────
     login: (email, password) =>
       request('POST', '/auth/login', { email, password }),

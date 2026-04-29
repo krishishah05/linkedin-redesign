@@ -15,11 +15,14 @@ function JobsPage({ selectedJobId }) {
 
   React.useEffect(() => {
     if (!selectedId || detailCache[selectedId]) return;
-    setFetchingDetail(selectedId);
-    API.getJob(selectedId)
-      .then(full => setDetailCache(prev => ({ ...prev, [selectedId]: full })))
+    let cancelled = false;
+    const requestId = selectedId;
+    setFetchingDetail(requestId);
+    API.getJob(requestId)
+      .then(full => { if (!cancelled) setDetailCache(prev => ({ ...prev, [requestId]: full })); })
       .catch(() => {})
-      .finally(() => setFetchingDetail(null));
+      .finally(() => { if (!cancelled) setFetchingDetail(prev => (prev === requestId ? null : prev)); });
+    return () => { cancelled = true; };
   }, [selectedId]);
 
   if (loading) return <LoadingSpinner text="Loading jobs..." />;
@@ -79,7 +82,10 @@ function JobsPage({ selectedJobId }) {
               {filtered.map((job, i) => (
                 <div
                   key={job.id}
+                  role="button"
+                  tabIndex={0}
                   onClick={() => setSelectedId(job.id)}
+                  onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedId(job.id); } }}
                   style={{
                     padding: '16px',
                     background: job.id === selectedId ? '#EAF4FF' : 'var(--white)',
@@ -206,9 +212,15 @@ function JobDetailPanel({ job, descLoading, savedJobs, toggleSaveJob, openModal,
           className="li-btn li-btn--primary"
           onClick={() => {
             if (isApplied(job.id)) return;
-            if (job.url) {
-              window.open(job.url, '_blank', 'noopener,noreferrer');
-              setPendingApply(true);
+            let urlValid = false;
+            try {
+              const parsed = new URL(job.url || '');
+              urlValid = parsed.protocol === 'http:' || parsed.protocol === 'https:';
+            } catch (_) {}
+            if (urlValid) {
+              const win = window.open(job.url, '_blank', 'noopener,noreferrer');
+              if (win && !win.closed) setPendingApply(true);
+              else openModal('apply', { jobTitle: job.title, job, onApply: () => applyJob(job.id) });
             } else {
               openModal('apply', { jobTitle: job.title, job, onApply: () => applyJob(job.id) });
             }
@@ -254,10 +266,9 @@ function JobDetailPanel({ job, descLoading, savedJobs, toggleSaveJob, openModal,
         {descLoading ? (
           <p style={{ fontSize: 14, color: 'var(--text-3)' }}>Loading description...</p>
         ) : job.description ? (
-          <div
-            style={{ fontSize: 14, color: 'var(--text)', lineHeight: 1.7 }}
-            dangerouslySetInnerHTML={{ __html: job.description }}
-          />
+          <div style={{ fontSize: 14, color: 'var(--text)', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>
+            {(() => { const d = document.createElement('div'); d.innerHTML = job.description; d.querySelectorAll('script,style').forEach(e => e.remove()); return d.textContent || d.innerText || ''; })()}
+          </div>
         ) : (
           <p style={{ fontSize: 14, color: 'var(--text-2)' }}>No description provided.</p>
         )}

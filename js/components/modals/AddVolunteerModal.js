@@ -15,6 +15,7 @@ function AddVolunteerModal() {
   }
 
   const startParts = parseParts(editEntry?.startDate);
+  const endParts   = parseParts(editEntry?.endDate);
 
   const [saving, setSaving] = React.useState(false);
   const [ongoing, setOngoing] = React.useState(
@@ -27,6 +28,8 @@ function AddVolunteerModal() {
     description:  editEntry?.description  || '',
     startMonth:   startParts.month,
     startYear:    startParts.year,
+    endMonth:     endParts.month,
+    endYear:      endParts.year,
   });
 
   function update(key, val) { setForm(prev => ({ ...prev, [key]: val })); }
@@ -38,7 +41,7 @@ function AddVolunteerModal() {
     const entry = {
       role: form.role, organization: form.organization, cause: form.cause,
       startDate: `${form.startMonth} ${form.startYear}`,
-      endDate: ongoing ? 'Present' : '',
+      endDate: ongoing ? 'Present' : (`${form.endMonth} ${form.endYear}`.trim() || editEntry?.endDate || ''),
       description: form.description,
     };
     const call = isEditing ? API.updateVolunteering(editIndex, entry) : API.addVolunteering(entry);
@@ -107,6 +110,22 @@ function AddVolunteerModal() {
               </select>
             </div>
           </div>
+          {!ongoing && (
+            <div className="li-settings-form-row">
+              <div style={{ flex: 1 }}>
+                <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 4 }}>End date</label>
+                <select className="li-settings-input" style={inputStyle} value={form.endMonth} onChange={e => update('endMonth', e.target.value)}>
+                  {months.map(m => <option key={m}>{m}</option>)}
+                </select>
+              </div>
+              <div style={{ flex: 1 }}>
+                <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 4 }}>&nbsp;</label>
+                <select className="li-settings-input" style={inputStyle} value={form.endYear} onChange={e => update('endYear', e.target.value)}>
+                  {years.map(y => <option key={y}>{y}</option>)}
+                </select>
+              </div>
+            </div>
+          )}
           <div style={{ marginBottom: 12 }}>
             <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 4 }}>Description</label>
             <textarea
