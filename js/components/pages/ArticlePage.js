@@ -6,15 +6,12 @@ const ARTICLE_DRAFT_KEY = 'nx-article-draft';
 function ArticlePage() {
   const { currentUser, showToast } = React.useContext(AppContext);
 
-  const [title, setTitle]     = React.useState(() => {
-    try { return JSON.parse(localStorage.getItem(ARTICLE_DRAFT_KEY) || '{}').title || ''; } catch { return ''; }
-  });
-  const [body, setBody]       = React.useState(() => {
-    try { return JSON.parse(localStorage.getItem(ARTICLE_DRAFT_KEY) || '{}').body || ''; } catch { return ''; }
-  });
-  const [coverUrl, setCover]  = React.useState(() => {
-    try { return JSON.parse(localStorage.getItem(ARTICLE_DRAFT_KEY) || '{}').coverUrl || ''; } catch { return ''; }
-  });
+  const initialDraft = React.useMemo(() => {
+    try { return JSON.parse(localStorage.getItem(ARTICLE_DRAFT_KEY) || '{}'); } catch { return {}; }
+  }, []);
+  const [title, setTitle]    = React.useState(initialDraft.title || '');
+  const [body, setBody]      = React.useState(initialDraft.body || '');
+  const [coverUrl, setCover] = React.useState(initialDraft.coverUrl || '');
   const [published, setPublished] = React.useState(false);
 
   const BODY_MAX = 10000;

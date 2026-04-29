@@ -200,16 +200,17 @@ def test_IT_U06_add_education_missing_school(base_url, auth_headers):
 
 def test_IT_U07a_add_experience_entry(base_url, auth_headers):
     """IT-U07a: Add experience entry (happy path)."""
+    title = f"Software Engineer {uuid.uuid4().hex[:8]}"
     resp = requests.post(
         _url(base_url, "/me/experience"),
         headers=auth_headers,
-        json={"title": "Software Engineer", "company": "Nexus Corp", "location": "NYC", "startDate": "Jan 2023", "current": True},
+        json={"title": title, "company": "Nexus Corp", "location": "NYC", "startDate": "Jan 2023", "current": True},
         timeout=TIMEOUT,
     )
     assert resp.status_code == 200
     experience = resp.json().get("experience", [])
     titles = [e.get("title") for e in experience]
-    assert "Software Engineer" in titles
+    assert title in titles
 
 
 def test_IT_U07b_add_experience_missing_title(base_url, auth_headers):

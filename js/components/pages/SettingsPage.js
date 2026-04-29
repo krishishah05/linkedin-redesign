@@ -277,6 +277,7 @@ function SettingsPage() {
                     Get a copy of your Nexus data including your profile and settings.
                   </p>
                   <button className="li-btn li-btn--outline li-btn--sm" onClick={() => {
+                    let url, a;
                     try {
                       const exportData = {
                         exportDate: new Date().toISOString(),
@@ -288,13 +289,16 @@ function SettingsPage() {
                         settings,
                       };
                       const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-                      const url = URL.createObjectURL(blob);
-                      const a = document.createElement('a');
+                      url = URL.createObjectURL(blob);
+                      a = document.createElement('a');
                       a.href = url; a.download = 'nexus-data-export.json';
                       document.body.appendChild(a); a.click();
-                      document.body.removeChild(a); setTimeout(() => URL.revokeObjectURL(url), 0);
                       showToast('Data exported successfully!', 'success');
                     } catch { showToast('Export failed — please try again', 'error'); }
+                    finally {
+                      if (a && a.parentNode) a.parentNode.removeChild(a);
+                      if (url) setTimeout(() => URL.revokeObjectURL(url), 0);
+                    }
                   }}>
                     Download my data
                   </button>

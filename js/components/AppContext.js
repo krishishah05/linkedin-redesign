@@ -143,7 +143,7 @@ function AppProvider({ children }) {
       const f = localStorage.getItem(`li-following-${uid}`);
       if (f) setFollowing(new Set(JSON.parse(f)));
       const l = localStorage.getItem(`li-liked-posts-${uid}`);
-      if (l) setLikedPosts(new Set(JSON.parse(l)));
+      setLikedPosts(l ? new Set(JSON.parse(l)) : new Set());
       const sl = localStorage.getItem(`li-shortlisted-${uid}`);
       setShortlisted(sl ? new Map(JSON.parse(sl)) : new Map());
     } catch (_) {}

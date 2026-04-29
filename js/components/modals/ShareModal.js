@@ -37,23 +37,10 @@ function ShareModal() {
           </div>
           <div className="li-dropdown__divider" />
           <div className="li-dropdown__item" onClick={() => {
-            const url = window.location.href;
-            function execCopy() {
-              let ta;
-              try {
-                ta = document.createElement('textarea');
-                ta.value = url; ta.style.cssText = 'position:fixed;opacity:0';
-                document.body.appendChild(ta); ta.focus(); ta.select();
-                if (document.execCommand('copy')) { showToast('Link copied!'); closeModal(); }
-                else showToast('Failed to copy link', 'error');
-              } catch { showToast('Failed to copy link', 'error'); }
-              finally { if (ta && ta.parentNode) ta.parentNode.removeChild(ta); }
-            }
-            if (navigator.clipboard?.writeText) {
-              navigator.clipboard.writeText(url)
-                .then(() => { showToast('Link copied!'); closeModal(); })
-                .catch(() => execCopy());
-            } else { execCopy(); }
+            copyLink(window.location.href, (msg, type) => {
+              showToast(msg, type);
+              if (msg === 'Link copied!') closeModal();
+            });
           }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
               <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>

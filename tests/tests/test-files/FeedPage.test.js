@@ -747,8 +747,8 @@ describe('SponsoredPost', () => {
       fireEvent.click(screen.getByText('Learn more'));
     });
 
-    // Should navigate, not show a toast
-    expect(mockShowToast).not.toHaveBeenCalledWith('Opening Stripe...');
+    expect(global.navigate).toHaveBeenCalledWith('search?q=Stripe');
+    expect(mockShowToast).not.toHaveBeenCalled();
   });
 });
 

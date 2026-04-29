@@ -710,9 +710,9 @@ function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, followi
               </div>
             );
           })}
-          {Math.max(commentCount, localComments.length) > 3 && (
+          {localComments.length > 3 && (
             <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-2)', fontSize: 13, fontWeight: 600 }}
-              onClick={() => localComments.length > 3 && setShowAllComments(v => !v)}>
+              onClick={() => setShowAllComments(v => !v)}>
               {showAllComments ? 'Show fewer comments' : `View all ${formatNumber(Math.max(commentCount, localComments.length))} comments`}
             </button>
           )}

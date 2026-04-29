@@ -895,16 +895,18 @@ class TestProfileImprove:
 class TestAddExperience:
     """Tests for POST /api/me/experience."""
 
-    MOCK_UPDATED = {**{k: v for k, v in {
-        "id": 1, "name": "Test User", "email": "test@example.com",
-        "headline": "", "location": "", "about": "", "pronouns": "",
-        "industry": "", "avatarColor": None, "experience": [], "education": [],
-        "skills": [], "phone": "", "isRecruiter": False,
-    }.items()}, "experience": [{"id": 1, "title": "Engineer", "company": "ACME", "current": False}]}
+    def _mock_updated(self):
+        return {
+            "id": 1, "name": "Test User", "email": "test@example.com",
+            "headline": "", "location": "", "about": "", "pronouns": "",
+            "industry": "", "avatarColor": None, "education": [],
+            "skills": [], "phone": "", "isRecruiter": False,
+            "experience": [{"id": 1, "title": "Engineer", "company": "ACME", "current": False}],
+        }
 
     def test_T96_BB_happy_path_returns_200(self, client, monkeypatch):
         """BB: valid payload → 200 with updated user data."""
-        monkeypatch.setattr(flask_app.dbl, "add_experience", lambda uid, e: self.MOCK_UPDATED)
+        monkeypatch.setattr(flask_app.dbl, "add_experience", lambda uid, e: self._mock_updated())
         resp = client.post(
             "/api/me/experience",
             json={"title": "Engineer", "company": "ACME", "current": False},
@@ -915,7 +917,7 @@ class TestAddExperience:
 
     def test_T97_WB_missing_title_returns_400(self, client, monkeypatch):
         """WB: omitting title → 400."""
-        monkeypatch.setattr(flask_app.dbl, "add_experience", lambda uid, e: self.MOCK_UPDATED)
+        monkeypatch.setattr(flask_app.dbl, "add_experience", lambda uid, e: self._mock_updated())
         resp = client.post(
             "/api/me/experience",
             json={"company": "ACME", "current": False},
@@ -925,7 +927,7 @@ class TestAddExperience:
 
     def test_T98_WB_missing_company_returns_400(self, client, monkeypatch):
         """WB: omitting company → 400."""
-        monkeypatch.setattr(flask_app.dbl, "add_experience", lambda uid, e: self.MOCK_UPDATED)
+        monkeypatch.setattr(flask_app.dbl, "add_experience", lambda uid, e: self._mock_updated())
         resp = client.post(
             "/api/me/experience",
             json={"title": "Engineer", "current": False},
@@ -935,7 +937,7 @@ class TestAddExperience:
 
     def test_T99_WB_non_bool_current_returns_400(self, client, monkeypatch):
         """WB: current as string → 400 (must be strict boolean)."""
-        monkeypatch.setattr(flask_app.dbl, "add_experience", lambda uid, e: self.MOCK_UPDATED)
+        monkeypatch.setattr(flask_app.dbl, "add_experience", lambda uid, e: self._mock_updated())
         resp = client.post(
             "/api/me/experience",
             json={"title": "Engineer", "company": "ACME", "current": "false"},
