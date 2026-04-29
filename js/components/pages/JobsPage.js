@@ -110,6 +110,7 @@ function JobsPage({ selectedJobId }) {
                     </button>
                     <button
                       onClick={() => toggleSaveJob(job.id)}
+                      aria-label={savedJobs.has(String(job.id)) ? 'Unsave job' : 'Save job'}
                       style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, fontSize: 16, color: savedJobs.has(String(job.id)) ? '#b45309' : 'var(--text-3)', flexShrink: 0 }}
                       title={savedJobs.has(String(job.id)) ? 'Unsave' : 'Save'}
                     >

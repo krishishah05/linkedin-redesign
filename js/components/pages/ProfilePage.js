@@ -615,7 +615,7 @@ function ProfilePage({ userId }) {
                 )}
 
                 {/* Error state */}
-                {aiReadinessError && !aiReadiness && (
+                {aiReadinessError && (
                   <div style={{ fontSize: 12, color: 'var(--red)', marginBottom: 8 }}>{aiReadinessError}</div>
                 )}
 

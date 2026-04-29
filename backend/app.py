@@ -538,6 +538,8 @@ def add_experience():
         "description": (body.get("description") or "").strip(),
         "skills": (body.get("skills") or "").strip(),
     }
+    if "current" in body:
+        entry["current"] = bool(body["current"])
     updated = dbl.add_experience(user["id"], entry)
     if not updated:
         abort(404, description="User not found")
@@ -757,6 +759,7 @@ def get_jobs():
             if fresh:
                 _muse_cache["jobs"]       = fresh
                 _muse_cache["fetched_at"] = now
+                _muse_detail_cache.clear()
         except Exception as exc:
             app.logger.warning("The Muse fetch failed: %s", exc)
     return jsonify(_muse_cache["jobs"] if _muse_cache["jobs"] else dbl.get_all_jobs())
@@ -773,6 +776,7 @@ def get_job(job_id):
                 if fresh:
                     _muse_cache["jobs"]       = fresh
                     _muse_cache["fetched_at"] = now
+                    _muse_detail_cache.clear()
             except Exception:
                 pass
 
