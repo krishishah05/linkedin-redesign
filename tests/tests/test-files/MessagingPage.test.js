@@ -73,6 +73,9 @@ describe('MessagingPage Component Tests', () => {
         jest.clearAllMocks();
         mockShowToast.mockClear();
         mockSetUnreadMessages.mockClear();
+        global.API.getAIProfileReadiness.mockImplementation(() => Promise.resolve({
+            score: 75, level: 'Strong', summary: 'Good profile.', sections: [], suggestions: []
+        }));
     });
 
     // 1 — BB
@@ -1265,10 +1268,10 @@ describe('MessagingPage Component Tests', () => {
     // CX6 — WB
     test("Score panel close button sets activePanel to null", async () => {
         global.useFetch.mockReturnValue({ loading: false, data: [{ id: 1, participantName: 'Alice' }] });
-        global.API.getProfileReadiness.mockReturnValue(Promise.resolve({ score: 72, sections: [], fixes: [] }));
+        global.API.getAIProfileReadiness.mockResolvedValue({ score: 72, level: 'Developing', summary: '.', sections: [], suggestions: [] });
         await act(async () => render(React.createElement(MessagingPage)));
         await act(async () => fireEvent.click(screen.getByTitle('Profile Readiness')));
-        expect(screen.getByText('72')).toBeInTheDocument();
+        await waitFor(() => expect(screen.getByText('72')).toBeInTheDocument());
 
         await act(async () => fireEvent.click(screen.getByTitle('Close')));
         expect(screen.queryByText('72')).not.toBeInTheDocument();
@@ -1278,10 +1281,10 @@ describe('MessagingPage Component Tests', () => {
     // CX7 — WB
     test("'Continue messaging' button closes score panel", async () => {
         global.useFetch.mockReturnValue({ loading: false, data: [{ id: 1, participantName: 'Alice' }] });
-        global.API.getProfileReadiness.mockReturnValue(Promise.resolve({ score: 60, sections: [], fixes: [] }));
+        global.API.getAIProfileReadiness.mockResolvedValue({ score: 60, level: 'Developing', summary: '.', sections: [], suggestions: [] });
         await act(async () => render(React.createElement(MessagingPage)));
         await act(async () => fireEvent.click(screen.getByTitle('Profile Readiness')));
-        expect(screen.getByText('60')).toBeInTheDocument();
+        await waitFor(() => expect(screen.getByText('60')).toBeInTheDocument());
 
         await act(async () => fireEvent.click(screen.getByText('Continue messaging')));
         expect(screen.queryByText('60')).not.toBeInTheDocument();
@@ -1508,7 +1511,7 @@ describe('MessagingPage Component Tests', () => {
             sections: [
                 { key: 'edu', label: 'Education', score: 90 },
                 { key: 'headline', label: 'Headline', score: 70 },
-                { key: 'about', label: 'About', score: 50 }
+                { key: 'about', label: 'About', score: 35 }
             ]
         });
         await act(async () => render(React.createElement(MessagingPage)));
@@ -1516,17 +1519,17 @@ describe('MessagingPage Component Tests', () => {
         await waitFor(() => expect(screen.getByText('90%')).toBeInTheDocument());
         expect(screen.getByText('90%')).toBeInTheDocument();
         expect(screen.getByText('70%')).toBeInTheDocument();
-        expect(screen.getByText('50%')).toBeInTheDocument();
+        expect(screen.getByText('35%')).toBeInTheDocument();
         // score 90 >= 80 → 'good' class
         expect(screen.getByText('90%').classList.contains('good')).toBe(true);
         expect(screen.getByText('90%').classList.contains('warn')).toBe(false);
-        // score 70 >= 70 → 'warn' class
+        // score 70 >= 40 but < 80 → 'warn' class
         expect(screen.getByText('70%').classList.contains('warn')).toBe(true);
         expect(screen.getByText('70%').classList.contains('good')).toBe(false);
         expect(screen.getByText('70%').classList.contains('bad')).toBe(false);
-        // score 50 < 70 → 'bad' class
-        expect(screen.getByText('50%').classList.contains('bad')).toBe(true);
-        expect(screen.getByText('50%').classList.contains('good')).toBe(false);
+        // score 35 < 40 → 'bad' class
+        expect(screen.getByText('35%').classList.contains('bad')).toBe(true);
+        expect(screen.getByText('35%').classList.contains('good')).toBe(false);
     });
 
     // M10 — WB: openProfileReadiness does not reload when already 'score'
