@@ -1177,9 +1177,9 @@ class TestAddProject:
     def test_T123_BB_project_persisted_to_db(self, isolated_db):
         """BB: Project is persisted so a fresh read confirms it."""
         seed_user(isolated_db, uid=1, email="a@a.com")
-        database.add_project(1, {"title": "My Project"})
+        database.add_project(1, {"name": "My Project"})
         user = database.get_user_by_id(1)
-        assert any(p["title"] == "My Project" for p in user.get("projects", []))
+        assert any(p["name"] == "My Project" for p in user.get("projects", []))
 
 
 # ===========================================================================
@@ -1209,7 +1209,7 @@ class TestAddVolunteering:
     def test_T127_BB_volunteering_persisted_to_db(self, isolated_db):
         """BB: Volunteering entry is persisted so a fresh read confirms it."""
         seed_user(isolated_db, uid=1, email="a@a.com")
-        database.add_volunteering(1, {"role": "Coach", "org": "NJIT"})
+        database.add_volunteering(1, {"role": "Coach", "organization": "NJIT"})
         user = database.get_user_by_id(1)
         assert any(v["role"] == "Coach" for v in user.get("volunteering", []))
 

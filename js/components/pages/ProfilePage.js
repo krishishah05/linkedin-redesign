@@ -509,7 +509,8 @@ function ProfilePage({ userId }) {
                         <span key={label + i} style={{ fontSize: 13, padding: '6px 14px', borderRadius: 16, border: '1px solid var(--border)', background: 'var(--bg-2)', color: 'var(--text)', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                           {label}
                           {isOwnProfile && (
-                            <button onClick={() => deleteSkill(i)} title="Remove skill"
+                            <button type="button" onClick={() => deleteSkill(i)} title="Remove skill"
+                              aria-label={`Remove ${label} skill`}
                               style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-3)', padding: 0, lineHeight: 0, fontSize: 14, fontWeight: 700 }}
                               onMouseEnter={e => e.currentTarget.style.color = 'var(--red, #cc1016)'}
                               onMouseLeave={e => e.currentTarget.style.color = 'var(--text-3)'}>×</button>
