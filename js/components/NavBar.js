@@ -357,7 +357,7 @@ function NavBar() {
                     localStorage.removeItem('nx-token'); localStorage.removeItem('nx-uid');
                     ['li-liked-posts','li-saved-jobs','li-connections','li-following','li-pending-conn',
                      'li-dismissed-inv','li-applied-jobs','li-joined-groups','li-settings',
-                     'li-language'].forEach(k => localStorage.removeItem(k));
+                     'li-language','li-user-status','li-recruiter-mode'].forEach(k => localStorage.removeItem(k));
                     window.location.href = 'index.html';
                   }}
                 >

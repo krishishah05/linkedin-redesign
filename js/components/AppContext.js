@@ -57,6 +57,13 @@ function AppProvider({ children }) {
   const [recruiterMode, setRecruiterModeState] = React.useState(
     () => localStorage.getItem('li-recruiter-mode') === '1'
   );
+
+  // User availability status: 'open_to_work' | 'conferences' | 'recruiting' | 'not_looking' | null
+  // Declared before the effects below that reference it to avoid TDZ errors.
+  const [userStatus, setUserStatusState] = React.useState(
+    () => localStorage.getItem('li-user-status') || null
+  );
+
   // Auto-set 'recruiting' status for recruiter accounts that haven't picked a status yet
   React.useEffect(() => {
     if (currentUser?.isRecruiter && !localStorage.getItem('li-user-status')) {
@@ -71,13 +78,8 @@ function AppProvider({ children }) {
       setRecruiterModeState(false);
       localStorage.removeItem('li-recruiter-mode');
     }
-  }, [userStatus]);
+  }, [userStatus, recruiterMode]);
   const [recruiterPanelOpen, setRecruiterPanelOpen] = React.useState(false);
-
-  // User availability status: 'open_to_work' | 'conferences' | 'recruiting' | 'not_looking' | null
-  const [userStatus, setUserStatusState] = React.useState(
-    () => localStorage.getItem('li-user-status') || null
-  );
   const [shortlisted, setShortlisted] = React.useState(() => {
     try {
       const s = localStorage.getItem('li-shortlisted');

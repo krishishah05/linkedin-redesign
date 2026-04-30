@@ -685,8 +685,12 @@ describe('FeedPage — No Sponsored Content', () => {
   // 17
   // Type: BB
   // Spec: #17
-  // Contract: Feed renders no "Sponsored" label — ads were removed from the feed
+  // Contract: FeedPage never calls SponsoredPost — ads were removed from the feed
   test('Feed renders no sponsored posts', async () => {
+    // Use a sentinel mock: if FeedPage still renders SponsoredPost, the test catches it.
+    global.SponsoredPost = jest.fn(() =>
+      React.createElement('span', null, '__SPONSORED_SENTINEL__')
+    );
     global.useFetch.mockReturnValue({ data: [], loading: false, error: null });
 
     renderWithContext(
@@ -694,8 +698,8 @@ describe('FeedPage — No Sponsored Content', () => {
       defaultContext()
     );
 
-    expect(screen.queryByText('Sponsored')).not.toBeInTheDocument();
-    expect(screen.queryByText('Promoted')).not.toBeInTheDocument();
+    expect(global.SponsoredPost).not.toHaveBeenCalled();
+    expect(screen.queryByText('__SPONSORED_SENTINEL__')).not.toBeInTheDocument();
   });
 
   // 18
