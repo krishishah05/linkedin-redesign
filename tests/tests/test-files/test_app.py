@@ -87,6 +87,12 @@ MOCK_OUTREACH_RESULT = {
 # ── Fixtures ──────────────────────────────────────────────────────────────────
 
 @pytest.fixture
+def auth_header():
+    """Fake Authorization header — auth is mocked in the client fixture."""
+    return {"Authorization": "Bearer test-token"}
+
+
+@pytest.fixture
 def client(monkeypatch):
     """
     Returns a Flask test client with all database + outreach calls mocked.
@@ -925,8 +931,9 @@ class TestErrorPathCoverage:
         assert resp.status_code == 400
         assert "conferenceName is required" in resp.get_json()["error"]
 
-    def test_post_message_missing_conv_id(self, client, auth_header):
+    def test_post_message_missing_conv_id(self, client, auth_header, monkeypatch):
         # Hits line 440/449 (Conversation errors)
+        monkeypatch.setattr(flask_app.dbl, "get_conversation_by_id", lambda cid: None)
         resp = client.post("/api/conversations/9999/messages", json={"text": "hello"}, headers=auth_header)
         assert resp.status_code == 404
 
