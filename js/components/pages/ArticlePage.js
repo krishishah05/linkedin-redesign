@@ -1,19 +1,42 @@
 /* ============================================================
    ARTICLEPAGE.JS — Write & publish a long-form article
    ============================================================ */
+const ARTICLE_DRAFT_KEY = 'nx-article-draft';
+
 function ArticlePage() {
   const { currentUser, showToast } = React.useContext(AppContext);
 
-  const [title, setTitle]     = React.useState('');
-  const [body, setBody]       = React.useState('');
-  const [coverUrl, setCover]  = React.useState('');
+  const initialDraft = React.useMemo(() => {
+    try {
+      const parsed = JSON.parse(localStorage.getItem(ARTICLE_DRAFT_KEY) || '{}');
+      if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) return {};
+      return parsed;
+    } catch { return {}; }
+  }, []);
+  const [title, setTitle]    = React.useState(initialDraft.title || '');
+  const [body, setBody]      = React.useState(initialDraft.body || '');
+  const [coverUrl, setCover] = React.useState(initialDraft.coverUrl || '');
   const [published, setPublished] = React.useState(false);
 
   const BODY_MAX = 10000;
 
+  function saveDraft() {
+    try {
+      localStorage.setItem(ARTICLE_DRAFT_KEY, JSON.stringify({ title, body, coverUrl }));
+      showToast('Draft saved', 'success');
+    } catch {
+      showToast('Could not save draft', 'error');
+    }
+  }
+
+  function clearDraft() {
+    try { localStorage.removeItem(ARTICLE_DRAFT_KEY); return true; } catch (err) { console.error('Failed to clear draft:', err); return false; }
+  }
+
   function handlePublish() {
     if (!title.trim()) { showToast('Please add a title', 'error'); return; }
     if (!body.trim())  { showToast('Please write something in the article body', 'error'); return; }
+    if (!clearDraft()) { showToast('Could not clear draft — please try again', 'error'); return; }
     setPublished(true);
     showToast('Article published!', 'success');
   }
@@ -57,7 +80,7 @@ function ArticlePage() {
         <div style={{ display: 'flex', gap: 10 }}>
           <button
             className="li-btn li-btn--ghost"
-            onClick={() => showToast('Draft saved', 'success')}
+            onClick={saveDraft}
           >
             Save draft
           </button>

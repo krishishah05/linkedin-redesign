@@ -48,6 +48,20 @@ def _auth_user():
     return dbl.get_current_user(uid) if uid else None
 
 
+def _require_auth_user():
+    """Like _auth_user() but aborts with 401 instead of returning None."""
+    user = _auth_user()
+    if not user:
+        abort(401, description="Authentication required")
+    return user
+
+
+def _get_body():
+    """Parse request JSON body; silently returns {} for non-dict payloads."""
+    body = request.get_json(silent=True)
+    return body if isinstance(body, dict) else {}
+
+
 # ── Serve SPA ─────────────────────────────────────────────────
 
 @app.route("/")
@@ -105,7 +119,7 @@ def login():
     Body: { email, password }
     Returns { user, token } on success or 401 on failure.
     """
-    body = request.get_json(silent=True) or {}
+    body = _get_body()
     email = (body.get("email") or "").strip().lower()
     password = body.get("password") or ""
 
@@ -127,7 +141,7 @@ def register():
     Body: { name, email, password }
     Returns the new user dict (201) or 400/409 on validation failure.
     """
-    body = request.get_json(silent=True) or {}
+    body = _get_body()
 
     name = (body.get("name") or "").strip()
     email = (body.get("email") or "").strip().lower()
@@ -169,7 +183,7 @@ def get_me():
 @app.route("/api/me", methods=["PUT", "PATCH"])
 def update_me():
     """PUT /api/me — update current user profile fields."""
-    body = request.get_json(silent=True) or {}
+    body = _get_body()
     allowed = {"name", "headline", "location", "about", "pronouns", "industry"}
     updates = {k: v for k, v in body.items() if k in allowed and isinstance(v, str)}
     if not updates:
@@ -189,7 +203,7 @@ def add_education():
     user = _auth_user()
     if not user:
         abort(401, description="Authentication required")
-    body = request.get_json(silent=True) or {}
+    body = _get_body()
     school = (body.get("school") or "").strip()
     if not school:
         abort(400, description="school is required")
@@ -206,13 +220,48 @@ def add_education():
     return jsonify(updated)
 
 
+@app.route("/api/me/experience", methods=["POST"])
+def add_experience():
+    """POST /api/me/experience — append a work experience entry to the current user."""
+    user = _auth_user()
+    if not user:
+        abort(401, description="Authentication required")
+    body = request.get_json(silent=True)
+    if body is not None and not isinstance(body, dict):
+        abort(400, description="Request body must be a JSON object")
+    body = body or {}
+    title = (body.get("title") or "").strip()
+    if not title:
+        abort(400, description="title is required")
+    company = (body.get("company") or "").strip()
+    if not company:
+        abort(400, description="company is required")
+    current = body.get("current", False)
+    if not isinstance(current, bool):
+        abort(400, description="current must be a boolean")
+    entry = {
+        "title": title,
+        "company": company,
+        "type": (body.get("type") or "").strip(),
+        "location": (body.get("location") or "").strip(),
+        "startDate": (body.get("startDate") or "").strip(),
+        "current": current,
+        "description": (body.get("description") or "").strip(),
+        "skills": body.get("skills") if isinstance(body.get("skills"), list) else [],
+    }
+    updated = dbl.add_experience(user["id"], entry)
+    if not updated:
+        abort(404, description="User not found")
+    return jsonify(updated)
+
+
 @app.route("/api/me/skills", methods=["POST"])
 def add_skill():
     """POST /api/me/skills — append a skill to the current user."""
     user = _auth_user()
     if not user:
         abort(401, description="Authentication required")
-    body = request.get_json(silent=True) or {}
+    body = _get_body()
     skill = (body.get("skill") or "").strip()
     if not skill:
         abort(400, description="skill is required")
@@ -228,7 +277,7 @@ def create_group():
     user = _auth_user()
     if not user:
         abort(401, description="Authentication required")
-    body = request.get_json(silent=True) or {}
+    body = _get_body()
     name = (body.get("name") or "").strip()
     if not name:
         abort(400, description="name is required")
@@ -301,25 +350,26 @@ def get_feed():
 @app.route("/api/feed", methods=["POST"])
 def create_post():
     """POST /api/feed — create a new post. Body: {content: str, imageUrl?: str}"""
-    body = request.get_json(silent=True) or {}
+    body = _get_body()
     content = (body.get("content") or "").strip()
     if not content:
         abort(400, description="content is required and must not be empty")
 
     image_url = (body.get("imageUrl") or "").strip() or None
+    video_url = (body.get("videoUrl") or "").strip() or None
 
     current_user = _auth_user()
     if not current_user:
         abort(401, description="Authentication required")
 
-    post = dbl.create_post(current_user["id"], content)
+    post = dbl.create_post(current_user["id"], content, image_url=image_url, video_url=video_url)
     return jsonify(post), 201
 
 
 @app.route("/api/feed/<int:post_id>", methods=["DELETE"])
 def delete_post(post_id):
     """DELETE /api/feed/:id — delete a post (owner only)."""
-    current_user = _auth_user()
+    current_user = _require_auth_user()
     result = dbl.delete_post(post_id, current_user["id"])
     if result == "not_found":
         abort(404, description=f"Post {post_id} not found")
@@ -331,7 +381,7 @@ def delete_post(post_id):
 @app.route("/api/feed/<int:post_id>/like", methods=["POST"])
 def toggle_post_like(post_id):
     """POST /api/feed/:id/like — toggle like on a post."""
-    current_user = _auth_user()
+    current_user = _require_auth_user()
     result = dbl.toggle_post_like(post_id, current_user["id"])
     return jsonify(result)
 
@@ -339,11 +389,11 @@ def toggle_post_like(post_id):
 @app.route("/api/feed/<int:post_id>/comments", methods=["POST"])
 def add_post_comment(post_id):
     """POST /api/feed/:id/comments — add a comment. Body: {text: str}"""
-    body = request.get_json(silent=True) or {}
+    body = _get_body()
     text = (body.get("text") or "").strip()
     if not text:
         abort(400, description="text is required")
-    current_user = _auth_user()
+    current_user = _require_auth_user()
     comment = dbl.add_post_comment(post_id, current_user["id"], text)
     if comment is None:
         abort(404, description=f"Post {post_id} not found")
@@ -392,7 +442,7 @@ def create_conversation():
     user = _auth_user()
     if not user:
         abort(401, description="Authentication required")
-    body = request.get_json(silent=True) or {}
+    body = _get_body()
     participant_id = body.get("participantId")
     if not participant_id:
         abort(400, description="participantId is required")
@@ -436,7 +486,7 @@ def post_message(conv_id):
     if not conv:
         abort(404, description=f"Conversation {conv_id} not found")
 
-    body = request.get_json(silent=True) or {}
+    body = _get_body()
     text = (body.get("text") or "").strip()
     if not text:
         abort(400, description="text is required")
@@ -489,10 +539,10 @@ def get_events():
 @app.route("/api/events", methods=["POST"])
 def create_event():
     """POST /api/events — create a new event."""
-    body = request.get_json(silent=True) or {}
+    body = _get_body()
     if not body.get("name"):
         abort(400, description="name is required")
-    current_user = _auth_user()
+    current_user = _require_auth_user()
     event = dbl.create_event(current_user["id"], body)
     return jsonify(event), 201
 
@@ -500,7 +550,7 @@ def create_event():
 @app.route("/api/events/<event_id>/attend", methods=["POST"])
 def toggle_event_attend(event_id):
     """POST /api/events/:id/attend — toggle attendance."""
-    current_user = _auth_user()
+    current_user = _require_auth_user()
     src = "user" if str(event_id).startswith("u") else "static"
     result = dbl.toggle_event_attend(event_id, src, current_user["id"])
     return jsonify(result)
@@ -604,7 +654,7 @@ def get_profile_readiness():
 @app.route("/api/outreach/generate", methods=["POST"])
 def outreach_generate():
     """POST /api/outreach/generate — personalised outreach draft."""
-    body = request.get_json(silent=True) or {}
+    body = _get_body()
 
     raw_id = body.get("recipientId")
     if raw_id is None:
@@ -844,7 +894,7 @@ def toggle_group(group_id):  # pragma: no cover
 @app.route("/api/me/invitations/dismiss", methods=["POST"])
 def dismiss_invitation():  # pragma: no cover
     """POST /api/me/invitations/dismiss — dismiss an invitation. Body: {key: str}"""
-    body = request.get_json(silent=True) or {}
+    body = _get_body()
     key = str(body.get("key") or "").strip()
     if not key:
         abort(400, description="key is required")

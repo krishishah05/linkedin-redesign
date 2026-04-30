@@ -30,6 +30,19 @@ global.API = {
   deletePost: jest.fn(() => Promise.resolve({ deleted: true })),
 };
 global.useFetch = jest.fn();
+global.copyLink = function(url, showToast) {
+  function execCopy() {
+    const copied = typeof document.execCommand === 'function' && document.execCommand('copy');
+    showToast(copied ? 'Link copied!' : 'Failed to copy link', copied ? undefined : 'error');
+  }
+  if (navigator.clipboard?.writeText) {
+    navigator.clipboard.writeText(url)
+      .then(() => showToast('Link copied!'))
+      .catch(() => execCopy());
+  } else {
+    execCopy();
+  }
+};
 global.LoadingSpinner = ({ text }) => React.createElement('div', { 'data-testid': 'spinner' }, text);
 global.navigate = jest.fn();
 global.getInitials = (name) => (name || '').slice(0, 2).toUpperCase();
@@ -175,8 +188,8 @@ describe('FeedPage — handleNewPost', () => {
     expect(firstPostProps.post.author).toBe('Alex');
     expect(firstPostProps.post.authorId).toBe(1);
 
-    // API.createPost must have been called with the content string
-    expect(global.API.createPost).toHaveBeenCalledWith('Hello world');
+    // API.createPost must have been called with content, null imageUrl, null videoUrl
+    expect(global.API.createPost).toHaveBeenCalledWith('Hello world', null, null);
   });
 
   // 2
@@ -254,7 +267,40 @@ describe('FeedPage — handleNewPost', () => {
     // does not validate — validation is in submit(). So we confirm the
     // post appears with whitespace content as-is.
     // The real guard is in PostCreator > submit() tested separately.
-    expect(global.API.createPost).toHaveBeenCalledWith('   ');
+    expect(global.API.createPost).toHaveBeenCalledWith('   ', null, null);
+  });
+
+  // 5 (server id replacement)
+  // Type: WB
+  // Spec: handleNewPost replaces optimistic id with server-returned id once API resolves
+  test('Replaces optimistic post id with server-assigned id on API resolve', async () => {
+    const serverPost = {
+      id: 42, content: 'Hello world', author: 'Alex', authorId: 1,
+      likeCount: 0, commentCount: 0, repostCount: 0, comments: [],
+    };
+    mockCreatePost.mockResolvedValue(serverPost);
+
+    renderWithContext(
+      React.createElement(global.FeedPage),
+      defaultContext()
+    );
+
+    const onPost = global.PostCreator.mock.calls[0][0].onPost;
+    const optimisticId = Date.now();
+    jest.spyOn(Date, 'now').mockReturnValue(optimisticId);
+
+    await act(async () => {
+      onPost('Hello world');
+    });
+
+    jest.restoreAllMocks();
+
+    const feedPostCalls = global.FeedPost.mock.calls;
+    const lastPost = feedPostCalls[feedPostCalls.length - 1][0].post;
+    // The server-assigned id (42) must replace the optimistic Date.now() stub
+    expect(lastPost.id).toBe(42);
+    expect(lastPost.id).not.toBe(optimisticId);
+    expect(mockShowToast).toHaveBeenCalledWith('Post shared!', 'success');
   });
 });
 
@@ -591,8 +637,8 @@ describe('PostCreator — submit()', () => {
       fireEvent.click(screen.getByText('Post'));
     });
 
-    // onPost should be called with trimmed content
-    expect(mockOnPost).toHaveBeenCalledWith('My post');
+    // onPost should be called with trimmed content, null imageUrl, null videoUrl
+    expect(mockOnPost).toHaveBeenCalledWith('My post', null, null);
 
     // Composer should be collapsed — Start a post button reappears
     expect(screen.getByText('Start a post')).toBeInTheDocument();
@@ -704,12 +750,14 @@ describe('SponsoredPost', () => {
   // 18
   // Type: BB
   // Spec: #18
-  // Contract: SponsoredPost calls showToast('Ad hidden') when X button is clicked
-  test('Calls showToast with Ad hidden when X button clicked', async () => {
+  // Contract: SponsoredPost calls onDismiss when X button is clicked (ad is removed from feed)
+  test('Calls onDismiss when X button clicked', async () => {
+    const mockDismiss = jest.fn();
     render(
       React.createElement(sandbox.SponsoredPost, {
         ad: mockAd,
         showToast: mockShowToast,
+        onDismiss: mockDismiss,
       })
     );
 
@@ -717,14 +765,14 @@ describe('SponsoredPost', () => {
       fireEvent.click(screen.getByText('✕'));
     });
 
-    expect(mockShowToast).toHaveBeenCalledWith('Ad hidden');
+    expect(mockDismiss).toHaveBeenCalledTimes(1);
   });
 
   // 19
   // Type: BB
   // Spec: #19
-  // Contract: SponsoredPost calls showToast('Opening Stripe...') when CTA button clicked
-  test('Calls showToast with Opening company name when CTA button clicked', async () => {
+  // Contract: SponsoredPost CTA button navigates to search results for the company
+  test('CTA button navigates to search results for the ad company', async () => {
     render(
       React.createElement(sandbox.SponsoredPost, {
         ad: mockAd,
@@ -736,7 +784,8 @@ describe('SponsoredPost', () => {
       fireEvent.click(screen.getByText('Learn more'));
     });
 
-    expect(mockShowToast).toHaveBeenCalledWith('Opening Stripe...');
+    expect(global.navigate).toHaveBeenCalledWith('search?q=Stripe');
+    expect(mockShowToast).not.toHaveBeenCalled();
   });
 });
 
@@ -1790,9 +1839,12 @@ describe('FeedPost — render variants and action buttons', () => {
   // 52
   // Type: WB
   // Spec: #52
-  // Exact line: onClick={() => showToast('Link copied!')}
-  // Tests that clicking Send calls showToast with 'Link copied!'
-  test('Clicking Send calls showToast with Link copied', async () => {
+  // Tests that clicking Send copies link via navigator.clipboard and shows 'Link copied!'
+  test('Clicking Send copies link and shows Link copied toast', async () => {
+    const originalClipboard = Object.getOwnPropertyDescriptor(navigator, 'clipboard');
+    const writeText = jest.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
+
     render(
       React.createElement(sandbox.FeedPost, {
         ...baseProps,
@@ -1803,8 +1855,19 @@ describe('FeedPost — render variants and action buttons', () => {
     await act(async () => {
       fireEvent.click(screen.getByText('Send'));
     });
+    // Flush the resolved Promise microtask so .then() callback runs
+    await act(async () => {});
 
+    expect(writeText).toHaveBeenCalled();
+    expect(writeText).toHaveBeenCalledWith(expect.stringContaining('#post-1'));
     expect(mockShowToast).toHaveBeenCalledWith('Link copied!');
+
+    // Restore original clipboard descriptor so this test doesn't affect others
+    if (originalClipboard) {
+      Object.defineProperty(navigator, 'clipboard', originalClipboard);
+    } else {
+      delete navigator.clipboard;
+    }
   });
 
   // 53
@@ -1859,13 +1922,15 @@ describe('FeedPost — render variants and action buttons', () => {
   // 55
   // Type: WB
   // Spec: #55
-  // Exact line: else showToast(label);
-  // Tests the else branch in the options menu — Save post calls showToast with the label
-  test('Clicking Save post in menu calls showToast', async () => {
+  // Tests that clicking Save post calls onSave and shows 'Post saved' toast
+  test('Clicking Save post in menu calls onSave and shows toast', async () => {
+    const mockOnSave = jest.fn();
     render(
       React.createElement(sandbox.FeedPost, {
         ...baseProps,
         post: { id: 1, content: 'Post', comments: [], totalReactions: 0, repostCount: 0, authorId: 99 },
+        onSave: mockOnSave,
+        savedPostIds: new Set(),
       })
     );
 
@@ -1878,7 +1943,8 @@ describe('FeedPost — render variants and action buttons', () => {
       fireEvent.click(screen.getByText('Save post'));
     });
 
-    expect(mockShowToast).toHaveBeenCalledWith('Save post');
+    expect(mockOnSave).toHaveBeenCalledWith(1);
+    expect(mockShowToast).toHaveBeenCalledWith('Post saved');
   });
 
   // 56
@@ -1946,9 +2012,8 @@ describe('FeedPost — render variants and action buttons', () => {
   // 59
   // Type: WB
   // Spec: #59
-  // Exact line: onClick={() => showToast('Liked comment!')} on the comment Like button
-  // Tests that clicking Like on a comment calls showToast with 'Liked comment!'
-  test('Clicking Like on a comment shows Liked comment toast', async () => {
+  // Tests that clicking Like on a comment toggles its label to "Liked"
+  test('Clicking Like on a comment toggles to Liked state', async () => {
     const postWithComments = {
       id: 1, content: 'Post', totalReactions: 0, repostCount: 0,
       comments: [{ author: { name: 'Bob', headline: 'Eng' }, text: 'Nice!', timestamp: 'Yesterday' }],
@@ -1965,11 +2030,14 @@ describe('FeedPost — render variants and action buttons', () => {
     // getAllByRole finds both the post Like action button and the comment Like button
     // — click the last one which is the comment Like button
     await act(async () => {
-      const likeButtons = screen.getAllByRole('button', { name: 'Like' });
+      const likeButtons = screen.getAllByRole('button', { name: /^Like$/i });
       fireEvent.click(likeButtons[likeButtons.length - 1]);
     });
 
-    expect(mockShowToast).toHaveBeenCalledWith('Liked comment!');
+    // After clicking, the button should show "Liked"
+    expect(screen.getByRole('button', { name: /^Liked$/i })).toBeInTheDocument();
+    // No toast should fire — this is a local state toggle
+    expect(mockShowToast).not.toHaveBeenCalledWith('Liked comment!');
   });
 
   // 60
@@ -2038,10 +2106,8 @@ describe('FeedPost — render variants and action buttons', () => {
   // 61
   // Type: WB
   // Spec: #61
-  // Exact line: {commentCount > 3 && ( ... onClick={() => showToast('Loading all comments...')}
-  // Tests that the View all comments button appears when commentCount > 3 and calls showToast
-  test('Clicking View all comments shows loading toast', async () => {
-    // Need more than 3 comments to trigger the View all button
+  // Tests that "View all N comments" expands the list in-place (no toast)
+  test('Clicking View all comments expands comment list and toggles to Show fewer', async () => {
     const manyComments = Array.from({ length: 5 }, (_, i) => ({
       author: { name: `User${i}`, headline: '' }, text: `Comment ${i}`, timestamp: 'now',
     }));
@@ -2050,17 +2116,22 @@ describe('FeedPost — render variants and action buttons', () => {
       React.createElement(sandbox.FeedPost, {
         ...baseProps,
         commentsOpen: true,
-        // commentCount must be passed explicitly — FeedPost derives it from post.commentCount,
-        // not from the comments array length
         post: { id: 1, content: 'Post', totalReactions: 0, repostCount: 0, commentCount: 5, comments: manyComments },
       })
     );
 
+    // Button should appear since there are 5 comments (> 3)
+    const expandBtn = screen.getByText(/View all/i);
+    expect(expandBtn).toBeInTheDocument();
+
     await act(async () => {
-      fireEvent.click(screen.getByText(/View all/));
+      fireEvent.click(expandBtn);
     });
 
-    expect(mockShowToast).toHaveBeenCalledWith('Loading all comments...');
+    // After clicking, button should now say "Show fewer comments"
+    expect(screen.getByText(/Show fewer comments/i)).toBeInTheDocument();
+    // No toast should have been called
+    expect(mockShowToast).not.toHaveBeenCalled();
   });
 
 });

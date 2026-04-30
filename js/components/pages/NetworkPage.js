@@ -10,6 +10,7 @@ function NetworkPage() {
   } = React.useContext(AppContext);
   const { data: users, loading: usersLoading } = useFetch(API.getUsers, []);
   const [tab, setTab] = React.useState('suggestions');
+  const [showAllInvitations, setShowAllInvitations] = React.useState(false);
 
   if (usersLoading) return <LoadingSpinner text="Loading network..." />;
 
@@ -26,17 +27,20 @@ function NetworkPage() {
             <div className="li-card" style={{ padding: '16px 24px', marginBottom: 16 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
                 <h2 style={{ fontSize: 16, fontWeight: 700 }}>Invitations ({visibleInvitations.length})</h2>
-                <button className="li-btn li-btn--ghost li-btn--sm" onClick={() => showToast('All invitations viewed')}>
-                  See all
-                </button>
+                {visibleInvitations.length > 3 && (
+                  <button className="li-btn li-btn--ghost li-btn--sm" onClick={() => setShowAllInvitations(v => !v)}>
+                    {showAllInvitations ? 'Show less' : 'See all'}
+                  </button>
+                )}
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                {visibleInvitations.slice(0, 3).map((inv, i) => {
+                {(showAllInvitations ? visibleInvitations : visibleInvitations.slice(0, 3)).map((inv, i) => {
                   const invUser = inv.user || inv;
                   const invName = invUser.name || inv.senderName || 'Unknown';
                   const invHeadline = invUser.headline || inv.headline || inv.title || '';
+                  const invKey = String(invUser.id || inv.senderId || `${invName}-${i}`);
                   return (
-                    <div key={invName} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div key={invKey} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                       <Avatar name={invName} size={48} colorOverride={invUser.avatarColor} />
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ fontSize: 14, fontWeight: 600 }}>{invName}</div>

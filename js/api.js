@@ -41,7 +41,7 @@
 
     // ── Feed ──────────────────────────────────────────────────
     getFeed: () => request('GET', '/feed'),
-    createPost: (content, imageUrl) => request('POST', '/feed', { content, imageUrl: imageUrl || null }),
+    createPost: (content, imageUrl, videoUrl) => request('POST', '/feed', { content, imageUrl: imageUrl || null, videoUrl: videoUrl || null }),
     likePost: (id) => request('POST', `/feed/${id}/like`),
     commentOnPost: (id, text) => request('POST', `/feed/${id}/comments`, { text }),
     deletePost: (id) => request('DELETE', `/feed/${id}`),
@@ -86,6 +86,7 @@
 
     // ── Profile (education / skills) ──────────────────────────
     addEducation: (entry) => request('POST', '/me/education', entry),
+    addExperience: (entry) => request('POST', '/me/experience', entry),
     addSkill: (skill) => request('POST', '/me/skills', { skill }),
     createGroup: (data) => request('POST', '/groups', data),
 

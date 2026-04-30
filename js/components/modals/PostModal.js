@@ -88,7 +88,7 @@ function PostModal() {
             ].map(btn => (
               <button key={btn.label} className="li-post-tool-btn"
                 onClick={() => {
-                  if (btn.label === 'Write article') return; // already in text mode
+                  if (btn.label === 'Write article') { closeModal(); navigate('article'); return; }
                   setShowImageInput(v => !v);
                 }}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill={btn.color}>{btn.icon}</svg>
