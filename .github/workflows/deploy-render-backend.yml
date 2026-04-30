@@ -3,6 +3,9 @@ name: deploy-render-backend
 on:
   push:
     branches: ["main"]
+    paths:
+      - "backend/**"
+      - "requirements.txt"
 
 jobs:
   deploy:

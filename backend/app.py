@@ -62,6 +62,13 @@ def _get_body():
     return body if isinstance(body, dict) else {}
 
 
+# ── Health check (used by Render's deploy health check) ───────
+
+@app.route("/api/health")
+def health():
+    return jsonify({"status": "ok"}), 200
+
+
 # ── Serve SPA ─────────────────────────────────────────────────
 
 @app.route("/")
