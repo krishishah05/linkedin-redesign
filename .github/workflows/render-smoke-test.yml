@@ -19,7 +19,7 @@ jobs:
         run: |
           echo "Pinging Render until it responds…"
           for i in $(seq 1 36); do
-            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$BASE/health" --max-time 15 || echo "000")
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$BASE/jobs" --max-time 15 || echo "000")
             echo "  attempt $i — HTTP $STATUS"
             if [ "$STATUS" = "200" ]; then
               echo "Service is up."
