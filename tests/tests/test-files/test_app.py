@@ -899,8 +899,9 @@ class TestProfileImprove:
 
 
 class TestEducationAndSkills:
-    def test_add_education_success(self, client, auth_header):
+    def test_add_education_success(self, client, auth_header, monkeypatch):
         # Hits lines 181-198
+        monkeypatch.setattr(flask_app.dbl, "add_education", lambda uid, entry: MOCK_USER)
         payload = {
             "school": "University of Waterloo",
             "degree": "Bachelor of Science",
@@ -911,8 +912,9 @@ class TestEducationAndSkills:
         resp = client.post("/api/me/education", json=payload, headers=auth_header)
         assert resp.status_code == 200
 
-    def test_add_skill_success(self, client, auth_header):
+    def test_add_skill_success(self, client, auth_header, monkeypatch):
         # Hits lines 204-214
+        monkeypatch.setattr(flask_app.dbl, "add_skill", lambda uid, skill: MOCK_USER)
         resp = client.post("/api/me/skills", json={"skill": "Python"}, headers=auth_header)
         assert resp.status_code == 200
 
