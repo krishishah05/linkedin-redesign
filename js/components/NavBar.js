@@ -120,9 +120,15 @@ function NavBar() {
           onClick={e => { e.preventDefault(); navigate('feed'); }}
           aria-label="Nexus Home"
         >
-          <svg width="34" height="34" viewBox="0 0 34 34" fill="none" aria-hidden="true" focusable="false">
-            <rect width="34" height="34" rx="6" fill="#0F5DBD"/>
-            <text x="8" y="25" fontFamily="-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" fontSize="20" fontWeight="800" fill="#fff">N</text>
+          <svg width="36" height="36" viewBox="0 0 36 36" fill="none" aria-hidden="true" focusable="false">
+            <defs>
+              <linearGradient id="logo-grad" x1="0" y1="0" x2="36" y2="36" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stopColor="#2E87F0"/>
+                <stop offset="100%" stopColor="#0F5DBD"/>
+              </linearGradient>
+            </defs>
+            <rect width="36" height="36" rx="8" fill="url(#logo-grad)"/>
+            <text x="8" y="27" fontFamily="-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" fontSize="22" fontWeight="900" fill="#fff" letterSpacing="-1">N</text>
           </svg>
         </a>
 
@@ -285,30 +291,35 @@ function NavBar() {
             </button>
 
             {meOpen && (
-              <div className="li-dropdown" id={meMenuId} role="menu" style={{ display: 'block' }}>
-                <div className="li-dropdown__header">
-                  <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                    {currentUser && <Avatar name={currentUser.name} size={56} />}
-                    <div>
-                      <div className="li-dropdown__header-name">{currentUser ? currentUser.name : ''}</div>
-                      <div style={{ fontSize: 12, color: 'var(--text-2)', maxWidth: 220, lineHeight: 1.3 }}>
-                        {currentUser ? currentUser.headline : ''}
+              <div className="li-dropdown" id={meMenuId} role="menu" style={{ display: 'block', minWidth: 280 }}>
+                <div className="li-dropdown__header" style={{ padding: 0, overflow: 'hidden' }}>
+                  {/* Gradient banner strip */}
+                  <div style={{ height: 52, background: 'linear-gradient(135deg,#2E87F0 0%,#0F5DBD 60%,#764ba2 100%)', position: 'relative' }} />
+                  <div style={{ padding: '0 16px 14px', marginTop: -28 }}>
+                    <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end', marginBottom: 10 }}>
+                      <div style={{ borderRadius: '50%', border: '3px solid var(--white)', boxShadow: '0 2px 8px rgba(0,0,0,0.18)', flexShrink: 0, lineHeight: 0 }}>
+                        {currentUser && <Avatar name={currentUser.name} size={54} />}
+                      </div>
+                      <div style={{ paddingBottom: 2 }}>
+                        <div className="li-dropdown__header-name">{currentUser ? currentUser.name : ''}</div>
+                        <div style={{ fontSize: 12, color: 'var(--text-2)', maxWidth: 200, lineHeight: 1.35 }}>
+                          {currentUser ? currentUser.headline : ''}
+                        </div>
                       </div>
                     </div>
+                    <a
+                      href="#"
+                      className="li-dropdown__header-link"
+                      onClick={e => { e.preventDefault(); navigate('profile'); setMeOpen(false); }}
+                      role="menuitem"
+                    >
+                      View Profile
+                    </a>
                   </div>
-
-                  <a
-                    href="#"
-                    className="li-dropdown__header-link"
-                    onClick={e => { e.preventDefault(); navigate('profile'); setMeOpen(false); }}
-                    role="menuitem"
-                  >
-                    View Profile
-                  </a>
                 </div>
 
-                <div style={{ padding: '8px 0' }}>
-                  <div style={{ padding: '6px 16px', fontSize: 12, fontWeight: 700, color: 'var(--text-2)' }}>
+                <div style={{ padding: '4px 0 8px' }}>
+                  <div style={{ padding: '6px 16px 4px', fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                     Account
                   </div>
 
@@ -337,9 +348,11 @@ function NavBar() {
                     <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       Recruiter Mode
                       <span style={{
-                        fontSize: 11, fontWeight: 700, padding: '1px 6px', borderRadius: 8,
-                        background: recruiterMode ? '#057642' : 'var(--border)',
+                        fontSize: 10, fontWeight: 800, padding: '2px 7px', borderRadius: 99,
+                        background: recruiterMode ? 'linear-gradient(135deg,#057642,#10b981)' : 'var(--border)',
                         color: recruiterMode ? '#fff' : 'var(--text-2)',
+                        letterSpacing: '0.04em',
+                        boxShadow: recruiterMode ? '0 1px 4px rgba(5,118,66,0.3)' : 'none',
                       }}>
                         {recruiterMode ? 'ON' : 'OFF'}
                       </span>
