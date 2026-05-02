@@ -2,6 +2,89 @@
    APPCONTEXT.JS — Global React state and actions
    Replaces the monolithic App.state object from app.js.
    ============================================================ */
+const TRANSLATIONS = {
+  en: {
+    home: 'Home', myNetwork: 'My Network', network: 'Network', jobs: 'Jobs', messaging: 'Messaging',
+    messages: 'Messages', conferences: 'Conferences', me: 'Me ▾', meShort: 'Me', search: 'Search',
+    settings: 'Settings', settingsPrivacy: 'Settings & Privacy', signOut: 'Sign out',
+    startPost: 'Start a post', photo: 'Photo', video: 'Video', writeArticle: 'Write article',
+    post: 'Post', publish: 'Publish', cancel: 'Cancel', whatToTalk: 'What do you want to talk about?',
+    editTemplate: 'Edit the template, then publish your article...', like: 'Like', comment: 'Comment',
+    repost: 'Repost', send: 'Send', chooseTemplate: 'Choose an article template',
+    uploadVideoUrl: 'Upload video URL...', pasteImageUrl: 'Paste image URL...', article: 'ARTICLE',
+    loadingProfile: 'Loading profile...', profileNotFound: 'Profile not found',
+    editProfile: 'Edit profile', share: 'Share', connect: 'Connect', pending: 'Pending',
+    follow: 'Follow', following: 'Following', shortlist: 'Shortlist', shortlisted: 'Shortlisted',
+    candidateShortlist: 'Candidate Shortlist', exportToExcel: 'Export to Excel',
+    openToWork: 'Open to Work', language: 'Language', displayPreferences: 'Display preferences',
+    darkMode: 'Dark mode'
+  },
+  es: {
+    home: 'Inicio', myNetwork: 'Mi Red', network: 'Red', jobs: 'Empleos', messaging: 'Mensajes',
+    messages: 'Mensajes', conferences: 'Conferencias', me: 'Yo ▾', meShort: 'Yo', search: 'Buscar',
+    settings: 'Configuración', settingsPrivacy: 'Configuración y privacidad', signOut: 'Cerrar sesión',
+    startPost: 'Iniciar publicación', photo: 'Foto', video: 'Vídeo', writeArticle: 'Escribir artículo',
+    post: 'Publicar', publish: 'Publicar', cancel: 'Cancelar', whatToTalk: '¿De qué quieres hablar?',
+    editTemplate: 'Edita la plantilla y publica tu artículo...', like: 'Me gusta', comment: 'Comentar',
+    repost: 'Compartir', send: 'Enviar', chooseTemplate: 'Elige una plantilla de artículo',
+    uploadVideoUrl: 'URL del vídeo...', pasteImageUrl: 'URL de la imagen...', article: 'ARTÍCULO',
+    loadingProfile: 'Cargando perfil...', profileNotFound: 'Perfil no encontrado',
+    editProfile: 'Editar perfil', share: 'Compartir', connect: 'Conectar', pending: 'Pendiente',
+    follow: 'Seguir', following: 'Siguiendo', shortlist: 'Lista corta', shortlisted: 'En lista',
+    candidateShortlist: 'Lista de candidatos', exportToExcel: 'Exportar a Excel',
+    openToWork: 'Abierto a trabajar', language: 'Idioma', displayPreferences: 'Preferencias de pantalla',
+    darkMode: 'Modo oscuro'
+  },
+  fr: {
+    home: 'Accueil', myNetwork: 'Mon réseau', network: 'Réseau', jobs: 'Emplois', messaging: 'Messagerie',
+    messages: 'Messages', conferences: 'Conférences', me: 'Moi ▾', meShort: 'Moi', search: 'Rechercher',
+    settings: 'Paramètres', settingsPrivacy: 'Paramètres et confidentialité', signOut: 'Se déconnecter',
+    startPost: 'Commencer une publication', photo: 'Photo', video: 'Vidéo', writeArticle: 'Écrire un article',
+    post: 'Publier', publish: 'Publier', cancel: 'Annuler', whatToTalk: 'De quoi souhaitez-vous parler ?',
+    editTemplate: 'Modifiez le modèle, puis publiez votre article...', like: 'Aimer', comment: 'Commenter',
+    repost: 'Repartager', send: 'Envoyer', chooseTemplate: 'Choisissez un modèle d’article',
+    uploadVideoUrl: 'URL de la vidéo...', pasteImageUrl: 'URL de l’image...', article: 'ARTICLE',
+    loadingProfile: 'Chargement du profil...', profileNotFound: 'Profil introuvable',
+    editProfile: 'Modifier le profil', share: 'Partager', connect: 'Se connecter', pending: 'En attente',
+    follow: 'Suivre', following: 'Abonné', shortlist: 'Présélection', shortlisted: 'Présélectionné',
+    candidateShortlist: 'Présélection de candidats', exportToExcel: 'Exporter vers Excel',
+    openToWork: 'Ouvert aux opportunités', language: 'Langue', displayPreferences: 'Préférences d’affichage',
+    darkMode: 'Mode sombre'
+  },
+  de: {
+    home: 'Startseite', myNetwork: 'Mein Netzwerk', network: 'Netzwerk', jobs: 'Jobs', messaging: 'Nachrichten',
+    messages: 'Nachrichten', conferences: 'Konferenzen', me: 'Ich ▾', meShort: 'Ich', search: 'Suchen',
+    settings: 'Einstellungen', settingsPrivacy: 'Einstellungen & Datenschutz', signOut: 'Abmelden',
+    startPost: 'Beitrag starten', photo: 'Foto', video: 'Video', writeArticle: 'Artikel schreiben',
+    post: 'Posten', publish: 'Veröffentlichen', cancel: 'Abbrechen', whatToTalk: 'Worüber möchtest du sprechen?',
+    editTemplate: 'Vorlage bearbeiten und Artikel veröffentlichen...', like: 'Gefällt mir', comment: 'Kommentieren',
+    repost: 'Teilen', send: 'Senden', chooseTemplate: 'Artikelvorlage wählen',
+    uploadVideoUrl: 'Video-URL...', pasteImageUrl: 'Bild-URL...', article: 'ARTIKEL',
+    loadingProfile: 'Profil wird geladen...', profileNotFound: 'Profil nicht gefunden',
+    editProfile: 'Profil bearbeiten', share: 'Teilen', connect: 'Vernetzen', pending: 'Ausstehend',
+    follow: 'Folgen', following: 'Folge ich', shortlist: 'Auswahl', shortlisted: 'Ausgewählt',
+    candidateShortlist: 'Kandidatenauswahl', exportToExcel: 'Nach Excel exportieren',
+    openToWork: 'Offen für Arbeit', language: 'Sprache', displayPreferences: 'Anzeigeeinstellungen',
+    darkMode: 'Dunkler Modus'
+  },
+  ja: {
+    home: 'ホーム', myNetwork: 'マイネットワーク', network: 'ネットワーク', jobs: '求人', messaging: 'メッセージ',
+    messages: 'メッセージ', conferences: 'カンファレンス', me: '自分 ▾', meShort: '自分', search: '検索',
+    settings: '設定', settingsPrivacy: '設定とプライバシー', signOut: 'ログアウト',
+    startPost: '投稿を開始', photo: '写真', video: '動画', writeArticle: '記事を書く',
+    post: '投稿', publish: '公開', cancel: 'キャンセル', whatToTalk: '何について話したいですか？',
+    editTemplate: 'テンプレートを編集して記事を公開...', like: 'いいね', comment: 'コメント',
+    repost: '共有', send: '送信', chooseTemplate: '記事テンプレートを選択',
+    uploadVideoUrl: '動画URLを入力...', pasteImageUrl: '画像URLを入力...', article: '記事',
+    loadingProfile: 'プロフィールを読み込み中...', profileNotFound: 'プロフィールが見つかりません',
+    editProfile: 'プロフィール編集', share: '共有', connect: 'つながる', pending: '保留中',
+    follow: 'フォロー', following: 'フォロー中', shortlist: '候補リスト', shortlisted: '候補済み',
+    candidateShortlist: '候補者リスト', exportToExcel: 'Excelにエクスポート',
+    openToWork: '仕事を探しています', language: '言語', displayPreferences: '表示設定',
+    darkMode: 'ダークモード'
+  },
+};
+
 const AppContext = React.createContext(null);
 
 function AppProvider({ children }) {
@@ -48,11 +131,23 @@ function AppProvider({ children }) {
   const [recruiterMode, setRecruiterModeState] = React.useState(
     () => localStorage.getItem('li-recruiter-mode') === '1'
   );
+  const [recruiterPanelOpen, setRecruiterPanelOpen] = React.useState(false);
+
+  // User availability status: 'open_to_work' | 'conferences' | 'recruiting' | 'not_looking' | null
+  const [userStatus, setUserStatusState] = React.useState(null);
+
   // Auto-set 'recruiting' status for recruiter accounts that haven't picked a status yet
   React.useEffect(() => {
-    if (currentUser?.isRecruiter && !localStorage.getItem('li-user-status')) {
+    if (!currentUser?.id) return;
+    const statusKey = `li-user-status-${currentUser.id}`;
+    const savedStatus = localStorage.getItem(statusKey);
+    if (savedStatus) {
+      setUserStatusState(savedStatus);
+    } else if (currentUser.isRecruiter) {
       setUserStatusState('recruiting');
-      localStorage.setItem('li-user-status', 'recruiting');
+      localStorage.setItem(statusKey, 'recruiting');
+    } else {
+      setUserStatusState(null);
     }
   }, [currentUser]);
 
@@ -62,13 +157,7 @@ function AppProvider({ children }) {
       setRecruiterModeState(false);
       localStorage.removeItem('li-recruiter-mode');
     }
-  }, [userStatus]);
-  const [recruiterPanelOpen, setRecruiterPanelOpen] = React.useState(false);
-
-  // User availability status: 'open_to_work' | 'conferences' | 'recruiting' | 'not_looking' | null
-  const [userStatus, setUserStatusState] = React.useState(
-    () => localStorage.getItem('li-user-status') || null
-  );
+  }, [userStatus, recruiterMode]);
   const [shortlisted, setShortlisted] = React.useState(() => {
     try {
       const s = localStorage.getItem('li-shortlisted');
@@ -78,8 +167,11 @@ function AppProvider({ children }) {
 
   function setUserStatus(status) {
     setUserStatusState(status);
-    if (status) localStorage.setItem('li-user-status', status);
-    else localStorage.removeItem('li-user-status');
+    const uid = currentUser?.id || userIdRef.current;
+    if (!uid) return;
+    const statusKey = `li-user-status-${uid}`;
+    if (status) localStorage.setItem(statusKey, status);
+    else localStorage.removeItem(statusKey);
   }
 
   function toggleRecruiterMode() {
@@ -134,6 +226,21 @@ function AppProvider({ children }) {
       };
     }
   });
+
+  const [language, setLanguageState] = React.useState(
+    () => localStorage.getItem('li-language') || 'en'
+  );
+
+  function setLanguage(lang) {
+    const next = TRANSLATIONS[lang] ? lang : 'en';
+    setLanguageState(next);
+    try { localStorage.setItem('li-language', next); } catch {}
+  }
+
+  function t(key) {
+    const dict = TRANSLATIONS[language] || TRANSLATIONS.en;
+    return dict[key] || TRANSLATIONS.en[key] || key;
+  }
 
   // Helper to get user-scoped localStorage key
   const userIdRef = React.useRef(null);
@@ -398,6 +505,9 @@ function AppProvider({ children }) {
     unreadNotifications,
     darkMode,
     settings,
+    language,
+    setLanguage,
+    t,
     // Modal
     activeModal,
     modalData,

@@ -718,7 +718,7 @@ def profile_improve():
 
     api_key = os.environ.get("OPENROUTER_API_KEY", "")
     if not api_key:
-        abort(503, description="AI service not configured — set OPENROUTER_API_KEY")
+        abort(503, description="AI service is not configured")
 
     # Build a concise profile summary for the prompt
     exp_lines = []

@@ -2,7 +2,7 @@
    SETTINGSPAGE.JS — Account settings
    ============================================================ */
 function SettingsPage() {
-  const { settings, setSettings, darkMode, setDarkMode, showToast, currentUser, setCurrentUser } = React.useContext(AppContext);
+  const { settings, setSettings, darkMode, setDarkMode, showToast, currentUser, setCurrentUser, language, setLanguage, t, userStatus, setUserStatus } = React.useContext(AppContext);
   const [tab, setTab] = React.useState('notifications');
   const [savingAccount, setSavingAccount] = React.useState(false);
   const [updatingPw, setUpdatingPw] = React.useState(false);
@@ -52,7 +52,7 @@ function SettingsPage() {
 
   return (
     <div className="li-page-inner" style={{ maxWidth: 860 }}>
-      <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 16 }}>Settings</h1>
+      <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 16 }}>{t('settings')}</h1>
 
       <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start' }}>
         {/* Sidebar tabs */}
@@ -126,10 +126,14 @@ function SettingsPage() {
                   onChange={v => { setSettings(s => ({ ...s, showConnections: v })); showToast('Connection visibility updated'); }}
                 />
                 <Toggle
-                  label="Open to Work"
+                  label={t('openToWork')}
                   desc="Let recruiters know you're looking for work"
-                  value={settings.openToWork}
-                  onChange={v => { setSettings(s => ({ ...s, openToWork: v })); showToast('Open to Work ' + (v ? 'enabled' : 'disabled')); }}
+                  value={userStatus === 'open_to_work'}
+                  onChange={v => {
+                    setSettings(s => ({ ...s, openToWork: v }));
+                    setUserStatus(v ? 'open_to_work' : null);
+                    showToast('Open to Work ' + (v ? 'enabled' : 'disabled'));
+                  }}
                 />
                 <Toggle
                   label="Profile views"
@@ -187,21 +191,29 @@ function SettingsPage() {
 
             {tab === 'display' && (
               <div>
-                <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 16 }}>Display preferences</h2>
+                <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 16 }}>{t('displayPreferences')}</h2>
                 <Toggle
-                  label="Dark mode"
+                  label={t('darkMode')}
                   desc="Use a darker color scheme"
                   value={darkMode}
                   onChange={v => { setDarkMode(v); showToast('Dark mode ' + (v ? 'enabled' : 'disabled')); }}
                 />
                 <div style={{ paddingTop: 16 }}>
-                  <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 10 }}>Language</h3>
-                  <select className="li-settings-input" style={{ width: 200 }}>
-                    <option>English</option>
-                    <option>Spanish</option>
-                    <option>French</option>
-                    <option>German</option>
-                    <option>Japanese</option>
+                  <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 10 }}>{t('language')}</h3>
+                  <select
+                    className="li-settings-input"
+                    style={{ width: 200 }}
+                    value={language}
+                    onChange={e => {
+                      setLanguage(e.target.value);
+                      showToast('Language updated');
+                    }}
+                  >
+                    <option value="en">English</option>
+                    <option value="es">Spanish</option>
+                    <option value="fr">French</option>
+                    <option value="de">German</option>
+                    <option value="ja">Japanese</option>
                   </select>
                 </div>
               </div>

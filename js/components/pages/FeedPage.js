@@ -217,6 +217,12 @@ function FeedPage() {
 
 /* ── PostCreator ─────────────────────────────────────────── */
 function PostCreator({ user, onPost, openModal, showToast }) {
+  const app = React.useContext(AppContext) || {};
+  const t = app.t || (key => ({
+    startPost: 'Start a post', whatToTalk: 'What do you want to talk about?',
+    pasteImageUrl: 'Paste image URL...', photo: 'Photo', video: 'Video',
+    article: 'Article', cancel: 'Cancel', post: 'Post',
+  }[key] || key));
   const [draft, setDraft] = React.useState('');
   const [expanded, setExpanded] = React.useState(false);
   const [imageUrl, setImageUrl] = React.useState('');
@@ -225,7 +231,8 @@ function PostCreator({ user, onPost, openModal, showToast }) {
 
   function submit() {
     if (!draft.trim()) return;
-    onPost(draft.trim());
+    if (imageUrl) onPost(draft.trim(), imageUrl);
+    else onPost(draft.trim());
     setDraft('');
     setImageUrl('');
     setShowImageInput(false);
@@ -245,14 +252,14 @@ function PostCreator({ user, onPost, openModal, showToast }) {
         </div>
         {!expanded ? (
           <button className="li-post-creator__trigger" onClick={() => setExpanded(true)}>
-            Start a post
+            {t('startPost')}
           </button>
         ) : (
           <textarea
             autoFocus
             value={draft}
             onChange={e => setDraft(e.target.value)}
-            placeholder="What do you want to talk about?"
+            placeholder={t('whatToTalk')}
             maxLength={MAX}
             style={{
               flex: 1, border: '1px solid var(--border)', borderRadius: 8,
@@ -266,7 +273,7 @@ function PostCreator({ user, onPost, openModal, showToast }) {
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 8, padding: '8px 0' }}>
           <input
             className="li-input"
-            placeholder="Paste image URL…"
+            placeholder={t('pasteImageUrl')}
             value={imageUrl}
             onChange={e => setImageUrl(e.target.value)}
             style={{ flex: 1, fontSize: 13 }}
@@ -283,7 +290,7 @@ function PostCreator({ user, onPost, openModal, showToast }) {
       {expanded && (
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--border)' }}>
           <div style={{ display: 'flex', gap: 4 }}>
-            {[['Photo','Photo'],['Video','Video'],['Event','Event'],['Article','Article']].map(([icon, label]) => (
+            {[[t('photo'),'Photo'],[t('video'),'Video'],['Event','Event'],[t('article'),'Article']].map(([icon, label]) => (
               <button key={label} title={label}
                 onClick={() => {
                   if (label === 'Event') navigate('events');
@@ -302,7 +309,7 @@ function PostCreator({ user, onPost, openModal, showToast }) {
             <span style={{ fontSize: 12, color: MAX - draft.length < 200 ? '#CC1016' : 'var(--text-3)' }}>
               {MAX - draft.length}
             </span>
-            <button onClick={() => setExpanded(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-2)', fontSize: 14, padding: '4px 8px' }}>Cancel</button>
+            <button onClick={() => setExpanded(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-2)', fontSize: 14, padding: '4px 8px' }}>{t('cancel')}</button>
             <button
               onClick={submit}
               disabled={!draft.trim() || draft.length > MAX}
@@ -312,7 +319,7 @@ function PostCreator({ user, onPost, openModal, showToast }) {
                 border: 'none', borderRadius: 20, padding: '8px 22px', fontSize: 14, fontWeight: 600,
                 cursor: draft.trim() && draft.length <= MAX ? 'pointer' : 'not-allowed',
               }}>
-              Post
+              {t('post')}
             </button>
           </div>
         </div>
@@ -376,6 +383,8 @@ function SponsoredPost({ ad, showToast }) {
 
 /* ── FeedPost ────────────────────────────────────────────── */
 function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, following, onFollow, openModal, showToast, currentUser, onDelete }) {
+  const app = React.useContext(AppContext) || {};
+  const t = app.t || (key => ({ post: 'Post' }[key] || key));
   const [menuOpen, setMenuOpen] = React.useState(false);
   const [reactionHover, setReactionHover] = React.useState(false);
   const [reactionTimer, setReactionTimer] = React.useState(null);
@@ -628,7 +637,7 @@ function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, followi
               onKeyDown={e => e.key === 'Enter' && postComment()}
             />
             {commentDraft.trim() && (
-              <button className="li-btn li-btn--primary li-btn--sm" style={{ borderRadius: 20, flexShrink: 0 }} onClick={postComment}>Post</button>
+              <button className="li-btn li-btn--primary li-btn--sm" style={{ borderRadius: 20, flexShrink: 0 }} onClick={postComment}>{t('post')}</button>
             )}
           </div>
 

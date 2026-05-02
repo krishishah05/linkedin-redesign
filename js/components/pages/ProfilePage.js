@@ -34,7 +34,7 @@ function ProfilePage({ userId }) {
   const {
     currentUser, connections, connect, pendingConnections, following, follow, openModal, showToast,
     recruiterMode, shortlisted, addToShortlist, removeFromShortlist,
-    userStatus, setUserStatus,
+    userStatus, setUserStatus, t,
   } = React.useContext(AppContext);
   const isOwnProfile = !userId || (currentUser && String(userId) === String(currentUser.id));
 
@@ -49,7 +49,6 @@ function ProfilePage({ userId }) {
   );
 
   const [expandedSections, setExpandedSections] = React.useState(new Set());
-  const [aiTips, setAiTips] = React.useState(null);
   const [statusPickerOpen, setStatusPickerOpen] = React.useState(false);
   const [localCerts, setLocalCerts] = React.useState(() => {
     try {
@@ -74,23 +73,11 @@ function ProfilePage({ userId }) {
     const updated = [newCert, ...localCerts];
     setLocalCerts(updated);
     const key = `li-certs-${userId || (currentUser && currentUser.id)}`;
-    try { localStorage.setItem(key, JSON.stringify(updated)); } catch {}
+    try { localStorage.setItem(key, JSON.stringify(updated)); } catch { }
     setCertForm({ name: '', org: '', issueDate: '' });
     setShowAddCert(false);
     showToast('Certification added!', 'success');
   }
-  const [aiLoading, setAiLoading] = React.useState(false);
-  const [aiError, setAiError] = React.useState(null);
-
-  function fetchAiTips() {
-    setAiLoading(true);
-    setAiError(null);
-    setAiTips(null);
-    API.getProfileImprovementTips()
-      .then(res => { setAiTips(res.tips); setAiLoading(false); })
-      .catch(err => { setAiError(err.message || 'Failed to load tips'); setAiLoading(false); });
-  }
-
   function toggleSection(key) {
     setExpandedSections(prev => {
       const next = new Set(prev);
@@ -99,9 +86,9 @@ function ProfilePage({ userId }) {
     });
   }
 
-  if (loading) return <LoadingSpinner text="Loading profile..." />;
+  if (loading) return <LoadingSpinner text={t('loadingProfile')} />;
   if (error) return <ErrorMessage message={error} />;
-  if (!profileData) return <ErrorMessage message="Profile not found" />;
+  if (!profileData) return <ErrorMessage message={t('profileNotFound')} />;
 
   const user = profileData;
   const isPending = pendingConnections.has(String(user.id));
@@ -136,20 +123,11 @@ function ProfilePage({ userId }) {
                 <div style={{ display: 'flex', gap: 8 }}>
                   {isOwnProfile ? (
                     <>
-                      <button className="li-btn li-btn--outline li-btn--sm" onClick={() => openModal('edit-profile')}>Edit profile</button>
+                      <button className="li-btn li-btn--outline li-btn--sm" onClick={() => openModal('edit-profile')}>{t('editProfile')}</button>
                       <button className="li-btn li-btn--ghost li-btn--sm" onClick={() => {
                         const url = window.location.href.split('#')[0] + '#profile?id=' + user.id;
                         navigator.clipboard?.writeText(url).then(() => showToast('Profile link copied!', 'success')).catch(() => showToast('Failed to copy profile link', 'error'));
-                      }}>Share</button>
-                      <button
-                        className="li-btn li-btn--ghost li-btn--sm"
-                        style={{ display: 'flex', alignItems: 'center', gap: 4 }}
-                        onClick={fetchAiTips}
-                        disabled={aiLoading}
-                      >
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 15h-2v-6h2zm0-8h-2V7h2z"/></svg>
-                        {aiLoading ? 'Loading…' : '✦ AI Tips'}
-                      </button>
+                      }}>{t('share')}</button>
                     </>
                   ) : (
                     <>
@@ -161,14 +139,14 @@ function ProfilePage({ userId }) {
                           disabled={isPending}
                           onClick={() => { connect(user.id); showToast(`Invitation sent to ${user.name}`); }}
                         >
-                          {isPending ? 'Pending' : '+ Connect'}
+                          {isPending ? t('pending') : `+ ${t('connect')}`}
                         </button>
                       )}
                       <button
                         className="li-btn li-btn--outline li-btn--sm"
                         onClick={() => { follow(user.id); showToast(isFollowing ? `Unfollowed ${user.name}` : `Following ${user.name}`); }}
                       >
-                        {isFollowing ? 'Following' : 'Follow'}
+                        {isFollowing ? t('following') : t('follow')}
                       </button>
                       <button className="li-btn li-btn--ghost li-btn--sm" onClick={() => showToast('More options')}>···</button>
                       {userStatus === 'recruiting' && recruiterMode && (() => {
@@ -193,7 +171,7 @@ function ProfilePage({ userId }) {
                               }
                             }}
                           >
-                            {inPipeline ? '✓ Shortlisted' : '+ Shortlist'}
+                            {inPipeline ? `✓ ${t('shortlisted')}` : `+ ${t('shortlist')}`}
                           </button>
                         );
                       })()}
@@ -231,10 +209,6 @@ function ProfilePage({ userId }) {
                       <div style={{ fontSize: 12, color: 'var(--text-2)' }}>Post impressions</div>
                     </div>
                   )}
-                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: 'var(--bg-2)', border: '1px solid var(--border)', borderRadius: 12, padding: '3px 8px', fontSize: 11, color: 'var(--text-3)', marginBottom: 2 }}>
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
-                    Only visible to you
-                  </div>
                 </div>
               )}
 
@@ -258,7 +232,7 @@ function ProfilePage({ userId }) {
                       >
                         <span style={{ width: 8, height: 8, borderRadius: '50%', background: opt.dot, display: 'inline-block', flexShrink: 0 }} />
                         {opt.label}
-                        {isOwnProfile && <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M7 10l5 5 5-5z"/></svg>}
+                        {isOwnProfile && <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M7 10l5 5 5-5z" /></svg>}
                       </button>
                     ) : isOwnProfile ? (
                       <button onClick={() => setStatusPickerOpen(v => !v)} style={{ background: 'none', border: '1px dashed var(--border)', color: 'var(--text-3)', padding: '5px 12px', borderRadius: 16, fontSize: 12, cursor: 'pointer', fontWeight: 600 }}>
@@ -301,12 +275,12 @@ function ProfilePage({ userId }) {
                                 <div style={{ fontSize: 13, fontWeight: 600, color: isActive ? o.color : 'var(--text)' }}>{o.label}</div>
                                 <div style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 1 }}>{o.desc}</div>
                               </div>
-                              {isActive && <svg width="14" height="14" viewBox="0 0 24 24" fill={o.dot} style={{ flexShrink: 0, marginTop: 3 }}><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>}
+                              {isActive && <svg width="14" height="14" viewBox="0 0 24 24" fill={o.dot} style={{ flexShrink: 0, marginTop: 3 }}><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" /></svg>}
                             </button>
                           );
                         })}
                         <div style={{ margin: '6px 10px 2px', paddingTop: 8, borderTop: '1px solid var(--border)', fontSize: 11, color: 'var(--text-3)', display: 'flex', alignItems: 'center', gap: 4 }}>
-                          <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+                          <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z" /></svg>
                           Only visible to you
                         </div>
                       </div>
@@ -355,7 +329,7 @@ function ProfilePage({ userId }) {
                       flexShrink: 0,
                     }}>
                       <svg width="24" height="24" viewBox="0 0 24 24" fill="var(--text-3)">
-                        <path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z"/>
+                        <path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z" />
                       </svg>
                     </div>
                     <div style={{ flex: 1 }}>
@@ -406,7 +380,7 @@ function ProfilePage({ userId }) {
                       display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
                     }}>
                       <svg width="24" height="24" viewBox="0 0 24 24" fill="var(--text-3)">
-                        <path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3zM5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z"/>
+                        <path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3zM5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z" />
                       </svg>
                     </div>
                     <div>
@@ -506,7 +480,7 @@ function ProfilePage({ userId }) {
                         display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
                       }}>
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="var(--text-3)">
-                          <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14l-5-5 1.41-1.41L12 14.17l7.59-7.59L21 8l-9 9z"/>
+                          <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14l-5-5 1.41-1.41L12 14.17l7.59-7.59L21 8l-9 9z" />
                         </svg>
                       </div>
                       <div style={{ flex: 1 }}>
@@ -522,7 +496,7 @@ function ProfilePage({ userId }) {
                         <button onClick={() => {
                           const updated = localCerts.filter(c => c.id !== cert.id);
                           setLocalCerts(updated);
-                          try { localStorage.setItem(`li-certs-${userId || currentUser?.id}`, JSON.stringify(updated)); } catch {}
+                          try { localStorage.setItem(`li-certs-${userId || currentUser?.id}`, JSON.stringify(updated)); } catch { }
                           showToast('Certification removed');
                         }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-3)', fontSize: 18, lineHeight: 1, alignSelf: 'flex-start', padding: 0 }}>×</button>
                       )}
@@ -554,40 +528,6 @@ function ProfilePage({ userId }) {
               </div>
             );
           })()}
-
-          {/* AI Profile Tips card */}
-          {isOwnProfile && (aiTips || aiLoading || aiError) && (
-            <div className="li-card" style={{ padding: 20, marginBottom: 16 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                <span style={{ fontSize: 16 }}>✦</span>
-                <h3 style={{ fontSize: 14, fontWeight: 700 }}>AI Profile Tips</h3>
-              </div>
-              {aiLoading && (
-                <div style={{ fontSize: 13, color: 'var(--text-2)' }}>Analyzing your profile…</div>
-              )}
-              {aiError && (
-                <div style={{ fontSize: 13, color: 'var(--red)' }}>{aiError}</div>
-              )}
-              {aiTips && (
-                <ol style={{ paddingLeft: 18, margin: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  {aiTips.map((tip, i) => (
-                    <li key={i} style={{ fontSize: 13, color: 'var(--text)', lineHeight: 1.5 }}>{tip}</li>
-                  ))}
-                </ol>
-              )}
-              {aiTips && (
-                <button
-                  className="li-btn li-btn--ghost li-btn--sm"
-                  style={{ marginTop: 12 }}
-                  onClick={fetchAiTips}
-                  disabled={aiLoading}
-                >
-                  Refresh tips
-                </button>
-              )}
-            </div>
-          )}
-
           <PeopleAlsoViewed currentUserId={userId} />
         </div>
       </div>
