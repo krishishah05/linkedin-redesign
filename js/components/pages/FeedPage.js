@@ -82,10 +82,6 @@ function FeedPage() {
     });
   }
 
-  const sponsored = [
-    { company: 'Stripe', logo: '', desc: 'Join 1M+ businesses using Stripe to accept payments and manage revenue online.', tagline: 'Build the future of payments.', cta: 'Learn more', bg: 'linear-gradient(135deg,#635bff,#32325d)' },
-    { company: 'Figma', logo: '', desc: 'The collaborative interface design tool that teams love. Start designing faster today.', tagline: 'Design, prototype, and collaborate.', cta: 'Try for free', bg: 'linear-gradient(135deg,#f24e1e,#ff7262)' },
-  ];
 
   const suggUsers = (users || []).slice(0, 4);
   const allNews = news || [];
@@ -164,10 +160,6 @@ function FeedPage() {
                 });
               }}
             />
-            {/* Sponsored posts interspersed */}
-            {(i === 1 || i === 3) && !dismissedAdKeys.has(i === 1 ? 'ad-slot-1' : 'ad-slot-2') && (
-              <SponsoredPost key={i === 1 ? 'ad-slot-1' : 'ad-slot-2'} ad={sponsored[i === 1 ? 0 : 1]} showToast={showToast} onDismiss={() => { const k = i === 1 ? 'ad-slot-1' : 'ad-slot-2'; setDismissedAdKeys(prev => new Set([...prev, k])); }} />
-            )}
           </React.Fragment>
         ))}
 
@@ -229,118 +221,180 @@ function FeedPage() {
 
 /* ── PostCreator ─────────────────────────────────────────── */
 function PostCreator({ user, onPost, openModal, showToast }) {
+  const { t } = React.useContext(AppContext);
   const [draft, setDraft] = React.useState('');
   const [expanded, setExpanded] = React.useState(false);
   const [imageUrl, setImageUrl] = React.useState('');
-  const [showImageInput, setShowImageInput] = React.useState(false);
+  const [photoPreviewUrl, setPhotoPreviewUrl] = React.useState('');
+  const [showMediaInput, setShowMediaInput] = React.useState(false);
+  const [mediaInputType, setMediaInputType] = React.useState('photo');
+  const [showArticleTemplates, setShowArticleTemplates] = React.useState(false);
+  const [isArticle, setIsArticle] = React.useState(false);
   const [videoUrl, setVideoUrl] = React.useState('');
-  const [showVideoInput, setShowVideoInput] = React.useState(false);
   const MAX = 3000;
+  const photoInputRef = React.useRef(null);
+
+  React.useEffect(() => {
+    return () => {
+      if (photoPreviewUrl) URL.revokeObjectURL(photoPreviewUrl);
+    };
+  }, [photoPreviewUrl]);
+
+  const ARTICLE_TEMPLATES = [
+    { id: 'insight', title: 'Industry Insight', emoji: '📊', preview: 'Trends & observations from your field',
+      body: `[Your compelling headline]\n\nKey trends I'm observing in [industry]:\n• [Trend 1 — what you're seeing]\n• [Trend 2 — why it matters]\n• [Trend 3 — what's coming next]\n\nWhat this means for professionals like us:\n[Your analysis]\n\nWhat trends are you seeing?\n\n#Insights #[Industry]` },
+    { id: 'howto', title: 'How-To Guide', emoji: '📋', preview: 'Step-by-step tutorial or guide',
+      body: `How to [achieve something valuable]\n\n— Step 1: [First action]\n[Brief explanation]\n\n— Step 2: [Second action]\n[Brief explanation]\n\n— Step 3: [Third action]\n[Brief explanation]\n\n💡 Pro tip: [Bonus insight]\n\nSave this for later!\n\n#HowTo #Tips #[Field]` },
+    { id: 'opinion', title: 'Opinion Piece', emoji: '💭', preview: 'Share your professional perspective',
+      body: `Hot take: [Your position]\n\nHere's why:\n\n[First argument]\n\n[Second argument]\n\n[Third argument]\n\nDo you agree or disagree?\n\n#Opinion #[Industry] #Leadership` },
+    { id: 'announcement', title: 'Announcement', emoji: '📣', preview: 'Share news or milestones',
+      body: `Thrilled to announce: [Your big news] 🎉\n\n[Full story of what happened]\n\nThis wouldn't have been possible without [acknowledgements].\n\nWhat's next: [Goals]\n\n#Announcement #NewChapter` },
+    { id: 'casestudy', title: 'Case Study', emoji: '🔍', preview: 'Document a challenge you solved',
+      body: `Case Study: How [we/I] [achieved result]\n\n🔴 Challenge:\n[The problem]\n\n🟡 Approach:\n[Your method]\n\n🟢 Results:\n• [Metric 1]\n• [Metric 2]\n\n📚 Learnings:\n[Key takeaway]\n\n#CaseStudy #[Industry]` },
+  ];
 
   function submit() {
     if (!draft.trim()) return;
-    onPost(draft.trim(), imageUrl.trim() || null, videoUrl.trim() || null);
+    onPost(draft.trim(), imageUrl && !imageUrl.startsWith('blob:') ? imageUrl : null, videoUrl.trim() || null);
     setDraft('');
     setImageUrl('');
+    setPhotoPreviewUrl('');
     setVideoUrl('');
-    setShowImageInput(false);
-    setShowVideoInput(false);
+    setShowMediaInput(false);
     setExpanded(false);
+    setIsArticle(false);
+    setShowArticleTemplates(false);
   }
 
-  function handleImageBtn() {
-    setShowImageInput(v => !v);
-    setShowVideoInput(false);
-    setExpanded(true);
+  function handlePhotoCapture(e) {
+    const file = e.target.files && e.target.files[0];
+    if (file) {
+      const nextPreview = URL.createObjectURL(file);
+      if (photoPreviewUrl) URL.revokeObjectURL(photoPreviewUrl);
+      setPhotoPreviewUrl(nextPreview);
+      setImageUrl('');
+      setExpanded(true);
+    }
+    e.target.value = '';
   }
 
-  function handleVideoBtn() {
-    setShowVideoInput(v => !v);
-    setShowImageInput(false);
-    setExpanded(true);
+  function activatePhoto() { photoInputRef.current && photoInputRef.current.click(); setExpanded(true); }
+  function activateVideo() { setMediaInputType('video'); setShowMediaInput(v => !v); setExpanded(true); }
+  function activateArticle() { setShowArticleTemplates(true); }
+  function selectTemplate(tmpl) { setDraft(tmpl.body); setIsArticle(true); setShowArticleTemplates(false); setExpanded(true); }
+  function cancelAll() { setExpanded(false); setIsArticle(false); setShowArticleTemplates(false); setShowMediaInput(false); setPhotoPreviewUrl(''); }
+
+  if (showArticleTemplates) {
+    return (
+      <div className="li-card li-post-creator">
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+          <button onClick={() => setShowArticleTemplates(false)}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-2)', fontSize: 22, lineHeight: 1, padding: '0 4px' }}>?</button>
+          <span style={{ fontWeight: 700, fontSize: 16 }}>{t('chooseTemplate')}</span>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+          {ARTICLE_TEMPLATES.map(tmpl => (
+            <button key={tmpl.id} onClick={() => selectTemplate(tmpl)}
+              style={{ background: 'var(--bg)', border: '1.5px solid var(--border)', borderRadius: 10, padding: '14px', cursor: 'pointer', textAlign: 'left', transition: 'border-color 0.15s' }}
+              onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--blue)'}
+              onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}>
+              <div style={{ fontSize: 24, marginBottom: 6 }}>{tmpl.emoji}</div>
+              <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--text)', marginBottom: 4 }}>{tmpl.title}</div>
+              <div style={{ fontSize: 12, color: 'var(--text-2)', lineHeight: 1.4 }}>{tmpl.preview}</div>
+            </button>
+          ))}
+        </div>
+        <button onClick={() => setShowArticleTemplates(false)}
+          style={{ marginTop: 12, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-2)', fontSize: 13, width: '100%', textAlign: 'center' }}>
+          {t('cancel')}
+        </button>
+      </div>
+    );
   }
 
   return (
     <div className="li-card li-post-creator">
+      <input ref={photoInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handlePhotoCapture} />
+
       <div className="li-post-creator__top">
         <div style={{ width: 48, height: 48, borderRadius: '50%', background: user.avatarColor || 'var(--blue)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: 18, flexShrink: 0 }}>
           {getInitials(user.name || 'Me')}
         </div>
         {!expanded ? (
           <button className="li-post-creator__trigger" onClick={() => setExpanded(true)}>
-            Start a post
+            {t('startPost')}
           </button>
         ) : (
-          <textarea
-            autoFocus
-            value={draft}
-            onChange={e => setDraft(e.target.value)}
-            placeholder="What do you want to talk about?"
-            maxLength={MAX}
-            style={{
-              flex: 1, border: '1px solid var(--border)', borderRadius: 8,
-              padding: '10px 14px', fontSize: 15, resize: 'none', outline: 'none',
-              fontFamily: 'inherit', minHeight: 80, background: 'var(--white)', color: 'var(--text)',
-            }}
-          />
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
+            {isArticle && (
+              <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--blue)', background: 'rgba(10,102,194,0.12)', padding: '2px 8px', borderRadius: 10, alignSelf: 'flex-start' }}>
+                {t('article')}
+              </span>
+            )}
+            <textarea
+              autoFocus
+              value={draft}
+              onChange={e => setDraft(e.target.value)}
+              placeholder={isArticle ? t('editTemplate') : t('whatToTalk')}
+              maxLength={MAX}
+              style={{
+                flex: 1, border: '1px solid var(--border)', borderRadius: 8,
+                padding: '10px 14px', fontSize: 15, resize: 'none', outline: 'none',
+                fontFamily: 'inherit', minHeight: isArticle ? 200 : 80,
+                background: 'var(--white)', color: 'var(--text)',
+              }}
+            />
+          </div>
         )}
       </div>
-      {expanded && showImageInput && (
+      {expanded && showMediaInput && (
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 8, padding: '8px 0' }}>
           <input
             className="li-input"
-            placeholder="Paste image URL…"
-            value={imageUrl}
-            onChange={e => setImageUrl(e.target.value)}
+            placeholder={mediaInputType === 'video' ? t('uploadVideoUrl') : t('pasteImageUrl')}
+            value={mediaInputType === 'video' ? videoUrl : imageUrl}
+            onChange={e => mediaInputType === 'video' ? setVideoUrl(e.target.value) : setImageUrl(e.target.value)}
             style={{ flex: 1, fontSize: 13 }}
           />
-          {imageUrl && (
-            <button onClick={() => setImageUrl('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-3)', fontSize: 18, lineHeight: 1 }}>×</button>
+          {(mediaInputType === 'video' ? videoUrl : imageUrl) && (
+            <button onClick={() => mediaInputType === 'video' ? setVideoUrl('') : setImageUrl('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-3)', fontSize: 18, lineHeight: 1 }}>×</button>
           )}
         </div>
       )}
-      {expanded && showVideoInput && (
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 8, padding: '8px 0' }}>
-          <input
-            className="li-input"
-            placeholder="Paste video URL…"
-            value={videoUrl}
-            onChange={e => setVideoUrl(e.target.value)}
-            style={{ flex: 1, fontSize: 13 }}
-          />
-          {videoUrl && (
-            <button onClick={() => setVideoUrl('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-3)', fontSize: 18, lineHeight: 1 }}>×</button>
-          )}
-        </div>
-      )}
-      {expanded && imageUrl && (
-        <img src={imageUrl} alt="preview" style={{ maxHeight: 180, borderRadius: 8, objectFit: 'cover', width: '100%', marginTop: 4 }}
+      {expanded && (imageUrl || photoPreviewUrl) && (
+        <img src={photoPreviewUrl || imageUrl} alt="preview" style={{ maxHeight: 180, borderRadius: 8, objectFit: 'cover', width: '100%', marginTop: 4 }}
           onError={e => { e.target.style.display = 'none'; }} />
       )}
       {expanded && (
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--border)' }}>
           <div style={{ display: 'flex', gap: 4 }}>
-            {[
-              { label: 'Photo', svg: <svg width="18" height="18" viewBox="0 0 24 24" fill="#378FE9"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>, action: handleImageBtn },
-              { label: 'Video', svg: <svg width="18" height="18" viewBox="0 0 24 24" fill="#5F9B41"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/></svg>, action: handleVideoBtn },
-              { label: 'Event', svg: <svg width="18" height="18" viewBox="0 0 24 24" fill="#E06847"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>, action: () => navigate('events') },
-              { label: 'Article', svg: <svg width="18" height="18" viewBox="0 0 24 24" fill="#E06847"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>, action: () => navigate('article') },
-            ].map(({ label, svg, action }) => (
-              <button key={label} title={label}
-                onClick={action}
-                style={{ background: (showImageInput && label === 'Photo') || (showVideoInput && label === 'Video') ? 'var(--bg)' : 'none', border: 'none', cursor: 'pointer', padding: '6px 8px', borderRadius: 6, display: 'flex', alignItems: 'center', gap: 4, fontSize: 13, fontWeight: 600, color: 'var(--text-2)' }}
-                onMouseEnter={e => e.currentTarget.style.background = 'var(--bg)'}
-                onMouseLeave={e => e.currentTarget.style.background = (showImageInput && label === 'Photo') || (showVideoInput && label === 'Video') ? 'var(--bg)' : 'none'}>
-                {svg}
-                <span>{label}</span>
-              </button>
-            ))}
+            <button title={t('photo')} onClick={activatePhoto}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '6px 8px', borderRadius: 6, display: 'flex', alignItems: 'center', gap: 4, fontSize: 13, fontWeight: 600, color: 'var(--text-2)' }}
+              onMouseEnter={e => e.currentTarget.style.background = 'var(--bg)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'none'}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="#378FE9"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
+              <span>{t('photo')}</span>
+            </button>
+            <button title={t('video')} onClick={activateVideo}
+              style={{ background: showMediaInput && mediaInputType === 'video' ? 'var(--bg)' : 'none', border: 'none', cursor: 'pointer', padding: '6px 8px', borderRadius: 6, display: 'flex', alignItems: 'center', gap: 4, fontSize: 13, fontWeight: 600, color: 'var(--text-2)' }}
+              onMouseEnter={e => e.currentTarget.style.background = 'var(--bg)'}
+              onMouseLeave={e => e.currentTarget.style.background = showMediaInput && mediaInputType === 'video' ? 'var(--bg)' : 'none'}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="#5F9B41"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/></svg>
+              <span>{t('video')}</span>
+            </button>
+            <button title={t('writeArticle')} onClick={activateArticle}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '6px 8px', borderRadius: 6, display: 'flex', alignItems: 'center', gap: 4, fontSize: 13, fontWeight: 600, color: 'var(--text-2)' }}
+              onMouseEnter={e => e.currentTarget.style.background = 'var(--bg)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'none'}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="#E06847"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+              <span>{t('writeArticle')}</span>
+            </button>
           </div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             <span style={{ fontSize: 12, color: MAX - draft.length < 200 ? '#CC1016' : 'var(--text-3)' }}>
               {MAX - draft.length}
             </span>
-            <button onClick={() => setExpanded(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-2)', fontSize: 14, padding: '4px 8px' }}>Cancel</button>
+            <button onClick={cancelAll} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-2)', fontSize: 14, padding: '4px 8px' }}>{t('cancel')}</button>
             <button
               onClick={submit}
               disabled={!draft.trim() || draft.length > MAX}
@@ -350,7 +404,7 @@ function PostCreator({ user, onPost, openModal, showToast }) {
                 border: 'none', borderRadius: 20, padding: '8px 22px', fontSize: 14, fontWeight: 600,
                 cursor: draft.trim() && draft.length <= MAX ? 'pointer' : 'not-allowed',
               }}>
-              Post
+              {isArticle ? t('publish') : t('post')}
             </button>
           </div>
         </div>
@@ -358,10 +412,9 @@ function PostCreator({ user, onPost, openModal, showToast }) {
       {!expanded && (
         <div className="li-post-creator__actions">
           {[
-            { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="#378FE9"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>, label: 'Photo', action: () => { setExpanded(true); setShowImageInput(true); } },
-            { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="#5F9B41"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/></svg>, label: 'Video', action: handleVideoBtn },
-            { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="#E06847"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>, label: 'Event', action: () => navigate('events') },
-            { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="#E06847"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>, label: 'Write article', action: () => navigate('article') },
+            { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="#378FE9"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>, label: t('photo'), action: activatePhoto },
+            { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="#5F9B41"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/></svg>, label: t('video'), action: activateVideo },
+            { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="#E06847"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>, label: t('writeArticle'), action: activateArticle },
           ].map(item => (
             <button key={item.label} className="li-post-creator__action" onClick={item.action}>
               {item.icon}

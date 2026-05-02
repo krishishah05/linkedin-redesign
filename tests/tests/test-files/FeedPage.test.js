@@ -18,7 +18,10 @@ const mockShowToast = jest.fn();
 const mockCreatePost = jest.fn(() => Promise.resolve());
 
 global.React = React;
-global.AppContext = React.createContext({});
+// English UI translations used by PostCreator (mirrors AppContext TRANSLATIONS.en)
+const EN_T = { startPost:'Start a post', photo:'Photo', video:'Video', writeArticle:'Write article', post:'Post', publish:'Publish', cancel:'Cancel', whatToTalk:'What do you want to talk about?', editTemplate:'Edit the template, then publish your article…', chooseTemplate:'Choose an article template', uploadVideoUrl:'Upload video URL…', pasteImageUrl:'Paste image URL…', article:'ARTICLE' };
+global.t = (key) => EN_T[key] || key;
+global.AppContext = React.createContext({ t: global.t });
 global.API = {
   getFeed: jest.fn(),
   getNews: jest.fn(),
@@ -133,6 +136,7 @@ function defaultContext(overrides = {}) {
     follow: jest.fn(),
     openModal: jest.fn(),
     showToast: mockShowToast,
+    t: global.t,
     ...overrides,
   };
 }
@@ -713,79 +717,72 @@ describe('PostCreator — submit()', () => {
   });
 });
 
-describe('SponsoredPost', () => {
+describe('FeedPage — No Sponsored Content', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    global.PostCreator = jest.fn(() => null);
+    global.FeedPost = jest.fn(() => null);
   });
 
   afterEach(() => {
     cleanup();
   });
 
-  const mockAd = {
-    company: 'Stripe',
-    logo: '',
-    desc: 'Join 1M+ businesses using Stripe.',
-    tagline: 'Build the future of payments.',
-    cta: 'Learn more',
-    bg: 'linear-gradient(135deg,#635bff,#32325d)',
-  };
-
   // 17
   // Type: BB
   // Spec: #17
-  // Contract: SponsoredPost renders company name and CTA button from ad prop
-  test('Renders company name and CTA button', async () => {
-    render(
-      React.createElement(sandbox.SponsoredPost, {
-        ad: mockAd,
-        showToast: mockShowToast,
-      })
+  // Contract: FeedPage never calls SponsoredPost — ads were removed from the feed
+  test('Feed renders no sponsored posts', async () => {
+    // Use a sentinel mock: if FeedPage still renders SponsoredPost, the test catches it.
+    global.SponsoredPost = jest.fn(() =>
+      React.createElement('span', null, '__SPONSORED_SENTINEL__')
+    );
+    global.useFetch.mockReturnValue({ data: [], loading: false, error: null });
+
+    renderWithContext(
+      React.createElement(global.FeedPage),
+      defaultContext()
     );
 
-    expect(screen.getAllByText('Stripe')[0]).toBeInTheDocument();
-    expect(screen.getByText('Learn more')).toBeInTheDocument();
+    expect(global.SponsoredPost).not.toHaveBeenCalled();
+    expect(screen.queryByText('__SPONSORED_SENTINEL__')).not.toBeInTheDocument();
   });
 
   // 18
   // Type: BB
   // Spec: #18
-  // Contract: SponsoredPost calls onDismiss when X button is clicked (ad is removed from feed)
-  test('Calls onDismiss when X button clicked', async () => {
-    const mockDismiss = jest.fn();
-    render(
-      React.createElement(sandbox.SponsoredPost, {
-        ad: mockAd,
-        showToast: mockShowToast,
-        onDismiss: mockDismiss,
-      })
+  // Contract: PostCreator is called with the currentUser object as the user prop
+  test('PostCreator receives currentUser as user prop', async () => {
+    global.useFetch.mockReturnValue({ data: [], loading: false, error: null });
+
+    renderWithContext(
+      React.createElement(global.FeedPage),
+      defaultContext()
     );
 
-    await act(async () => {
-      fireEvent.click(screen.getByText('✕'));
-    });
-
-    expect(mockDismiss).toHaveBeenCalledTimes(1);
+    expect(global.PostCreator.mock.calls.length).toBeGreaterThan(0);
+    const userProp = global.PostCreator.mock.calls[0][0].user;
+    expect(userProp).toEqual(mockCurrentUser);
   });
 
   // 19
   // Type: BB
   // Spec: #19
-  // Contract: SponsoredPost CTA button navigates to search results for the company
-  test('CTA button navigates to search results for the ad company', async () => {
-    render(
-      React.createElement(sandbox.SponsoredPost, {
-        ad: mockAd,
-        showToast: mockShowToast,
-      })
-    );
-
-    await act(async () => {
-      fireEvent.click(screen.getByText('Learn more'));
+  // Contract: FeedPost receives liked=true for a post whose id is in the likedPosts set
+  test('FeedPost receives liked=true for posts in likedPosts set', async () => {
+    global.useFetch.mockReturnValue({
+      data: [{ id: 7, content: 'Post', comments: [] }],
+      loading: false,
+      error: null,
     });
 
-    expect(global.navigate).toHaveBeenCalledWith('search?q=Stripe');
-    expect(mockShowToast).not.toHaveBeenCalled();
+    renderWithContext(
+      React.createElement(global.FeedPage),
+      defaultContext({ likedPosts: new Set(['7']) })
+    );
+
+    const likedProp = global.FeedPost.mock.calls[0][0].liked;
+    expect(likedProp).toBe(true);
   });
 });
 
@@ -1586,33 +1583,9 @@ describe('PostCreator — action buttons', () => {
   // 42
   // Type: WB
   // Spec: #42
-  // Exact line: { label: 'Event', action: () => navigate('events') }
-  // Tests that clicking the Event button in the collapsed composer calls navigate('events')
-  test('Clicking Event button in collapsed composer calls navigate', async () => {
-    render(
-      React.createElement(global.PostCreator, {
-        user: { name: 'Alex', headline: 'Dev' },
-        onPost: jest.fn(),
-        openModal: jest.fn(),
-        showToast: jest.fn(),
-      })
-    );
-
-    await act(async () => {
-      fireEvent.click(screen.getByText('Event'));
-    });
-
-    expect(global.navigate).toHaveBeenCalledWith('events');
-  });
-
-  // 43
-  // Type: WB
-  // Spec: #43
-  // Exact line: { label: 'Write article', action: () => navigate('article') }
-  // Tests that clicking the Write article button in the collapsed composer calls navigate('article')
-  test('Clicking Write article button calls navigate("article")', async () => {
-    global.navigate.mockClear();
-
+  // Exact line: activateArticle() sets showArticleTemplates = true
+  // Tests that clicking Write article in the collapsed composer shows the template picker
+  test('Clicking Write article in collapsed composer shows template picker', async () => {
     render(
       React.createElement(global.PostCreator, {
         user: { name: 'Alex', headline: 'Dev' },
@@ -1626,15 +1599,48 @@ describe('PostCreator — action buttons', () => {
       fireEvent.click(screen.getByText('Write article'));
     });
 
-    expect(global.navigate).toHaveBeenCalledWith('article');
+    // Template picker should appear with the heading
+    expect(screen.getByText('Choose an article template')).toBeInTheDocument();
+    // At least one template title should be visible
+    expect(screen.getByText('Industry Insight')).toBeInTheDocument();
+  });
+
+  // 43
+  // Type: WB
+  // Spec: #43
+  // Exact line: selectTemplate(tmpl) sets draft to tmpl.body and shows expanded composer
+  // Tests that selecting a template pre-fills the draft textarea with the template body
+  test('Selecting a template in the picker pre-fills the draft', async () => {
+    render(
+      React.createElement(global.PostCreator, {
+        user: { name: 'Alex', headline: 'Dev' },
+        onPost: jest.fn(),
+        openModal: jest.fn(),
+        showToast: jest.fn(),
+      })
+    );
+
+    // Open the template picker
+    await act(async () => {
+      fireEvent.click(screen.getByText('Write article'));
+    });
+
+    // Click the 'How-To Guide' template
+    await act(async () => {
+      fireEvent.click(screen.getByText('How-To Guide'));
+    });
+
+    // Expanded composer should now show with template content in the textarea
+    const textarea = screen.getByPlaceholderText('Edit the template, then publish your article…');
+    expect(textarea.value).toContain('How to');
   });
 
   // 44
   // Type: WB
   // Spec: #44
-  // Exact line: else handleImageBtn() — Photo in expanded toolbar toggles the image URL input
-  // Tests the else branch — Photo in the expanded toolbar opens the image URL input
-  test('Clicking Photo in expanded toolbar shows image input', async () => {
+  // Exact line: activateVideo() sets mediaInputType='video' and showMediaInput=true
+  // Tests that clicking Video in the expanded toolbar shows the video URL input
+  test('Clicking Video in expanded toolbar shows video URL input', async () => {
     render(
       React.createElement(global.PostCreator, {
         user: { name: 'Alex', headline: 'Dev' },
@@ -1649,21 +1655,21 @@ describe('PostCreator — action buttons', () => {
       fireEvent.click(screen.getByText('Start a post'));
     });
 
-    // Click the Photo toolbar button (title="Photo")
+    // Click the Video toolbar button
     await act(async () => {
-      fireEvent.click(screen.getByTitle('Photo'));
+      fireEvent.click(screen.getByTitle('Video'));
     });
 
-    // Image URL input should now be visible
-    expect(screen.getByPlaceholderText('Paste image URL…')).toBeInTheDocument();
+    // URL input should appear with video placeholder
+    expect(screen.getByPlaceholderText('Upload video URL…')).toBeInTheDocument();
   });
 
   // 45
   // Type: WB
   // Spec: #45
-  // Exact line: if (label === 'Event') navigate('events')
-  // Tests the if branch — Event in the expanded toolbar calls navigate('events')
-  test('Clicking Event in expanded toolbar calls navigate', async () => {
+  // Exact line: activateArticle() called from expanded toolbar shows template picker
+  // Tests that clicking Write article in the expanded toolbar opens the template picker
+  test('Clicking Write article in expanded toolbar shows template picker', async () => {
     render(
       React.createElement(global.PostCreator, {
         user: { name: 'Alex', headline: 'Dev' },
@@ -1678,10 +1684,10 @@ describe('PostCreator — action buttons', () => {
     });
 
     await act(async () => {
-      fireEvent.click(screen.getByTitle('Event'));
+      fireEvent.click(screen.getByTitle('Write article'));
     });
 
-    expect(global.navigate).toHaveBeenCalledWith('events');
+    expect(screen.getByText('Choose an article template')).toBeInTheDocument();
   });
 
   // 46

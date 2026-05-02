@@ -87,6 +87,12 @@ MOCK_OUTREACH_RESULT = {
 # ── Fixtures ──────────────────────────────────────────────────────────────────
 
 @pytest.fixture
+def auth_header():
+    """Fake Authorization header — auth is mocked in the client fixture."""
+    return {"Authorization": "Bearer test-token"}
+
+
+@pytest.fixture
 def client(monkeypatch):
     """
     Returns a Flask test client with all database + outreach calls mocked.
@@ -943,6 +949,134 @@ class TestProfileImprove:
         resp = client.post("/api/profile/improve")
         assert resp.status_code == 502
 
+
+class TestEducationAndSkills:
+    def test_add_education_success(self, client, auth_header, monkeypatch):
+        # Hits lines 181-198
+        monkeypatch.setattr(flask_app.dbl, "add_education", lambda uid, entry: MOCK_USER)
+        payload = {
+            "school": "University of Waterloo",
+            "degree": "Bachelor of Science",
+            "field": "Computer Science",
+            "startDate": "2020",
+            "endDate": "2024"
+        }
+        resp = client.post("/api/me/education", json=payload, headers=auth_header)
+        assert resp.status_code == 200
+
+    def test_add_skill_success(self, client, auth_header, monkeypatch):
+        # Hits lines 204-214
+        monkeypatch.setattr(flask_app.dbl, "add_skill", lambda uid, skill: MOCK_USER)
+        resp = client.post("/api/me/skills", json={"skill": "Python"}, headers=auth_header)
+        assert resp.status_code == 200
+
+class TestGroupCreation:
+    def test_create_group_success(self, client, auth_header):
+        # Hits lines 220-242
+        payload = {"name": "AI Engineers", "description": "A group for AI enthusiasts"}
+        resp = client.post("/api/groups", json=payload, headers=auth_header)
+        assert resp.status_code == 201
+        assert resp.get_json()["name"] == "AI Engineers"
+
+class TestErrorPathCoverage:
+    def test_create_conference_story_missing_fields(self, client, auth_header):
+        # Hits line 305 and adjacent error aborts
+        resp = client.post("/api/conference-stories", json={"tagline": "missing name"}, headers=auth_header)
+        assert resp.status_code == 400
+        assert "conferenceName is required" in resp.get_json()["error"]
+
+    def test_post_message_missing_conv_id(self, client, auth_header, monkeypatch):
+        # Hits line 440/449 (Conversation errors)
+        monkeypatch.setattr(flask_app.dbl, "get_conversation_by_id", lambda cid: None)
+        resp = client.post("/api/conversations/9999/messages", json={"text": "hello"}, headers=auth_header)
+        assert resp.status_code == 404
+
+class TestEventsCoverage:
+    def test_create_event_success(self, client, auth_header):
+        # Hits lines 360-366
+        resp = client.post("/api/events", json={"name": "Tech Meetup"}, headers=auth_header)
+        assert resp.status_code == 201
+
+    def test_toggle_event_attendance(self, client, auth_header):
+        # Hits lines 370-379
+        # 'u1' prefix triggers the 'user' source logic in dbl.toggle_event_attend
+        resp = client.post("/api/events/u1/attend", headers=auth_header)
+        assert resp.status_code == 200
+
+class TestAddExperience:
+    """Tests for POST /api/me/experience."""
+
+    def _mock_updated(self):
+        return {
+            "id": 1, "name": "Test User", "email": "test@example.com",
+            "headline": "", "location": "", "about": "", "pronouns": "",
+            "industry": "", "avatarColor": None, "education": [],
+            "skills": [], "phone": "", "isRecruiter": False,
+            "experience": [{"id": 1, "title": "Engineer", "company": "ACME", "current": False}],
+        }
+
+    def test_T96_BB_happy_path_returns_200(self, client, monkeypatch):
+        """BB: valid payload -> 200 with updated user data."""
+        monkeypatch.setattr(flask_app.dbl, "add_experience", lambda uid, e: self._mock_updated())
+        resp = client.post(
+            "/api/me/experience",
+            json={"title": "Engineer", "company": "ACME", "current": False},
+            headers={"Authorization": "Bearer mock-token"},
+        )
+        assert resp.status_code == 200
+        assert any(e["title"] == "Engineer" for e in _json(resp)["experience"])
+
+    def test_T97_WB_missing_title_returns_400(self, client, monkeypatch):
+        """WB: omitting title -> 400."""
+        monkeypatch.setattr(flask_app.dbl, "add_experience", lambda uid, e: self._mock_updated())
+        resp = client.post(
+            "/api/me/experience",
+            json={"company": "ACME", "current": False},
+            headers={"Authorization": "Bearer mock-token"},
+        )
+        assert resp.status_code == 400
+
+    def test_T98_WB_missing_company_returns_400(self, client, monkeypatch):
+        """WB: omitting company -> 400."""
+        monkeypatch.setattr(flask_app.dbl, "add_experience", lambda uid, e: self._mock_updated())
+        resp = client.post(
+            "/api/me/experience",
+            json={"title": "Engineer", "current": False},
+            headers={"Authorization": "Bearer mock-token"},
+        )
+        assert resp.status_code == 400
+
+    def test_T99_WB_non_bool_current_returns_400(self, client, monkeypatch):
+        """WB: current as string -> 400 (must be strict boolean)."""
+        monkeypatch.setattr(flask_app.dbl, "add_experience", lambda uid, e: self._mock_updated())
+        resp = client.post(
+            "/api/me/experience",
+            json={"title": "Engineer", "company": "ACME", "current": "false"},
+            headers={"Authorization": "Bearer mock-token"},
+        )
+        assert resp.status_code == 400
+
+    def test_T100_WB_unauthenticated_returns_401(self, client, monkeypatch):
+        """WB: no valid auth token -> 401."""
+        monkeypatch.setattr(flask_app.dbl, "get_session_user_id", lambda token: None)
+        monkeypatch.setattr(flask_app.dbl, "get_current_user", lambda uid: None)
+        resp = client.post(
+            "/api/me/experience",
+            json={"title": "Engineer", "company": "ACME", "current": False},
+        )
+        assert resp.status_code == 401
+
+    def test_T101_WB_non_object_json_returns_400(self, client, monkeypatch):
+        """WB: non-object JSON body (array) -> 400 (locks in body-type validation)."""
+        monkeypatch.setattr(flask_app.dbl, "get_session_user_id", lambda token: 1)
+        monkeypatch.setattr(flask_app.dbl, "get_current_user", lambda uid: MOCK_USER)
+        monkeypatch.setattr(flask_app.dbl, "add_experience", lambda uid, e: self._mock_updated())
+        resp = client.post(
+            "/api/me/experience",
+            json=[],
+            headers={"Authorization": "Bearer mock-token"},
+        )
+        assert resp.status_code == 400
 
 # ══════════════════════════════════════════════════════════════════════════════
 # POST /api/profile-readiness/ai  — AI quality evaluation

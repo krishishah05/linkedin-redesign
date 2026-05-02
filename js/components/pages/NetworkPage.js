@@ -5,12 +5,14 @@ function NetworkPage() {
   const {
     connections, connect, acceptConnection, pendingConnections, showToast,
     pendingInvitations, dismissedInvitations, dismissInvitation,
-    recruiterMode, shortlisted, addToShortlist, removeFromShortlist,
-    currentUser,
+    recruiterMode, shortlisted, addToShortlist, removeFromShortlist, userStatus,
+    refreshInvitations,
   } = React.useContext(AppContext);
   const { data: users, loading: usersLoading } = useFetch(API.getUsers, []);
   const [tab, setTab] = React.useState('suggestions');
   const [showAllInvitations, setShowAllInvitations] = React.useState(false);
+
+  React.useEffect(() => { refreshInvitations && refreshInvitations(); }, []);
 
   // Real incoming connection requests from other users
   const [incomingRequests, setIncomingRequests] = React.useState([]);
@@ -156,7 +158,7 @@ function NetworkPage() {
                           {isPending ? 'Pending' : '+ Connect'}
                         </button>
                       )}
-                      {currentUser?.isRecruiter && recruiterMode && (() => {
+                      {userStatus === 'recruiting' && recruiterMode && (() => {
                         const inPipeline = shortlisted.has(String(user.id));
                         return (
                           <button
