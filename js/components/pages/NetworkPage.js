@@ -12,29 +12,74 @@ function NetworkPage() {
   const [tab, setTab] = React.useState('suggestions');
   const [showAllInvitations, setShowAllInvitations] = React.useState(false);
 
+  // Real incoming connection requests from other users
+  const [incomingRequests, setIncomingRequests] = React.useState([]);
+  React.useEffect(() => {
+    API.getConnectionRequests()
+      .then(data => setIncomingRequests(data || []))
+      .catch(() => {});
+  }, []);
+
+  function handleAccept(requester) {
+    API.acceptConnection(requester.id)
+      .then(() => {
+        acceptConnection(requester.id);
+        setIncomingRequests(prev => prev.filter(r => r.id !== requester.id));
+        showToast(`Connected with ${requester.name}!`, 'success');
+      })
+      .catch(() => showToast('Failed to accept connection request', 'error'));
+  }
+
+  function handleDecline(requester) {
+    API.declineConnectionRequest(requester.id)
+      .then(() => {
+        setIncomingRequests(prev => prev.filter(r => r.id !== requester.id));
+        showToast('Connection request declined');
+      })
+      .catch(() => showToast('Failed to decline connection request', 'error'));
+  }
+
   if (usersLoading) return <LoadingSpinner text="Loading network..." />;
 
   const allUsers = users || [];
   const visibleInvitations = pendingInvitations.filter(inv => !dismissedInvitations.has(String((inv.user || inv).id || inv.senderId || '')));
+  const totalRequests = incomingRequests.length + Math.min(visibleInvitations.length, 3);
 
   return (
     <div className="li-page-inner">
       <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start' }}>
         {/* Main content */}
         <div style={{ flex: 1, minWidth: 0 }}>
-          {/* Invitations */}
-          {visibleInvitations.length > 0 && (
+          {/* Connection requests */}
+          {totalRequests > 0 && (
             <div className="li-card" style={{ padding: '16px 24px', marginBottom: 16 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                <h2 style={{ fontSize: 16, fontWeight: 700 }}>Invitations ({visibleInvitations.length})</h2>
-                {visibleInvitations.length > 3 && (
-                  <button className="li-btn li-btn--ghost li-btn--sm" onClick={() => setShowAllInvitations(v => !v)}>
-                    {showAllInvitations ? 'Show less' : 'See all'}
-                  </button>
-                )}
+                <h2 style={{ fontSize: 16, fontWeight: 700 }}>Invitations ({totalRequests})</h2>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                {(showAllInvitations ? visibleInvitations : visibleInvitations.slice(0, 3)).map((inv, i) => {
+
+                {/* Real incoming requests */}
+                {incomingRequests.map(requester => (
+                  <div key={requester.id} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div style={{ cursor: 'pointer' }} onClick={() => navigate(`profile?id=${requester.id}`)}>
+                      <Avatar name={requester.name} size={48} colorOverride={requester.avatarColor} />
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 14, fontWeight: 600, cursor: 'pointer' }} onClick={() => navigate(`profile?id=${requester.id}`)}>
+                        {requester.name}
+                      </div>
+                      <div style={{ fontSize: 13, color: 'var(--text-2)' }}>{requester.headline || ''}</div>
+                      <div style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 2 }}>Wants to connect with you</div>
+                    </div>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <button className="li-btn li-btn--ghost li-btn--sm" onClick={() => handleDecline(requester)}>Decline</button>
+                      <button className="li-btn li-btn--outline li-btn--sm" onClick={() => handleAccept(requester)}>Accept</button>
+                    </div>
+                  </div>
+                ))}
+
+                {/* Seeded invitations */}
+                {visibleInvitations.slice(0, 3).map((inv, i) => {
                   const invUser = inv.user || inv;
                   const invName = invUser.name || inv.senderName || 'Unknown';
                   const invHeadline = invUser.headline || inv.headline || inv.title || '';
@@ -50,8 +95,8 @@ function NetworkPage() {
                       <div style={{ display: 'flex', gap: 8 }}>
                         <button className="li-btn li-btn--ghost li-btn--sm" onClick={() => {
                           dismissInvitation(String(invUser.id || ''));
-                          showToast('Invitation ignored');
-                        }}>Ignore</button>
+                          showToast('Invitation declined');
+                        }}>Decline</button>
                         <button className="li-btn li-btn--outline li-btn--sm" onClick={() => {
                           dismissInvitation(String(invUser.id || ''));
                           acceptConnection(invUser.id);

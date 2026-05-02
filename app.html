@@ -51,6 +51,27 @@
   integrity="sha384-vtjasyidUo0kW94K5MXDXntzOJpQgBKXmE7e2Ga4LG0skTTLeBi97eFAXsqewJjw"
   crossorigin="anonymous"></script>
 
+<!-- jsPDF — PDF export for Cover Letter generator -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"
+  integrity="sha512-qZvrmS2ekKPF2mSznTQsxqPgnpkI4DNTlrdUmTzrDgektczlKNRRhy5X5AAOnx5S09ydFYWWNSfcEqDTTHgtNA=="
+  crossorigin="anonymous"></script>
+
+<!-- PDF.js — read uploaded PDF cover letters -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"
+  integrity="sha512-q+4liFwdPC/bNdhUpZx6aXDx/h77yEQtn4I1slHydcbZK34nLaR3cAeYSJshoxIOq3mjEf7xJE8YWIUHMn+oCQ=="
+  crossorigin="anonymous"></script>
+<script>
+  if (window.pdfjsLib) {
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  }
+</script>
+
+<!-- mammoth.js — read uploaded DOCX cover letters -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"
+  integrity="sha512-sG5Q7boJL+ft/weuz6Mmi9XBD+bEzE9AI2FMP4YMFxp3FpTFUQSQQm5K5cSgJCyed6bWs3W8f8h0lp36lHXhQA=="
+  crossorigin="anonymous"></script>
+
 <!-- API utility (plain JS, no JSX) -->
 <script src="js/api.js?v=6"></script>
 
@@ -97,6 +118,7 @@
 <script type="text/babel" src="js/components/pages/SettingsPage.js?v=6"></script>
 <script type="text/babel" src="js/components/pages/PremiumPage.js?v=6"></script>
 <script type="text/babel" src="js/components/pages/ArticlePage.js?v=6"></script>
+<script type="text/babel" src="js/components/pages/CoverLetterPage.js?v=6"></script>
 
 <!-- ── Modal components ────────────────────────────────────── -->
 <script type="text/babel" src="js/components/modals/PostModal.js?v=6"></script>
@@ -111,6 +133,9 @@
 <script type="text/babel" src="js/components/modals/CreateGroupModal.js?v=6"></script>
 <script type="text/babel" src="js/components/modals/ReportModal.js?v=6"></script>
 <script type="text/babel" src="js/components/modals/CreateEventModal.js?v=6"></script>
+<script type="text/babel" src="js/components/modals/AddProjectModal.js?v=6"></script>
+<script type="text/babel" src="js/components/modals/AddVolunteerModal.js?v=6"></script>
+<script type="text/babel" src="js/components/modals/AddHonorModal.js?v=6"></script>
 <script type="text/babel" src="js/components/modals/ModalContainer.js?v=6"></script>
 
 <!-- ── Navigation components ───────────────────────────────── -->

@@ -20,6 +20,9 @@ function ModalContainer() {
     'create-group':  <CreateGroupModal />,
     'report':        <ReportModal />,
     'create-event':  <CreateEventModal />,
+    'add-project':   <AddProjectModal />,
+    'add-volunteer': <AddVolunteerModal />,
+    'add-honor':     <AddHonorModal />,
   };
 
   const modal = modalMap[activeModal];
