@@ -151,6 +151,7 @@ function CoverLetterPage() {
   const [company, setCompany]                 = React.useState('');
   const [jobDescription, setJobDescription]   = React.useState('');
   const [selectedJobId, setSelectedJobId]     = React.useState('');
+  const latestJobFetchId = React.useRef(0);
 
   // Source state
   const [inputMode, setInputMode]             = React.useState('template'); // 'template' | 'upload'
@@ -446,7 +447,19 @@ function CoverLetterPage() {
                     const val = e.target.value;
                     setSelectedJobId(val);
                     const job = savedJobsList.find(j => String(j.id) === val);
-                    if (job) loadFromJob(job);
+                    if (job) {
+                      loadFromJob(job);
+                      const requestId = ++latestJobFetchId.current;
+                      API.getJob(job.id)
+                        .then(full => {
+                          if (full && requestId === latestJobFetchId.current) loadFromJob(full);
+                        })
+                        .catch(() => {
+                          if (requestId === latestJobFetchId.current) {
+                            showToast('Could not load full job details. Using saved summary.', 'error');
+                          }
+                        });
+                    }
                   }}
                   style={{ ...inputStyle, cursor: 'pointer' }}
                 >
