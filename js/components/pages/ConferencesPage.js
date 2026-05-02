@@ -74,36 +74,37 @@ function ConferencesPage() {
       const geo = await geocodePlace(location);
       if (geo) setSearchCenter(geo);
 
-      // 2. Call your backend (which calls SerpAPI)
-      const res = await fetch(`/api/conferences/search?location=${encodeURIComponent(location)}&field=${encodeURIComponent(field)}`);
-      const data = await res.json();
+      // 2. Call the backend; it calls SerpAPI, normalizes results, and falls back if needed.
+      const data = await API.searchConferences(location, field);
+      const events = Array.isArray(data.conferences) ? data.conferences : (data.events_results || []);
 
-      const events = data.events_results || [];
-
-      // 3. Convert + geocode each event
+      // 3. Use backend-normalized conference data. Geocode only if an older response lacks coordinates.
       const cleaned = await Promise.all(
         events.map(async (event, i) => {
           let coords = null;
-
-          if (event.address) {
+          if ((event.lat === undefined || event.lng === undefined) && event.address) {
             coords = await geocodePlace(event.address);
           }
 
           const fallbackLat = geo?.lat || 37.7749;
           const fallbackLng = geo?.lng || -122.4194;
-
           const jitter = (i % 5) * 0.008 - 0.016;
 
           return {
-            id: i + 1,
-            name: event.title,
-            date: event.date?.start_date || "TBD",
+            id: event.id || i + 1,
+            name: event.name || event.title,
+            category: event.category || field,
+            date: event.date || event.date?.start_date || "TBD",
+            venue: event.venue || "",
             address: event.address || "Unknown",
             description: event.description || "",
             link: event.link,
-            lat: coords?.lat ?? fallbackLat + jitter,
-            lng: coords?.lng ?? fallbackLng + jitter,
-            tags: [field],
+            price: event.price,
+            attendees: event.attendees || 0,
+            lat: Number(event.lat ?? coords?.lat ?? fallbackLat + jitter),
+            lng: Number(event.lng ?? coords?.lng ?? fallbackLng + jitter),
+            tags: event.tags || [field],
+            source: event.source || data.source || "serpapi",
           };
         })
       );
