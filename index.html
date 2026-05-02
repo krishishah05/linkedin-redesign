@@ -1093,7 +1093,10 @@
   <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 
   <script>
-    const API_BASE = 'https://linkedin-redesign-z364.onrender.com/api';
+    const configuredApiBase = typeof window !== 'undefined' && typeof window.__API_BASE__ === 'string'
+      ? window.__API_BASE__.replace(/\/+$/, '')
+      : '';
+    const API_BASE = configuredApiBase || `${window.location.origin}/api`;
     const TOTAL_STEPS = 10;
     let currentStep = 1;
     let _registered = false;
@@ -1210,7 +1213,11 @@
 
     // -- Signup wizard ---------------------------------------------------------
 
-    function startSignup() { showView('signup'); goToStep(1); }
+    function startSignup() {
+      recruiterChoice = null;
+      showView('signup');
+      goToStep(1);
+    }
 
     function goToStep(n) {
       document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
@@ -1223,6 +1230,7 @@
     function prevStep(from) { if (from > 1) goToStep(from - 1); }
 
     function skipStep(from) {
+      if (from === 9) recruiterChoice = null;
       if (from < TOTAL_STEPS) goToStep(from + 1);
       else if (_registered) window.location.href = 'app.html';
       else handleRegister();

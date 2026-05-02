@@ -39,9 +39,7 @@ function AppProvider({ children }) {
   );
 
   // â”€â”€ Recruiter mode (only active for users with isRecruiter flag) â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  const [recruiterMode, setRecruiterModeState] = React.useState(
-    () => localStorage.getItem('li-recruiter-mode') === '1'
-  );
+  const [recruiterMode, setRecruiterModeState] = React.useState(false);
 
   // User availability status: 'open_to_work' | 'conferences' | 'recruiting' | 'not_looking' | null
   // Declared before the effects below that reference it to avoid TDZ errors.
@@ -52,19 +50,23 @@ function AppProvider({ children }) {
   React.useEffect(() => {
     if (!currentUser?.id) return;
     const statusKey = `li-user-status-${currentUser.id}`;
-    const savedStatus = localStorage.getItem(statusKey);
+    let savedStatus = null;
+    try { savedStatus = localStorage.getItem(statusKey); } catch (_) {}
     if (savedStatus) {
       setUserStatusState(savedStatus);
     } else if (currentUser.isRecruiter) {
       setUserStatusState('recruiting');
-      localStorage.setItem(statusKey, 'recruiting');
+      try { localStorage.setItem(statusKey, 'recruiting'); } catch (_) {}
     } else {
       setUserStatusState(null);
     }
-    if (!currentUser.isRecruiter) {
+    if (currentUser.isRecruiter) {
+      try { setRecruiterModeState(localStorage.getItem('li-recruiter-mode') === '1'); }
+      catch (_) { setRecruiterModeState(false); }
+    } else {
       setRecruiterModeState(false);
       setRecruiterPanelOpen(false);
-      localStorage.removeItem('li-recruiter-mode');
+      try { localStorage.removeItem('li-recruiter-mode'); } catch (_) {}
     }
   }, [currentUser]);
 
@@ -73,30 +75,33 @@ function AppProvider({ children }) {
     if (userStatus !== null && userStatus !== 'recruiting' && recruiterMode) {
       setRecruiterModeState(false);
       setRecruiterPanelOpen(false);
-      localStorage.removeItem('li-recruiter-mode');
+      try { localStorage.removeItem('li-recruiter-mode'); } catch (_) {}
     }
   }, [userStatus, recruiterMode]);
 
-  const [shortlisted, setShortlisted] = React.useState(() => {
-    try {
-      const s = localStorage.getItem('li-shortlisted');
-      return s ? new Map(JSON.parse(s)) : new Map();
-    } catch { return new Map(); }
-  });
+  const [shortlisted, setShortlisted] = React.useState(() => new Map());
 
   function setUserStatus(status) {
     setUserStatusState(status);
     const uid = currentUser?.id || userIdRef.current;
     if (!uid) return;
     const statusKey = `li-user-status-${uid}`;
-    if (status) localStorage.setItem(statusKey, status);
-    else localStorage.removeItem(statusKey);
+    try {
+      if (status) localStorage.setItem(statusKey, status);
+      else localStorage.removeItem(statusKey);
+    } catch (_) {}
   }
 
   function toggleRecruiterMode() {
+    if (!currentUser?.isRecruiter) {
+      setRecruiterModeState(false);
+      setRecruiterPanelOpen(false);
+      try { localStorage.removeItem('li-recruiter-mode'); } catch (_) {}
+      return;
+    }
     setRecruiterModeState(prev => {
       const next = !prev;
-      localStorage.setItem('li-recruiter-mode', next ? '1' : '0');
+      try { localStorage.setItem('li-recruiter-mode', next ? '1' : '0'); } catch (_) {}
       if (!next) setRecruiterPanelOpen(false);
       return next;
     });
@@ -191,7 +196,19 @@ function AppProvider({ children }) {
       const l = localStorage.getItem(`li-liked-posts-${uid}`);
       setLikedPosts(l ? new Set(JSON.parse(l)) : new Set());
       const sl = localStorage.getItem(`li-shortlisted-${uid}`);
-      setShortlisted(sl ? new Map(JSON.parse(sl)) : new Map());
+      if (sl) {
+        setShortlisted(new Map(JSON.parse(sl)));
+      } else {
+        const legacyShortlist = localStorage.getItem('li-shortlisted');
+        if (legacyShortlist) {
+          const migrated = new Map(JSON.parse(legacyShortlist));
+          setShortlisted(migrated);
+          localStorage.setItem(`li-shortlisted-${uid}`, JSON.stringify([...migrated]));
+          localStorage.removeItem('li-shortlisted');
+        } else {
+          setShortlisted(new Map());
+        }
+      }
       const saved = localStorage.getItem(`li-saved-jobs-${uid}`);
       setSavedJobs(saved ? new Set(JSON.parse(saved)) : new Set());
       const applied = localStorage.getItem(`li-applied-jobs-${uid}`);
@@ -202,7 +219,9 @@ function AppProvider({ children }) {
       setJoinedGroups(groups ? new Set(JSON.parse(groups)) : new Set(['1', '2', '4']));
       const dismissed = localStorage.getItem(`li-dismissed-inv-${uid}`);
       setDismissedInvitations(dismissed ? new Set(JSON.parse(dismissed)) : new Set());
-    } catch (_) {}
+    } catch (_) {
+      setShortlisted(new Map());
+    }
   }, [currentUser?.id]);
 
   // â”€â”€ Bootstrap: fetch current user on mount â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€

@@ -76,7 +76,7 @@ function ProfilePage({ userId }) {
   const STATUS_OPTIONS = [
     { key: 'open_to_work', label: 'Open to work', desc: "Show recruiters you're available", bg: '#E6F4EA', color: '#057642', dot: '#057642' },
     { key: 'conferences', label: 'Looking for conferences', desc: 'Discover events in your area', bg: '#E8F4FD', color: '#0a66c2', dot: '#0a66c2' },
-    { key: 'recruiting', label: 'Recruiting', desc: 'Unlock Recruiter Mode features', bg: '#F3E8FD', color: '#7c3aed', dot: '#7c3aed' },
+    { key: 'recruiting', label: 'Recruiting', desc: 'Unlock Recruiter Mode features', bg: '#F3E8FD', color: '#7c3aed', dot: '#7c3aed', recruiterOnly: true },
     { key: 'not_looking', label: 'Not looking', desc: 'Hide your availability status', bg: 'var(--bg-2)', color: 'var(--text-2)', dot: 'var(--text-3)' },
   ];
 
@@ -239,7 +239,7 @@ function ProfilePage({ userId }) {
                           </div>
                         )}
                       </div>
-                      {userStatus === 'recruiting' && recruiterMode && (() => {
+                      {currentUser?.isRecruiter && userStatus === 'recruiting' && recruiterMode && (() => {
                         const inPipeline = shortlisted.has(String(user.id));
                         return (
                           <button
@@ -323,7 +323,7 @@ function ProfilePage({ userId }) {
                         <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', padding: '4px 10px 8px', textTransform: 'uppercase', letterSpacing: 0.5 }}>
                           Your availability
                         </div>
-                        {STATUS_OPTIONS.map(o => {
+                        {STATUS_OPTIONS.filter(o => !o.recruiterOnly || currentUser?.isRecruiter).map(o => {
                           const current = userStatus || (user.openToWork ? 'open_to_work' : null);
                           const isActive = current === o.key;
                           return (

@@ -891,14 +891,14 @@ class TestProfileImprove:
         resp = client.post("/api/profile/improve")
         assert resp.status_code == 401
 
-    def test_T91_BB_no_api_key_returns_503(self, client, monkeypatch):
+    def test_T91_BB_no_api_key_returns_503(self, client, auth_header, monkeypatch):
         """BB: Missing OPENROUTER_API_KEY env var → 503 service unavailable."""
         monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
-        resp = client.post("/api/profile/improve")
+        resp = client.post("/api/profile/improve", headers=auth_header)
         assert resp.status_code == 503
         assert "error" in _json(resp)
 
-    def test_T92_BB_valid_request_returns_tips(self, client, monkeypatch):
+    def test_T92_BB_valid_request_returns_tips(self, client, auth_header, monkeypatch):
         """BB: Authenticated + key set + valid LLM response → 200 with tips list."""
         tips = ["Add a photo", "Expand your about", "List more skills",
                 "Add certifications", "Open to work"]
@@ -907,13 +907,13 @@ class TestProfileImprove:
         import requests as _req
         monkeypatch.setattr(_req, "post", _make_mock_requests_post(tips))
 
-        resp = client.post("/api/profile/improve")
+        resp = client.post("/api/profile/improve", headers=auth_header)
         assert resp.status_code == 200
         data = _json(resp)
         assert "tips" in data
         assert data["tips"] == tips
 
-    def test_T93_WB_llm_response_capped_at_five_tips(self, client, monkeypatch):
+    def test_T93_WB_llm_response_capped_at_five_tips(self, client, auth_header, monkeypatch):
         """WB: LLM returns more than 5 items — response is capped at 5."""
         many_tips = [f"Tip {i}" for i in range(10)]
         monkeypatch.setenv("OPENROUTER_API_KEY", "test-key-xyz")
@@ -921,11 +921,11 @@ class TestProfileImprove:
         import requests as _req
         monkeypatch.setattr(_req, "post", _make_mock_requests_post(many_tips))
 
-        resp = client.post("/api/profile/improve")
+        resp = client.post("/api/profile/improve", headers=auth_header)
         assert resp.status_code == 200
         assert len(_json(resp)["tips"]) == 5
 
-    def test_T94_WB_llm_returns_json_in_markdown_fences(self, client, monkeypatch):
+    def test_T94_WB_llm_returns_json_in_markdown_fences(self, client, auth_header, monkeypatch):
         """WB: LLM wraps JSON in ```json fences — endpoint strips them correctly."""
         tips = ["tip A", "tip B", "tip C", "tip D", "tip E"]
         fenced = "```json\n" + json.dumps(tips) + "\n```"
@@ -938,11 +938,11 @@ class TestProfileImprove:
         import requests as _req
         monkeypatch.setattr(_req, "post", lambda *a, **kw: mock_response)
 
-        resp = client.post("/api/profile/improve")
+        resp = client.post("/api/profile/improve", headers=auth_header)
         assert resp.status_code == 200
         assert _json(resp)["tips"] == tips
 
-    def test_T95_WB_llm_network_error_returns_502(self, client, monkeypatch):
+    def test_T95_WB_llm_network_error_returns_502(self, client, auth_header, monkeypatch):
         """WB: requests.post raises → 502 bad gateway."""
         monkeypatch.setenv("OPENROUTER_API_KEY", "test-key-xyz")
 
@@ -951,7 +951,7 @@ class TestProfileImprove:
             raise ConnectionError("network down")
         monkeypatch.setattr(_req, "post", boom)
 
-        resp = client.post("/api/profile/improve")
+        resp = client.post("/api/profile/improve", headers=auth_header)
         assert resp.status_code == 502
 
 
