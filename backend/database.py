@@ -494,7 +494,13 @@ def get_user_by_id(user_id):
         "SELECT data FROM users WHERE id=%s", (int(user_id),)
     ).fetchone()
     conn.close()
-    return json.loads(row["data"]) if row else None
+    if not row:
+        return None
+    data = json.loads(row["data"])
+    # Backwards-compat: accounts created before the isRecruiter field was added
+    # won't have it in their stored JSON. Default to False so frontend guards work.
+    data.setdefault("isRecruiter", False)
+    return data
 
 
 def get_all_users(exclude_id: int = 1):

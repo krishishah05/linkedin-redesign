@@ -47,6 +47,8 @@ function ConferencesPage() {
         maxZoom: 19,
       }).addTo(map);
       leafletMap.current = map;
+      // Force Leaflet to recalculate container dimensions after first paint.
+      setTimeout(() => { if (leafletMap.current) leafletMap.current.invalidateSize(); }, 100);
       setMapReady(true);
     }
     tryInit();
@@ -300,8 +302,8 @@ function conferenceIcon(conf, active) {
           </div>
         </aside>
 
-        <main style={{ flex: 1, position: 'relative' }}>
-          <div ref={mapContainerRef} style={{ width: '100%', height: '100%' }} />
+        <main style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
+          <div ref={mapContainerRef} style={{ position: 'absolute', inset: 0 }} />
           {!mapReady && (
             <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)', zIndex: 5 }}>
               <LoadingSpinner text="Loading map..." />

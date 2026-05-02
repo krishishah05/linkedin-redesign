@@ -23,6 +23,7 @@ CURRENT_USER = {
     "openToWork": True,
     "openToWorkTypes": ["Full-time", "Remote", "Hybrid"],
     "isPremium": True,
+    "isRecruiter": True,
     "email": "alex.johnson@gmail.com",
     "phone": "+1 (415) 234-5678",
     "website": "https://alexjohnson.dev",
