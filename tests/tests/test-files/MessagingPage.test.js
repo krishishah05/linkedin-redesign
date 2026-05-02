@@ -16,7 +16,7 @@ afterAll(() => {
     console.error = originalError;
 });
 const React = require('react');
-const { render, screen, cleanup, fireEvent, act } = require('@testing-library/react');
+const { render, screen, cleanup, fireEvent, act, waitFor } = require('@testing-library/react');
 require('@testing-library/jest-dom');
 
 // Suppress unhandled rejections from crashing Stryker child processes
@@ -40,7 +40,11 @@ global.API = {
     getConversations: jest.fn(),
     getConversation: jest.fn(() => Promise.resolve({ messages: [] })),
     sendMessage: jest.fn(() => Promise.resolve()),
-    getProfileReadiness: jest.fn(() => Promise.resolve({ score: 100 }))
+    getProfileReadiness: jest.fn(() => Promise.resolve({ score: 100 })),
+    getAIProfileReadiness: jest.fn(() => Promise.resolve({
+        score: 75, level: 'Strong', summary: 'Good profile.',
+        sections: [], suggestions: []
+    })),
 };
 global.LoadingSpinner = ({ text }) => React.createElement('div', { 'data-testid': 'spinner' }, text);
 global.formatTime = jest.fn((ts) => ts);
@@ -69,6 +73,12 @@ describe('MessagingPage Component Tests', () => {
         jest.clearAllMocks();
         mockShowToast.mockClear();
         mockSetUnreadMessages.mockClear();
+        global.API.getAIProfileReadiness.mockImplementation(() => Promise.resolve({
+            score: 75, level: 'Strong', summary: 'Good profile.', sections: [], suggestions: []
+        }));
+        global.API.getProfileReadiness.mockImplementation(() => Promise.resolve({
+            score: 75, sections: [], fixes: []
+        }));
     });
 
     // 1 — BB
@@ -468,26 +478,28 @@ describe('MessagingPage Component Tests', () => {
             data: [{ id: 1, participantName: 'Alice' }]
         });
 
-        let resolveApi;
-        global.API.getProfileReadiness.mockReturnValue(new Promise(res => resolveApi = res));
+        let resolveAI;
+        global.API.getAIProfileReadiness.mockReturnValue(new Promise(res => resolveAI = res));
 
         await act(async () => {
             render(React.createElement(MessagingPage));
         });
 
         const scoreBtn = screen.getByTitle('Profile Readiness');
-        act(() => {
+        await act(async () => {
             fireEvent.click(scoreBtn);
         });
 
-        expect(screen.getByText('Calculating score\u2026')).toBeInTheDocument();
-        expect(screen.queryByText('99')).not.toBeInTheDocument();
+        await waitFor(() => {
+            expect(screen.getByText('\u2726 Analyzing your profile quality\u2026')).toBeInTheDocument();
+        });
+        expect(screen.queryByText('75')).not.toBeInTheDocument();
 
         await act(async () => {
-            resolveApi({ score: 100, sections: [], fixes: [] });
+            resolveAI({ score: 75, level: 'Strong', summary: 'Good profile.', sections: [], suggestions: [] });
         });
 
-        expect(screen.queryByText('Calculating score\u2026')).not.toBeInTheDocument();
+        expect(screen.queryByText('\u2726 Analyzing your profile quality\u2026')).not.toBeInTheDocument();
     });
 
     // 22 — BB
@@ -497,7 +509,9 @@ describe('MessagingPage Component Tests', () => {
             data: [{ id: 1, participantName: 'Alice' }]
         });
 
-        global.API.getProfileReadiness.mockReturnValue(Promise.resolve({ score: 85, sections: [], fixes: [] }));
+        global.API.getAIProfileReadiness.mockReturnValue(Promise.resolve({
+            score: 85, level: 'Strong', summary: 'Good profile.', sections: [], suggestions: []
+        }));
 
         await act(async () => {
             render(React.createElement(MessagingPage));
@@ -508,10 +522,10 @@ describe('MessagingPage Component Tests', () => {
             fireEvent.click(scoreBtn);
         });
 
-        expect(screen.getByText('85')).toBeInTheDocument();
+        await waitFor(() => { expect(screen.getByText('85')).toBeInTheDocument(); });
         expect(screen.queryByText('84')).not.toBeInTheDocument();
         expect(screen.queryByText('86')).not.toBeInTheDocument();
-        expect(screen.queryByText('Calculating score\u2026')).not.toBeInTheDocument();
+        expect(screen.queryByText('\u2726 Analyzing your profile quality\u2026')).not.toBeInTheDocument();
     });
 
     // 23 — WB
@@ -542,7 +556,9 @@ describe('MessagingPage Component Tests', () => {
             loading: false,
             data: [{ id: 1, participantName: 'Alice' }]
         });
-        global.API.getProfileReadiness.mockReturnValue(Promise.resolve({ score: 90, sections: [], fixes: [] }));
+        global.API.getAIProfileReadiness.mockResolvedValueOnce({
+            score: 90, level: 'Strong', summary: 'Good.', sections: [], suggestions: []
+        });
 
         await act(async () => {
             render(React.createElement(MessagingPage));
@@ -553,14 +569,25 @@ describe('MessagingPage Component Tests', () => {
             fireEvent.click(scoreBtn);
         });
 
-        const refreshBtn = screen.getByText('Refresh score');
+        await waitFor(() => expect(screen.getByText('90')).toBeInTheDocument());
+
+        let resolveReanalyze;
+        global.API.getAIProfileReadiness.mockReturnValue(new Promise(res => resolveReanalyze = res));
+
+        const reanalyzeBtn = screen.getByText('Re-analyze');
         await act(async () => {
-            fireEvent.click(refreshBtn);
+            fireEvent.click(reanalyzeBtn);
         });
 
-        expect(mockShowToast).toHaveBeenCalledWith('Score refreshed', 'success');
-        expect(mockShowToast).not.toHaveBeenCalledWith('Score refreshed', 'info');
-        expect(mockShowToast).not.toHaveBeenCalledWith('Score refreshed', 'error');
+        await waitFor(() => expect(screen.getByText('Analyzing…')).toBeInTheDocument());
+        expect(screen.getByText('90')).toBeInTheDocument();
+
+        await act(async () => {
+            resolveReanalyze({ score: 95, level: 'All-Star', summary: 'Excellent!', sections: [], suggestions: [] });
+        });
+
+        await waitFor(() => expect(screen.getByText('Re-analyze')).toBeInTheDocument());
+        expect(screen.queryByText('Analyzing…')).not.toBeInTheDocument();
     });
 
     // 25 — WB
@@ -591,7 +618,9 @@ describe('MessagingPage Component Tests', () => {
             loading: false,
             data: [{ id: 1, participantName: 'Alice' }]
         });
-        global.API.getProfileReadiness.mockReturnValueOnce(Promise.resolve({ score: 85, sections: [], fixes: [] }));
+        global.API.getAIProfileReadiness.mockResolvedValueOnce({
+            score: 85, level: 'Strong', summary: 'Good.', sections: [], suggestions: []
+        });
 
         await act(async () => {
             render(React.createElement(MessagingPage));
@@ -602,15 +631,19 @@ describe('MessagingPage Component Tests', () => {
             fireEvent.click(scoreBtn);
         });
 
-        global.API.getProfileReadiness.mockReturnValueOnce(Promise.reject(new Error("Down")));
+        await waitFor(() => expect(screen.getByText('85')).toBeInTheDocument());
 
-        const refreshBtn = screen.getByText('Refresh score');
+        global.API.getAIProfileReadiness.mockReturnValue(Promise.reject(new Error("AI service unavailable")));
+
+        const reanalyzeBtn = screen.getByText('Re-analyze');
         await act(async () => {
-            fireEvent.click(refreshBtn);
+            fireEvent.click(reanalyzeBtn);
         });
 
-        expect(mockShowToast).toHaveBeenCalledWith('Score refreshed (mock)', 'info');
-        expect(mockShowToast).not.toHaveBeenCalledWith('Score refreshed (mock)', 'success');
+        await waitFor(() => {
+            expect(screen.getByText('AI service unavailable')).toBeInTheDocument();
+        });
+        expect(screen.queryByText('Analyzing…')).not.toBeInTheDocument();
     });
 
     // 27 — RG
@@ -619,7 +652,9 @@ describe('MessagingPage Component Tests', () => {
             loading: false,
             data: [{ id: 1, participantName: 'Alice' }]
         });
-        global.API.getProfileReadiness.mockReturnValue(Promise.resolve({ score: 99, sections: [], fixes: [] }));
+        global.API.getAIProfileReadiness.mockReturnValue(Promise.resolve({
+            score: 99, level: 'All-Star', summary: 'Great.', sections: [], suggestions: []
+        }));
 
         await act(async () => {
             render(React.createElement(MessagingPage));
@@ -630,8 +665,8 @@ describe('MessagingPage Component Tests', () => {
             fireEvent.click(scoreBtn);
         });
 
-        expect(screen.queryByText('Calculating score\u2026')).not.toBeInTheDocument();
-        expect(screen.getByText('99')).toBeInTheDocument();
+        await waitFor(() => { expect(screen.getByText('99')).toBeInTheDocument(); });
+        expect(screen.queryByText('\u2726 Analyzing your profile quality\u2026')).not.toBeInTheDocument();
         expect(screen.queryByText('98')).not.toBeInTheDocument();
     });
 
@@ -1236,10 +1271,10 @@ describe('MessagingPage Component Tests', () => {
     // CX6 — WB
     test("Score panel close button sets activePanel to null", async () => {
         global.useFetch.mockReturnValue({ loading: false, data: [{ id: 1, participantName: 'Alice' }] });
-        global.API.getProfileReadiness.mockReturnValue(Promise.resolve({ score: 72, sections: [], fixes: [] }));
+        global.API.getAIProfileReadiness.mockResolvedValue({ score: 72, level: 'Developing', summary: '.', sections: [], suggestions: [] });
         await act(async () => render(React.createElement(MessagingPage)));
         await act(async () => fireEvent.click(screen.getByTitle('Profile Readiness')));
-        expect(screen.getByText('72')).toBeInTheDocument();
+        await waitFor(() => expect(screen.getByText('72')).toBeInTheDocument());
 
         await act(async () => fireEvent.click(screen.getByTitle('Close')));
         expect(screen.queryByText('72')).not.toBeInTheDocument();
@@ -1249,10 +1284,10 @@ describe('MessagingPage Component Tests', () => {
     // CX7 — WB
     test("'Continue messaging' button closes score panel", async () => {
         global.useFetch.mockReturnValue({ loading: false, data: [{ id: 1, participantName: 'Alice' }] });
-        global.API.getProfileReadiness.mockReturnValue(Promise.resolve({ score: 60, sections: [], fixes: [] }));
+        global.API.getAIProfileReadiness.mockResolvedValue({ score: 60, level: 'Developing', summary: '.', sections: [], suggestions: [] });
         await act(async () => render(React.createElement(MessagingPage)));
         await act(async () => fireEvent.click(screen.getByTitle('Profile Readiness')));
-        expect(screen.getByText('60')).toBeInTheDocument();
+        await waitFor(() => expect(screen.getByText('60')).toBeInTheDocument());
 
         await act(async () => fireEvent.click(screen.getByText('Continue messaging')));
         expect(screen.queryByText('60')).not.toBeInTheDocument();
@@ -1370,79 +1405,79 @@ describe('MessagingPage Component Tests', () => {
     });
 
     // M1 — WB: score threshold boundary 80
-    test("ProfileReadinessPanel: score exactly 80 → label 'Ready', badge class 'good'", async () => {
+    test("ProfileReadinessPanel: score exactly 80 → label 'All-Star', badge class 'good'", async () => {
         global.useFetch.mockReturnValue({ loading: false, data: [{ id: 1, participantName: 'Alice' }] });
-        global.API.getProfileReadiness.mockResolvedValue({ score: 80, sections: [], fixes: [] });
+        global.API.getAIProfileReadiness.mockResolvedValue({ score: 80, level: 'All-Star', summary: '.', sections: [], suggestions: [] });
         await act(async () => render(React.createElement(MessagingPage)));
         await act(async () => fireEvent.click(screen.getByTitle('Profile Readiness')));
-        const badge = screen.getByText('Ready');
-        expect(badge).toBeInTheDocument();
+        await waitFor(() => expect(screen.getByText('All-Star')).toBeInTheDocument());
+        const badge = screen.getByText('All-Star');
         expect(badge.classList.contains('good')).toBe(true);
         expect(badge.classList.contains('warn')).toBe(false);
         expect(badge.classList.contains('bad')).toBe(false);
-        expect(screen.queryByText('Almost there')).not.toBeInTheDocument();
-        expect(screen.queryByText('Needs improvement')).not.toBeInTheDocument();
+        expect(screen.queryByText('Strong')).not.toBeInTheDocument();
+        expect(screen.queryByText('Developing')).not.toBeInTheDocument();
     });
 
     // M2 — WB: score threshold boundary 79
-    test("ProfileReadinessPanel: score 79 → label 'Almost there', badge class 'warn'", async () => {
+    test("ProfileReadinessPanel: score 79 → label 'Strong', badge class 'warn'", async () => {
         global.useFetch.mockReturnValue({ loading: false, data: [{ id: 1, participantName: 'Alice' }] });
-        global.API.getProfileReadiness.mockResolvedValue({ score: 79, sections: [], fixes: [] });
+        global.API.getAIProfileReadiness.mockResolvedValue({ score: 79, level: 'Strong', summary: '.', sections: [], suggestions: [] });
         await act(async () => render(React.createElement(MessagingPage)));
         await act(async () => fireEvent.click(screen.getByTitle('Profile Readiness')));
-        const badge = screen.getByText('Almost there');
-        expect(badge).toBeInTheDocument();
+        await waitFor(() => expect(screen.getByText('Strong')).toBeInTheDocument());
+        const badge = screen.getByText('Strong');
         expect(badge.classList.contains('warn')).toBe(true);
         expect(badge.classList.contains('good')).toBe(false);
         expect(badge.classList.contains('bad')).toBe(false);
-        expect(screen.queryByText('Ready')).not.toBeInTheDocument();
-        expect(screen.queryByText('Needs improvement')).not.toBeInTheDocument();
+        expect(screen.queryByText('All-Star')).not.toBeInTheDocument();
+        expect(screen.queryByText('Developing')).not.toBeInTheDocument();
     });
 
     // M3 — WB: score threshold boundary 70
-    test("ProfileReadinessPanel: score exactly 70 → label 'Almost there', badge class 'warn'", async () => {
+    test("ProfileReadinessPanel: score exactly 70 → label 'Strong', badge class 'warn'", async () => {
         global.useFetch.mockReturnValue({ loading: false, data: [{ id: 1, participantName: 'Alice' }] });
-        global.API.getProfileReadiness.mockResolvedValue({ score: 70, sections: [], fixes: [] });
+        global.API.getAIProfileReadiness.mockResolvedValue({ score: 70, level: 'Strong', summary: '.', sections: [], suggestions: [] });
         await act(async () => render(React.createElement(MessagingPage)));
         await act(async () => fireEvent.click(screen.getByTitle('Profile Readiness')));
-        const badge = screen.getByText('Almost there');
-        expect(badge).toBeInTheDocument();
+        await waitFor(() => expect(screen.getByText('Strong')).toBeInTheDocument());
+        const badge = screen.getByText('Strong');
         expect(badge.classList.contains('warn')).toBe(true);
         expect(badge.classList.contains('good')).toBe(false);
-        expect(screen.queryByText('Needs improvement')).not.toBeInTheDocument();
+        expect(screen.queryByText('Developing')).not.toBeInTheDocument();
     });
 
     // M4 — WB: score threshold boundary 69
-    test("ProfileReadinessPanel: score 69 → label 'Needs improvement', badge class 'bad'", async () => {
+    test("ProfileReadinessPanel: score 69 → label 'Developing', badge class 'bad'", async () => {
         global.useFetch.mockReturnValue({ loading: false, data: [{ id: 1, participantName: 'Alice' }] });
-        global.API.getProfileReadiness.mockResolvedValue({ score: 69, sections: [], fixes: [] });
+        global.API.getAIProfileReadiness.mockResolvedValue({ score: 69, level: 'Developing', summary: '.', sections: [], suggestions: [] });
         await act(async () => render(React.createElement(MessagingPage)));
         await act(async () => fireEvent.click(screen.getByTitle('Profile Readiness')));
-        const badge = screen.getByText('Needs improvement');
-        expect(badge).toBeInTheDocument();
+        await waitFor(() => expect(screen.getByText('Developing')).toBeInTheDocument());
+        const badge = screen.getByText('Developing');
         expect(badge.classList.contains('bad')).toBe(true);
         expect(badge.classList.contains('good')).toBe(false);
         expect(badge.classList.contains('warn')).toBe(false);
-        expect(screen.queryByText('Almost there')).not.toBeInTheDocument();
-        expect(screen.queryByText('Ready')).not.toBeInTheDocument();
+        expect(screen.queryByText('Strong')).not.toBeInTheDocument();
+        expect(screen.queryByText('All-Star')).not.toBeInTheDocument();
     });
 
     // M5 — WB: score 0 edge case
-    test("ProfileReadinessPanel: score 0 → label 'Needs improvement'", async () => {
+    test("ProfileReadinessPanel: score 0 → label 'Beginner'", async () => {
         global.useFetch.mockReturnValue({ loading: false, data: [{ id: 1, participantName: 'Alice' }] });
-        global.API.getProfileReadiness.mockResolvedValue({ score: 0, sections: [], fixes: [] });
+        global.API.getAIProfileReadiness.mockResolvedValue({ score: 0, level: 'Beginner', summary: '.', sections: [], suggestions: [] });
         await act(async () => render(React.createElement(MessagingPage)));
         await act(async () => fireEvent.click(screen.getByTitle('Profile Readiness')));
-        expect(screen.getByText('Needs improvement')).toBeInTheDocument();
+        await waitFor(() => expect(screen.getByText('Beginner')).toBeInTheDocument());
     });
 
     // M6 — WB: score 100 edge case
-    test("ProfileReadinessPanel: score 100 → label 'Ready'", async () => {
+    test("ProfileReadinessPanel: score 100 → label 'All-Star'", async () => {
         global.useFetch.mockReturnValue({ loading: false, data: [{ id: 1, participantName: 'Alice' }] });
-        global.API.getProfileReadiness.mockResolvedValue({ score: 100, sections: [], fixes: [] });
+        global.API.getAIProfileReadiness.mockResolvedValue({ score: 100, level: 'All-Star', summary: '.', sections: [], suggestions: [] });
         await act(async () => render(React.createElement(MessagingPage)));
         await act(async () => fireEvent.click(screen.getByTitle('Profile Readiness')));
-        expect(screen.getByText('Ready')).toBeInTheDocument();
+        await waitFor(() => expect(screen.getByText('All-Star')).toBeInTheDocument());
     });
 
     // M7 — WB: fix status 'done' renders 'Done' label
@@ -1474,30 +1509,30 @@ describe('MessagingPage Component Tests', () => {
     // M9 — WB: section bar score thresholds and CSS classes
     test("ProfileReadinessPanel: section bars render correct percentage labels and CSS color classes", async () => {
         global.useFetch.mockReturnValue({ loading: false, data: [{ id: 1, participantName: 'Alice' }] });
-        global.API.getProfileReadiness.mockResolvedValue({
-            score: 75,
+        global.API.getAIProfileReadiness.mockResolvedValue({
+            score: 75, level: 'Strong', summary: '.', suggestions: [],
             sections: [
                 { key: 'edu', label: 'Education', score: 90 },
                 { key: 'headline', label: 'Headline', score: 70 },
-                { key: 'about', label: 'About', score: 50 }
-            ],
-            fixes: []
+                { key: 'about', label: 'About', score: 35 }
+            ]
         });
         await act(async () => render(React.createElement(MessagingPage)));
         await act(async () => fireEvent.click(screen.getByTitle('Profile Readiness')));
+        await waitFor(() => expect(screen.getByText('90%')).toBeInTheDocument());
         expect(screen.getByText('90%')).toBeInTheDocument();
         expect(screen.getByText('70%')).toBeInTheDocument();
-        expect(screen.getByText('50%')).toBeInTheDocument();
+        expect(screen.getByText('35%')).toBeInTheDocument();
         // score 90 >= 80 → 'good' class
         expect(screen.getByText('90%').classList.contains('good')).toBe(true);
         expect(screen.getByText('90%').classList.contains('warn')).toBe(false);
-        // score 70 >= 70 → 'warn' class
+        // score 70 >= 40 but < 80 → 'warn' class
         expect(screen.getByText('70%').classList.contains('warn')).toBe(true);
         expect(screen.getByText('70%').classList.contains('good')).toBe(false);
         expect(screen.getByText('70%').classList.contains('bad')).toBe(false);
-        // score 50 < 70 → 'bad' class
-        expect(screen.getByText('50%').classList.contains('bad')).toBe(true);
-        expect(screen.getByText('50%').classList.contains('good')).toBe(false);
+        // score 35 < 40 → 'bad' class
+        expect(screen.getByText('35%').classList.contains('bad')).toBe(true);
+        expect(screen.getByText('35%').classList.contains('good')).toBe(false);
     });
 
     // M10 — WB: openProfileReadiness does not reload when already 'score'
@@ -1666,11 +1701,11 @@ describe('MessagingPage Component Tests', () => {
     // M22 — WB: switching from score to guide closes score
     test("Switching from score panel to guide panel closes score, opens guide", async () => {
         global.useFetch.mockReturnValue({ loading: false, data: [{ id: 1, participantName: 'Alice' }] });
-        global.API.getProfileReadiness.mockResolvedValue({ score: 55, sections: [], fixes: [] });
+        global.API.getAIProfileReadiness.mockResolvedValue({ score: 55, level: 'Developing', summary: '.', sections: [], suggestions: [] });
         await act(async () => render(React.createElement(MessagingPage)));
 
         await act(async () => fireEvent.click(screen.getByTitle('Profile Readiness')));
-        expect(screen.getByText('55')).toBeInTheDocument();
+        await waitFor(() => expect(screen.getByText('55')).toBeInTheDocument());
 
         global.API.getProfileReadiness.mockClear();
         await act(async () => fireEvent.click(screen.getByTitle('Outreach Guide')));
@@ -1698,9 +1733,10 @@ describe('MessagingPage Component Tests', () => {
     test("ProfileReadinessPanel: renders 'No score available' when readiness null after API call", async () => {
         global.useFetch.mockReturnValue({ loading: false, data: [{ id: 1, participantName: 'Alice' }] });
         global.API.getProfileReadiness.mockResolvedValue(null);
+        global.API.getAIProfileReadiness.mockResolvedValue(null);
         await act(async () => render(React.createElement(MessagingPage)));
         await act(async () => fireEvent.click(screen.getByTitle('Profile Readiness')));
-        expect(screen.getByText('No score available.')).toBeInTheDocument();
+        await waitFor(() => expect(screen.getByText('No score available.')).toBeInTheDocument());
     });
 
     // M25 — WB: window.location.hash branches

@@ -583,6 +583,180 @@ def add_experience(user_id: int, entry: dict):
     return data
 
 
+def _delete_list_item(user_id: int, field: str, index: int):
+    """Generic helper: remove item at index from a list field in user's JSON blob."""
+    conn = _connect()
+    try:
+        if _USE_PG:  # pragma: no cover
+            row = _execute(conn, "SELECT data FROM users WHERE id=%s FOR UPDATE", (user_id,)).fetchone()
+        else:
+            conn.execute("BEGIN EXCLUSIVE")
+            row = _execute(conn, "SELECT data FROM users WHERE id=%s", (user_id,)).fetchone()
+        if not row:
+            conn.close()
+            return None
+        data = json.loads(row["data"])
+        lst = data.get(field, [])
+        if not (0 <= index < len(lst)):
+            conn.close()
+            return False
+        lst.pop(index)
+        data[field] = lst
+        _execute(conn, "UPDATE users SET data=%s WHERE id=%s", (json.dumps(data), user_id))
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        conn.close()
+        raise
+    conn.close()
+    return data
+
+
+def _update_list_item(user_id: int, field: str, index: int, entry: dict):
+    """Generic helper: merge entry into item at index in a list field in user's JSON blob."""
+    conn = _connect()
+    try:
+        if _USE_PG:  # pragma: no cover
+            row = _execute(conn, "SELECT data FROM users WHERE id=%s FOR UPDATE", (user_id,)).fetchone()
+        else:
+            conn.execute("BEGIN EXCLUSIVE")
+            row = _execute(conn, "SELECT data FROM users WHERE id=%s", (user_id,)).fetchone()
+        if not row:
+            conn.close()
+            return None
+        data = json.loads(row["data"])
+        lst = data.get(field, [])
+        if not (0 <= index < len(lst)):
+            conn.close()
+            return False
+        lst[index] = {**lst[index], **entry}
+        data[field] = lst
+        _execute(conn, "UPDATE users SET data=%s WHERE id=%s", (json.dumps(data), user_id))
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        conn.close()
+        raise
+    conn.close()
+    return data
+
+
+def update_experience(user_id: int, index: int, entry: dict):
+    return _update_list_item(user_id, "experience", index, entry)
+
+
+def update_education(user_id: int, index: int, entry: dict):
+    return _update_list_item(user_id, "education", index, entry)
+
+
+def update_project(user_id: int, index: int, entry: dict):
+    return _update_list_item(user_id, "projects", index, entry)
+
+
+def update_volunteering(user_id: int, index: int, entry: dict):
+    return _update_list_item(user_id, "volunteering", index, entry)
+
+
+def update_honor(user_id: int, index: int, entry: dict):
+    return _update_list_item(user_id, "honors", index, entry)
+
+
+def delete_experience(user_id: int, index: int):
+    return _delete_list_item(user_id, "experience", index)
+
+
+def delete_education(user_id: int, index: int):
+    return _delete_list_item(user_id, "education", index)
+
+
+def delete_project(user_id: int, index: int):
+    return _delete_list_item(user_id, "projects", index)
+
+
+def delete_volunteering(user_id: int, index: int):
+    return _delete_list_item(user_id, "volunteering", index)
+
+
+def delete_honor(user_id: int, index: int):
+    return _delete_list_item(user_id, "honors", index)
+
+
+def delete_skill(user_id: int, index: int):
+    return _delete_list_item(user_id, "skills", index)
+
+
+def add_experience(user_id: int, entry: dict):
+    """Append a work experience entry to a user's data. Returns updated user dict."""
+    conn = _connect()
+    row = _execute(conn, "SELECT data FROM users WHERE id=%s", (user_id,)).fetchone()
+    if not row:
+        conn.close()
+        return None
+    data = json.loads(row["data"])
+    exp_list = data.get("experience", [])
+    entry["id"] = max((e.get("id", 0) for e in exp_list), default=0) + 1
+    exp_list.insert(0, entry)
+    data["experience"] = exp_list
+    _execute(conn, "UPDATE users SET data=%s WHERE id=%s", (json.dumps(data), user_id))
+    conn.commit()
+    conn.close()
+    return data
+
+
+def add_project(user_id: int, entry: dict):
+    """Append a project entry to a user's data. Returns updated user dict."""
+    conn = _connect()
+    row = _execute(conn, "SELECT data FROM users WHERE id=%s", (user_id,)).fetchone()
+    if not row:
+        conn.close()
+        return None
+    data = json.loads(row["data"])
+    proj_list = data.get("projects", [])
+    entry["id"] = max((e.get("id", 0) for e in proj_list), default=0) + 1
+    proj_list.insert(0, entry)
+    data["projects"] = proj_list
+    _execute(conn, "UPDATE users SET data=%s WHERE id=%s", (json.dumps(data), user_id))
+    conn.commit()
+    conn.close()
+    return data
+
+
+def add_volunteering(user_id: int, entry: dict):
+    """Append a volunteering entry to a user's data. Returns updated user dict."""
+    conn = _connect()
+    row = _execute(conn, "SELECT data FROM users WHERE id=%s", (user_id,)).fetchone()
+    if not row:
+        conn.close()
+        return None
+    data = json.loads(row["data"])
+    vol_list = data.get("volunteering", [])
+    entry["id"] = max((e.get("id", 0) for e in vol_list), default=0) + 1
+    vol_list.insert(0, entry)
+    data["volunteering"] = vol_list
+    _execute(conn, "UPDATE users SET data=%s WHERE id=%s", (json.dumps(data), user_id))
+    conn.commit()
+    conn.close()
+    return data
+
+
+def add_honor(user_id: int, entry: dict):
+    """Append a honor/award entry to a user's data. Returns updated user dict."""
+    conn = _connect()
+    row = _execute(conn, "SELECT data FROM users WHERE id=%s", (user_id,)).fetchone()
+    if not row:
+        conn.close()
+        return None
+    data = json.loads(row["data"])
+    hon_list = data.get("honors", [])
+    entry["id"] = max((e.get("id", 0) for e in hon_list), default=0) + 1
+    hon_list.insert(0, entry)
+    data["honors"] = hon_list
+    _execute(conn, "UPDATE users SET data=%s WHERE id=%s", (json.dumps(data), user_id))
+    conn.commit()
+    conn.close()
+    return data
+
+
 def add_skill(user_id: int, skill: str):
     """Append a skill string to a user's skills list (no duplicates). Returns updated user dict."""
     conn = _connect()
@@ -1252,6 +1426,31 @@ def connect_user(user_id: int, target_id: int):  # pragma: no cover
     conn.commit()
     conn.close()
     return {"pending": True}
+
+
+def get_incoming_connection_requests(user_id: int):  # pragma: no cover
+    """Return users who have sent a pending connection request to user_id."""
+    conn = _connect()
+    rows = _execute(conn,
+        "SELECT user_id FROM user_pending_connections WHERE target_user_id=%s",
+        (user_id,)
+    ).fetchall()
+    conn.close()
+    requester_ids = [r["user_id"] for r in rows]
+    if not requester_ids:
+        return []
+    return [get_user_by_id(rid) for rid in requester_ids if get_user_by_id(rid)]
+
+
+def decline_connection_request(requester_id: int, target_id: int):  # pragma: no cover
+    """Remove a pending connection request without accepting it."""
+    conn = _connect()
+    _execute(conn,
+        "DELETE FROM user_pending_connections WHERE user_id=%s AND target_user_id=%s",
+        (requester_id, target_id))
+    conn.commit()
+    conn.close()
+    return {"declined": True}
 
 
 def accept_connection(user_id: int, target_id: int):  # pragma: no cover

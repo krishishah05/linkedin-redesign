@@ -1,41 +1,40 @@
 /* ============================================================
-   ADDEDUCATIONMODAL.JS — Add education entry to profile
+   ADDEDUCATIONMODAL.JS — Add or edit an education entry
    ============================================================ */
 function AddEducationModal() {
-  const { closeModal, currentUser, setCurrentUser, showToast } = React.useContext(AppContext);
+  const { closeModal, setCurrentUser, showToast, modalData } = React.useContext(AppContext);
+
+  const isEditing = !!(modalData && modalData.entry);
+  const editEntry = isEditing ? modalData.entry : null;
+  const editIndex = isEditing ? modalData.index : null;
+
   const [saving, setSaving] = React.useState(false);
   const [form, setForm] = React.useState({
-    school: '',
-    degree: '',
-    field: '',
-    startDate: '',
-    endDate: '',
+    school:    editEntry?.school    || '',
+    degree:    editEntry?.degree    || '',
+    field:     editEntry?.field     || '',
+    startDate: editEntry?.startDate || editEntry?.startYear || '',
+    endDate:   editEntry?.endDate   || editEntry?.endYear   || '',
   });
 
-  function update(key, val) {
-    setForm(prev => ({ ...prev, [key]: val }));
-  }
+  function update(key, val) { setForm(prev => ({ ...prev, [key]: val })); }
 
   function handleSave() {
     if (!form.school.trim()) { showToast('School name is required', 'error'); return; }
     if (saving) return;
     setSaving(true);
-    API.addEducation({
-      school: form.school.trim(),
-      degree: form.degree.trim(),
-      field: form.field.trim(),
-      startDate: form.startDate.trim(),
-      endDate: form.endDate.trim(),
-    })
+    const entry = {
+      school: form.school.trim(), degree: form.degree.trim(),
+      field: form.field.trim(), startDate: form.startDate.trim(), endDate: form.endDate.trim(),
+    };
+    const call = isEditing ? API.updateEducation(editIndex, entry) : API.addEducation(entry);
+    call
       .then(updated => {
         setCurrentUser(updated);
-        showToast('Education added!', 'success');
+        showToast(isEditing ? 'Education updated!' : 'Education added!', 'success');
         closeModal();
       })
-      .catch(() => {
-        showToast('Failed to save education', 'error');
-        setSaving(false);
-      });
+      .catch(() => { showToast('Failed to save education', 'error'); setSaving(false); });
   }
 
   return (
@@ -43,7 +42,7 @@ function AddEducationModal() {
       onClick={e => { if (e.target === e.currentTarget) closeModal(); }}>
       <div className="li-modal li-modal--lg">
         <div className="li-modal__header">
-          <span className="li-modal__title">Add education</span>
+          <span className="li-modal__title">{isEditing ? 'Edit education' : 'Add education'}</span>
           <button className="li-modal__close" onClick={closeModal}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
               <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>

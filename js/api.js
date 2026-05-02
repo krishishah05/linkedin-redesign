@@ -84,10 +84,25 @@
     // ── Search ────────────────────────────────────────────────
     search: (q) => request('GET', `/search?q=${encodeURIComponent(q || '')}`),
 
-    // ── Profile (education / skills) ──────────────────────────
+    // ── Profile (education / skills / experience / projects / volunteering / honors) ──
     addEducation: (entry) => request('POST', '/me/education', entry),
     addExperience: (entry) => request('POST', '/me/experience', entry),
     addSkill: (skill) => request('POST', '/me/skills', { skill }),
+    addExperience: (entry) => request('POST', '/me/experience', entry),
+    addProject: (entry) => request('POST', '/me/projects', entry),
+    addVolunteering: (entry) => request('POST', '/me/volunteering', entry),
+    addHonor: (entry) => request('POST', '/me/honors', entry),
+    updateExperience: (index, entry) => request('PUT', `/me/experience/${index}`, entry),
+    updateEducation: (index, entry) => request('PUT', `/me/education/${index}`, entry),
+    updateProject: (index, entry) => request('PUT', `/me/projects/${index}`, entry),
+    updateVolunteering: (index, entry) => request('PUT', `/me/volunteering/${index}`, entry),
+    updateHonor: (index, entry) => request('PUT', `/me/honors/${index}`, entry),
+    deleteExperience: (index) => request('DELETE', `/me/experience/${index}`),
+    deleteEducation: (index) => request('DELETE', `/me/education/${index}`),
+    deleteProject: (index) => request('DELETE', `/me/projects/${index}`),
+    deleteVolunteering: (index) => request('DELETE', `/me/volunteering/${index}`),
+    deleteHonor: (index) => request('DELETE', `/me/honors/${index}`),
+    deleteSkill: (index) => request('DELETE', `/me/skills/${index}`),
     createGroup: (data) => request('POST', '/groups', data),
 
     // ── Profile Readiness ─────────────────────────────────────
@@ -102,6 +117,8 @@
     // ── Social state ──────────────────────────────────────────
     getSocialState: () => request('GET', '/me/social'),
     toggleSavedJob: (id) => request('POST', `/me/saved-jobs/${id}`),
+    getConnectionRequests: () => request('GET', '/me/connection-requests'),
+    declineConnectionRequest: (id) => request('DELETE', `/me/connection-requests/${id}`),
     connectUser: (id) => request('POST', `/me/connections/${id}`),
     acceptConnection: (id) => request('POST', `/me/connections/${id}/accept`),
     toggleFollow: (id) => request('POST', `/me/following/${id}`),
@@ -115,6 +132,10 @@
 
     // ── AI Profile Improvement ────────────────────────────────
     getProfileImprovementTips: () => request('POST', '/profile/improve'),
+    getAIProfileReadiness: () => request('POST', '/profile-readiness/ai'),
+
+    // ── Cover Letter ──────────────────────────────────────────
+    coverLetterGenerate: (prompt) => request('POST', '/cover-letter/generate', { prompt }),
 
     // ── Account ───────────────────────────────────────────────
     login: (email, password) =>
