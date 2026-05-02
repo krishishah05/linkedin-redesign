@@ -1,6 +1,7 @@
 /* ============================================================
    FEEDPAGE.JS — Main feed (matches original app.js quality)
    ============================================================ */
+
 function FeedPage() {
   const { currentUser, likedPosts, toggleLike, following, follow, connections, openModal, showToast } = React.useContext(AppContext);
   const { data: posts, loading, error } = useFetch(API.getFeed, []);
@@ -10,6 +11,8 @@ function FeedPage() {
   const [localPosts, setLocalPosts] = React.useState(null);
   const [feedSort, setFeedSort] = React.useState('Top');
   const [expandedComments, setExpandedComments] = React.useState(new Set());
+  const [savedPostIds, setSavedPostIds] = React.useState(new Set());
+  const [dismissedAdKeys, setDismissedAdKeys] = React.useState(new Set());
 
   React.useEffect(() => { if (posts) setLocalPosts(posts); }, [posts]);
 
@@ -40,7 +43,7 @@ function FeedPage() {
       });
   const u = currentUser || {};
 
-  function handleNewPost(content, imageUrl) {
+  function handleNewPost(content, imageUrl, videoUrl) {
     const newPost = {
       id: Date.now(),
       author: u.name,
@@ -48,6 +51,7 @@ function FeedPage() {
       authorTitle: u.headline,
       content,
       image: imageUrl || null,
+      videoUrl: videoUrl || null,
       createdAt: Date.now(),
       timestamp: Date.now(),
       likeCount: 0,
@@ -57,8 +61,13 @@ function FeedPage() {
     };
     setLocalPosts(prev => [newPost, ...(prev || [])]);
     setFeedSort('Recent');
-    API.createPost(content)
-      .then(() => showToast('Post shared!', 'success'))
+    API.createPost(content, imageUrl || null, videoUrl || null)
+      .then((savedPost) => {
+        setLocalPosts(prev => (prev || []).map(p => (
+          p.id === newPost.id ? { ...p, ...savedPost } : p
+        )));
+        showToast('Post shared!', 'success');
+      })
       .catch(() => {
         setLocalPosts(prev => (prev || []).filter(p => p.id !== newPost.id));
         showToast('Failed to post. Please try again.', 'error');
@@ -139,6 +148,9 @@ function FeedPage() {
               openModal={openModal}
               showToast={showToast}
               currentUser={u}
+              savedPostIds={savedPostIds}
+              onSave={id => setSavedPostIds(prev => { const next = new Set(prev); next.has(String(id)) ? next.delete(String(id)) : next.add(String(id)); return next; })}
+              onHide={id => { setLocalPosts(prev => (prev || []).filter(p => p.id !== id)); showToast('Post removed from your feed'); }}
               onDelete={id => {
                 const deleted = (localPosts || []).find(p => p.id === id);
                 setLocalPosts(prev => prev.filter(p => p.id !== id));
@@ -217,6 +229,7 @@ function PostCreator({ user, onPost, openModal, showToast }) {
   const [mediaInputType, setMediaInputType] = React.useState('photo');
   const [showArticleTemplates, setShowArticleTemplates] = React.useState(false);
   const [isArticle, setIsArticle] = React.useState(false);
+  const [videoUrl, setVideoUrl] = React.useState('');
   const MAX = 3000;
   const photoInputRef = React.useRef(null);
 
@@ -235,9 +248,14 @@ function PostCreator({ user, onPost, openModal, showToast }) {
 
   function submit() {
     if (!draft.trim()) return;
-    onPost(draft.trim(), imageUrl || null);
-    setDraft(''); setImageUrl(''); setShowMediaInput(false);
-    setExpanded(false); setIsArticle(false); setShowArticleTemplates(false);
+    onPost(draft.trim(), imageUrl || null, videoUrl.trim() || null);
+    setDraft('');
+    setImageUrl('');
+    setVideoUrl('');
+    setShowMediaInput(false);
+    setExpanded(false);
+    setIsArticle(false);
+    setShowArticleTemplates(false);
   }
 
   function handlePhotoCapture(e) {
@@ -257,7 +275,7 @@ function PostCreator({ user, onPost, openModal, showToast }) {
       <div className="li-card li-post-creator">
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
           <button onClick={() => setShowArticleTemplates(false)}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-2)', fontSize: 22, lineHeight: 1, padding: '0 4px' }}>←</button>
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-2)', fontSize: 22, lineHeight: 1, padding: '0 4px' }}>?</button>
           <span style={{ fontWeight: 700, fontSize: 16 }}>{t('chooseTemplate')}</span>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
@@ -320,12 +338,12 @@ function PostCreator({ user, onPost, openModal, showToast }) {
           <input
             className="li-input"
             placeholder={mediaInputType === 'video' ? t('uploadVideoUrl') : t('pasteImageUrl')}
-            value={imageUrl}
-            onChange={e => setImageUrl(e.target.value)}
+            value={mediaInputType === 'video' ? videoUrl : imageUrl}
+            onChange={e => mediaInputType === 'video' ? setVideoUrl(e.target.value) : setImageUrl(e.target.value)}
             style={{ flex: 1, fontSize: 13 }}
           />
-          {imageUrl && (
-            <button onClick={() => setImageUrl('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-3)', fontSize: 18, lineHeight: 1 }}>×</button>
+          {(mediaInputType === 'video' ? videoUrl : imageUrl) && (
+            <button onClick={() => mediaInputType === 'video' ? setVideoUrl('') : setImageUrl('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-3)', fontSize: 18, lineHeight: 1 }}>×</button>
           )}
         </div>
       )}
@@ -395,17 +413,59 @@ function PostCreator({ user, onPost, openModal, showToast }) {
   );
 }
 
+/* ── SponsoredPost ───────────────────────────────────────── */
+function SponsoredPost({ ad, showToast, onDismiss }) {
+  return (
+    <div className="li-post" style={{ padding: '12px 16px' }}>
+      <div className="li-post__header">
+        <div style={{ width: 48, height: 48, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, background: 'var(--bg)', border: '1px solid var(--border)', flexShrink: 0 }}>
+          {ad.logo}
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontWeight: 700, fontSize: 14 }}>{ad.company}</div>
+          <div style={{ fontSize: 12, color: 'var(--text-2)' }}>Sponsored</div>
+        </div>
+        <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-2)', padding: 4 }}
+          onClick={onDismiss}>✕</button>
+      </div>
+      <div className="li-post__body">
+        <p className="li-post__text">{ad.desc}</p>
+      </div>
+      <div style={{ height: 140, background: ad.bg, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '8px 16px 8px', overflow: 'hidden' }}>
+        <div style={{ textAlign: 'center', color: '#fff', padding: 20 }}>
+          <div style={{ fontSize: 18, fontWeight: 800, marginBottom: 4 }}>{ad.tagline}</div>
+          <div style={{ fontSize: 13, opacity: 0.8 }}>{ad.company}</div>
+        </div>
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 16px', borderTop: '1px solid var(--border)' }}>
+        <div>
+          <div style={{ fontSize: 14, fontWeight: 700 }}>{ad.company}</div>
+          <div style={{ fontSize: 12, color: 'var(--text-2)' }}>{ad.tagline}</div>
+        </div>
+        <button onClick={() => navigate(`search?q=${encodeURIComponent(ad.company)}`)}
+          style={{ background: 'none', border: '1.5px solid var(--text-2)', color: 'var(--text)', borderRadius: 20, padding: '6px 16px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
+          {ad.cta}
+        </button>
+      </div>
+    </div>
+  );
+}
 
 /* ── FeedPost ────────────────────────────────────────────── */
-function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, following, onFollow, openModal, showToast, currentUser, onDelete }) {
+function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, following, onFollow, openModal, showToast, currentUser, onDelete, onHide, onSave, savedPostIds }) {
   const [menuOpen, setMenuOpen] = React.useState(false);
   const [reactionHover, setReactionHover] = React.useState(false);
   const [reactionTimer, setReactionTimer] = React.useState(null);
   const [localReaction, setLocalReaction] = React.useState(null);
   const [commentDraft, setCommentDraft] = React.useState('');
-  const [localComments, setLocalComments] = React.useState(post.comments || post.commentsList || []);
-  const [replyingTo, setReplyingTo] = React.useState(null); // index of comment being replied to
+  const [localComments, setLocalComments] = React.useState(() => {
+    const raw = Array.isArray(post.comments) ? post.comments : Array.isArray(post.commentsList) ? post.commentsList : [];
+    return raw.map((c, i) => c._localKey ? c : { ...c, _localKey: c.id != null ? String(c.id) : `seed-${i}` });
+  });
+  const [likedComments, setLikedComments] = React.useState(new Set());
+  const [replyingTo, setReplyingTo] = React.useState(null);
   const [replyDraft, setReplyDraft] = React.useState('');
+  const [showAllComments, setShowAllComments] = React.useState(false);
 
   const authorId = post.authorId || (post.author && post.author.id) || 2;
   const authorName = post.author?.name || post.author || post.authorName || 'User';
@@ -414,7 +474,7 @@ function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, followi
 
   const totalReactions = post.likeCount || post.totalReactions ||
     (post.reactions ? Object.values(post.reactions).reduce((a, b) => a + b, 0) : 0);
-  const commentCount = post.commentCount || (typeof post.comments === 'number' ? post.comments : (post.commentsList?.length || 0));
+  const commentCount = localComments.length || post.commentCount || (typeof post.comments === 'number' ? post.comments : 0);
   const repostCount = post.repostCount || post.reposts || 0;
 
   const reactionLabels = { like: 'Like', celebrate: 'Celebrate', love: 'Love', support: 'Support', insightful: 'Insightful', curious: 'Curious', funny: 'Funny' };
@@ -451,7 +511,10 @@ function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, followi
     if (!commentDraft.trim()) return;
     const u = currentUser || {};
     const text = commentDraft.trim();
+    const cid = `c-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
     setLocalComments(prev => [{
+      id: cid,
+      _localKey: cid,
       author: u.name || 'You',
       authorHeadline: u.headline,
       text,
@@ -466,7 +529,7 @@ function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, followi
   const content = post.content || '';
 
   return (
-    <div className="li-post">
+    <div className="li-post" id={`post-${post.id}`}>
       {/* Header */}
       <div className="li-post__header">
         <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', flex: 1 }}>
@@ -507,7 +570,8 @@ function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, followi
               <div className="li-dropdown" style={{ display: 'block', position: 'absolute', top: '100%', right: 0, minWidth: 200, zIndex: 100 }}>
                 {[
                   ...(currentUser && (post.authorId === currentUser.id || post.authorId === String(currentUser.id)) ? ['Delete post'] : []),
-                  'Save post', 'Copy link to post', 'Not interested', 'Report post'
+                  savedPostIds && savedPostIds.has(String(post.id)) ? 'Unsave post' : 'Save post',
+                  'Copy link to post', 'Not interested', 'Report post'
                 ].map(label => (
                   <div key={label} className="li-dropdown__item"
                     style={label === 'Delete post' ? { color: 'var(--red)' } : {}}
@@ -515,6 +579,14 @@ function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, followi
                       setMenuOpen(false);
                       if (label === 'Delete post') { onDelete && onDelete(post.id); showToast('Post deleted'); }
                       else if (label === 'Report post') openModal('report', { post });
+                      else if (label === 'Copy link to post') {
+                        copyLink(`${window.location.origin}${window.location.pathname}#post-${post.id}`, showToast);
+                      }
+                      else if (label === 'Save post' || label === 'Unsave post') {
+                        onSave && onSave(post.id);
+                        showToast(label === 'Save post' ? 'Post saved' : 'Post unsaved');
+                      }
+                      else if (label === 'Not interested') { onHide && onHide(post.id); }
                       else showToast(label);
                     }}>
                     {label}
@@ -542,16 +614,19 @@ function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, followi
           </div>
         )}
       </div>
-      {post.image && (
+      {post.videoUrl && (
+        <video src={post.videoUrl} controls className="li-post__image" style={{ width: '100%' }} />
+      )}
+      {!post.videoUrl && post.image && (
         <img src={post.image} alt="" className="li-post__image"
           style={{ cursor: 'zoom-in' }}
-          onClick={() => showToast('Image viewer — coming soon')} />
+          onClick={() => openModal('imageViewer', { src: post.image })} />
       )}
 
       {/* Reactions count row */}
       {(totalReactions > 0 || commentCount > 0 || repostCount > 0) && (
         <div className="li-post__reactions">
-          <div className="li-post__reaction-icons" style={{ cursor: 'pointer' }} onClick={() => showToast('Reactions — coming soon')}>
+          <div className="li-post__reaction-icons">
             {topReactLabels.length > 0 && (
               <span style={{ display: 'flex', marginRight: 4 }}>
                 {topReactLabels.map((e, i) => (
@@ -626,7 +701,7 @@ function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, followi
           <span>Repost</span>
         </button>
 
-        <button className="li-post__action" onClick={() => showToast('Link copied!')} style={{ flex: 1 }}>
+        <button className="li-post__action" onClick={() => copyLink(`${window.location.origin}${window.location.pathname}#post-${post.id}`, showToast)} style={{ flex: 1 }}>
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.5">
             <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
@@ -655,12 +730,14 @@ function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, followi
           </div>
 
           {/* Comment list */}
-          {localComments.slice(0, 3).map((c, i) => {
+          {localComments.slice(0, showAllComments ? localComments.length : 3).map((c, i) => {
+            const authorStr = typeof c.author === 'string' ? c.author : (c.author?.id || c.author?.name || '');
+            const cKey = c._localKey || c.id || `${authorStr}-${c.timestamp}-${i}`;
             const cName = c.author?.name || c.authorName || c.author || 'User';
             const cText = c.text || c.content || '';
             const cHeadline = c.author?.headline || c.authorHeadline || '';
             return (
-              <div key={i} className="li-comment">
+              <div key={cKey} className="li-comment">
                 <div className="li-comment__photo" style={{ background: 'var(--blue)' }}>
                   {getInitials(cName)}
                 </div>
@@ -672,12 +749,14 @@ function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, followi
                   </div>
                   <div className="li-comment__actions">
                     {c.timestamp && <span style={{ fontSize: 12, color: 'var(--text-3)' }}>{typeof c.timestamp === 'string' ? c.timestamp : formatTime(c.timestamp)}</span>}
+                    <button style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 600, padding: 0, color: likedComments.has(cKey) ? 'var(--blue)' : 'var(--text-2)' }}
+                      onClick={() => setLikedComments(prev => { const next = new Set(prev); if (next.has(cKey)) next.delete(cKey); else next.add(cKey); return next; })}>
+                      {likedComments.has(cKey) ? 'Liked' : 'Like'}
+                    </button>
                     <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-2)', fontSize: 12, fontWeight: 600, padding: 0 }}
-                      onClick={() => showToast('Liked comment!')}>Like</button>
-                    <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-2)', fontSize: 12, fontWeight: 600, padding: 0 }}
-                      onClick={() => showToast('Reply — coming soon')}>Reply</button>
+                      onClick={() => setReplyingTo(cKey)}>Reply</button>
                   </div>
-                  {replyingTo === i && (
+                  {replyingTo === cKey && (
                     <div style={{ display: 'flex', gap: 8, marginTop: 6, marginLeft: 40 }}>
                       <input
                         autoFocus
@@ -687,8 +766,8 @@ function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, followi
                         onChange={e => setReplyDraft(e.target.value)}
                         onKeyDown={e => {
                           if (e.key === 'Enter' && replyDraft.trim()) {
-                            const reply = { author: currentUser?.name || 'You', text: `@${cName} ${replyDraft.trim()}`, timestamp: 'Just now', likes: 0 };
-                            setLocalComments(prev => { const next = [...prev]; next.splice(ci + 1, 0, reply); return next; });
+                            const rid = `r-${Date.now()}`; const reply = { id: rid, _localKey: rid, author: currentUser?.name || 'You', text: `@${cName} ${replyDraft.trim()}`, timestamp: 'Just now', likes: 0 };
+                            setLocalComments(prev => { const next = [...prev]; next.splice(i + 1, 0, reply); return next; });
                             setReplyDraft(''); setReplyingTo(null);
                           } else if (e.key === 'Escape') { setReplyingTo(null); }
                         }}
@@ -697,8 +776,8 @@ function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, followi
                       <button className="li-btn li-btn--primary" style={{ fontSize: 12, padding: '4px 10px' }}
                         onClick={() => {
                           if (!replyDraft.trim()) return;
-                          const reply = { author: currentUser?.name || 'You', text: `@${cName} ${replyDraft.trim()}`, timestamp: 'Just now', likes: 0 };
-                          setLocalComments(prev => { const next = [...prev]; next.splice(ci + 1, 0, reply); return next; });
+                          const rid = `r-${Date.now()}`; const reply = { id: rid, _localKey: rid, author: currentUser?.name || 'You', text: `@${cName} ${replyDraft.trim()}`, timestamp: 'Just now', likes: 0 };
+                          setLocalComments(prev => { const next = [...prev]; next.splice(i + 1, 0, reply); return next; });
                           setReplyDraft(''); setReplyingTo(null);
                         }}>Reply</button>
                     </div>
@@ -707,10 +786,10 @@ function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, followi
               </div>
             );
           })}
-          {commentCount > 3 && (
+          {localComments.length > 3 && (
             <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-2)', fontSize: 13, fontWeight: 600 }}
-              onClick={() => showToast('Loading all comments...')}>
-              View all {formatNumber(commentCount)} comments
+              onClick={() => setShowAllComments(v => !v)}>
+              {showAllComments ? 'Show fewer comments' : `View all ${formatNumber(localComments.length)} comments`}
             </button>
           )}
         </div>
