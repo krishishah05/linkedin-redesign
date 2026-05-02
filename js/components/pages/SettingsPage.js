@@ -196,7 +196,9 @@ function SettingsPage() {
                 />
                 <div style={{ paddingTop: 16 }}>
                   <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 10 }}>Language</h3>
-                  <select className="li-settings-input" style={{ width: 200 }}>
+                  <select className="li-settings-input" style={{ width: 200 }}
+                    value={settings.language || 'English'}
+                    onChange={e => { setSettings(s => ({ ...s, language: e.target.value })); showToast(`Language set to ${e.target.value}`); }}>
                     <option>English</option>
                     <option>Spanish</option>
                     <option>French</option>
@@ -272,10 +274,35 @@ function SettingsPage() {
                 <div style={{ marginTop: 24, padding: 16, background: 'var(--bg-2)', borderRadius: 8 }}>
                   <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 8 }}>Download your data</h3>
                   <p style={{ fontSize: 13, color: 'var(--text-2)', marginBottom: 12 }}>
-                    Get a copy of your Nexus data including your connections, messages, and posts.
+                    Get a copy of your Nexus data including your profile and settings.
                   </p>
-                  <button className="li-btn li-btn--outline li-btn--sm" onClick={() => showToast('Data export requested — check your email')}>
-                    Request data export
+                  <button className="li-btn li-btn--outline li-btn--sm" onClick={() => {
+                    let url, a;
+                    try {
+                      const exportData = {
+                        exportDate: new Date().toISOString(),
+                        profile: currentUser ? {
+                          name: currentUser.name, email: currentUser.email,
+                          headline: currentUser.headline, location: currentUser.location,
+                          about: currentUser.about,
+                        } : {},
+                        settings,
+                      };
+                      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+                      url = URL.createObjectURL(blob);
+                      a = document.createElement('a');
+                      a.href = url;
+                      const exportDate = new Date().toISOString().slice(0, 10);
+                      a.download = `nexus-data-export-${exportDate}.json`;
+                      document.body.appendChild(a); a.click();
+                      showToast('Data exported successfully!', 'success');
+                    } catch { showToast('Export failed — please try again', 'error'); }
+                    finally {
+                      if (a && a.parentNode) a.parentNode.removeChild(a);
+                      if (url) setTimeout(() => URL.revokeObjectURL(url), 0);
+                    }
+                  }}>
+                    Download my data
                   </button>
                 </div>
               </div>

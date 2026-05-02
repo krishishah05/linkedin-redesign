@@ -198,6 +198,64 @@ def test_IT_U06_add_education_missing_school(base_url, auth_headers):
     assert resp.status_code == 400
 
 
+def test_IT_U07a_add_experience_entry(base_url, auth_headers):
+    """IT-U07a: Add experience entry (happy path)."""
+    title = f"Software Engineer {uuid.uuid4().hex[:8]}"
+    resp = requests.post(
+        _url(base_url, "/me/experience"),
+        headers=auth_headers,
+        json={"title": title, "company": "Nexus Corp", "location": "NYC", "startDate": "Jan 2023", "current": True},
+        timeout=TIMEOUT,
+    )
+    assert resp.status_code == 200
+    experience = resp.json().get("experience", [])
+    titles = [e.get("title") for e in experience]
+    assert title in titles
+
+
+def test_IT_U07b_add_experience_missing_title(base_url, auth_headers):
+    """IT-U07b: Add experience without title returns 400."""
+    resp = requests.post(
+        _url(base_url, "/me/experience"),
+        headers=auth_headers,
+        json={"company": "Nexus Corp"},
+        timeout=TIMEOUT,
+    )
+    assert resp.status_code == 400
+
+
+def test_IT_U07c_add_experience_missing_company(base_url, auth_headers):
+    """IT-U07c: Add experience without company returns 400."""
+    resp = requests.post(
+        _url(base_url, "/me/experience"),
+        headers=auth_headers,
+        json={"title": "Engineer"},
+        timeout=TIMEOUT,
+    )
+    assert resp.status_code == 400
+
+
+def test_IT_U07d_add_experience_unauthenticated(base_url):
+    """IT-U07d: Add experience without auth returns 401."""
+    resp = requests.post(
+        _url(base_url, "/me/experience"),
+        json={"title": "Engineer", "company": "ACME"},
+        timeout=TIMEOUT,
+    )
+    assert resp.status_code == 401
+
+
+def test_IT_U07e_add_experience_invalid_current(base_url, auth_headers):
+    """IT-U07e: current field must be a boolean; string value returns 400."""
+    resp = requests.post(
+        _url(base_url, "/me/experience"),
+        headers=auth_headers,
+        json={"title": "Engineer", "company": "ACME", "current": "false"},
+        timeout=TIMEOUT,
+    )
+    assert resp.status_code == 400
+
+
 def test_IT_U07_add_skill(base_url, auth_headers):
     """IT-U07: Add skill."""
     resp = requests.post(

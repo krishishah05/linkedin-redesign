@@ -50,6 +50,7 @@ function ProfilePage({ userId }) {
   const { data: feedData } = useFetch(API.getFeed, []);
 
   const [expandedSections, setExpandedSections] = React.useState(new Set());
+  const [moreMenuOpen, setMoreMenuOpen] = React.useState(false);
   const [aiTips, setAiTips] = React.useState(null);
   const [aiLoading, setAiLoading] = React.useState(false);
   const [aiError, setAiError] = React.useState(null);
@@ -172,7 +173,7 @@ function ProfilePage({ userId }) {
                       <button className="li-btn li-btn--outline li-btn--sm" onClick={() => openModal('edit-profile')}>Edit profile</button>
                       <button className="li-btn li-btn--ghost li-btn--sm" onClick={() => {
                         const url = window.location.href.split('#')[0] + '#profile?id=' + user.id;
-                        navigator.clipboard?.writeText(url).then(() => showToast('Profile link copied!', 'success')).catch(() => showToast('Failed to copy profile link', 'error'));
+                        copyLink(url, showToast);
                       }}>Share</button>
                       <button
                         className="li-btn li-btn--ghost li-btn--sm"
@@ -203,7 +204,26 @@ function ProfilePage({ userId }) {
                       >
                         {isFollowing ? 'Following' : 'Follow'}
                       </button>
-                      <button className="li-btn li-btn--ghost li-btn--sm" onClick={() => showToast('More options')}>···</button>
+                      <div style={{ position: 'relative' }}>
+                        <button className="li-btn li-btn--ghost li-btn--sm" onClick={() => setMoreMenuOpen(v => !v)}>···</button>
+                        {moreMenuOpen && (
+                          <div style={{ position: 'absolute', right: 0, top: '100%', marginTop: 4, background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 8, boxShadow: '0 4px 16px rgba(0,0,0,0.12)', zIndex: 200, minWidth: 160, overflow: 'hidden' }}
+                            onMouseLeave={() => setMoreMenuOpen(false)}>
+                            <button style={{ display: 'block', width: '100%', textAlign: 'left', padding: '10px 16px', background: 'none', border: 'none', fontSize: 14, cursor: 'pointer', color: 'var(--text)' }}
+                              onClick={() => { setMoreMenuOpen(false); openModal('report', { targetName: user.name }); }}>
+                              Report
+                            </button>
+                            <button style={{ display: 'block', width: '100%', textAlign: 'left', padding: '10px 16px', background: 'none', border: 'none', fontSize: 14, cursor: 'pointer', color: 'var(--text)' }}
+                              onClick={() => {
+                                setMoreMenuOpen(false);
+                                const url = window.location.href.split('#')[0] + '#profile?id=' + user.id;
+                                copyLink(url, showToast);
+                              }}>
+                              Copy profile link
+                            </button>
+                          </div>
+                        )}
+                      </div>
                       {currentUser?.isRecruiter && recruiterMode && (() => {
                         const inPipeline = shortlisted.has(String(user.id));
                         return (

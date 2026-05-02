@@ -18,15 +18,15 @@ jobs:
       - name: Wake up Render (free tier cold-start)
         run: |
           echo "Pinging Render until it responds…"
-          for i in $(seq 1 24); do
-            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$BASE/jobs" --max-time 10 || echo "000")
+          for i in $(seq 1 36); do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$BASE/jobs" --max-time 15 || echo "000")
             echo "  attempt $i — HTTP $STATUS"
             if [ "$STATUS" = "200" ]; then
               echo "Service is up."
               break
             fi
-            if [ "$i" = "24" ]; then
-              echo "Service did not respond after 2 minutes."
+            if [ "$i" = "36" ]; then
+              echo "Service did not respond after 3 minutes."
               exit 1
             fi
             sleep 5

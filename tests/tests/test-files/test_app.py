@@ -109,7 +109,7 @@ def client(monkeypatch):
     # Feed
     monkeypatch.setattr(flask_app.dbl, "get_all_posts", lambda: [MOCK_POST])
     monkeypatch.setattr(flask_app.dbl, "create_post",
-                        lambda uid, content: {**MOCK_POST, "content": content})
+                        lambda uid, content, image_url=None, video_url=None: {**MOCK_POST, "content": content, **({"image": image_url} if image_url else {}), **({"videoUrl": video_url} if video_url else {})})
     monkeypatch.setattr(flask_app.dbl, "get_post_likes_for_user", lambda uid: set())
     monkeypatch.setattr(flask_app.dbl, "toggle_post_like",
                         lambda pid, uid: {"liked": True, "likeCount": 1})

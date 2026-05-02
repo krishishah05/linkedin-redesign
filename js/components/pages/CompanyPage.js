@@ -15,7 +15,7 @@ function CompanyPage({ companyId }) {
   const isFollowing = following.has(String(companyId));
   const companyJobs = (jobs || []).filter(j => j.company === company.name || j.companyId === company.id).slice(0, 5);
   const employees = (allUsers || []).filter(u => {
-    const currentExp = (u.experience || []).find(e => e.current);
+    const currentExp = Array.isArray(u.experience) ? u.experience.find(e => e.current) : null;
     return currentExp && currentExp.company === company.name;
   });
 
@@ -56,7 +56,12 @@ function CompanyPage({ companyId }) {
               >
                 {isFollowing ? 'Following' : '+ Follow'}
               </button>
-              <button className="li-btn li-btn--primary li-btn--sm" onClick={() => showToast('Website opened in new tab')}>
+              <button className="li-btn li-btn--primary li-btn--sm" onClick={() => {
+                const raw = (company.website || '').trim();
+                const url = raw ? (raw.toLowerCase().startsWith('http') ? raw : `https://${raw}`) : null;
+                if (url) { window.open(url, '_blank', 'noopener,noreferrer'); }
+                else { showToast('No website available'); }
+              }}>
                 Visit website
               </button>
             </div>

@@ -175,8 +175,8 @@ function JobDetailPanel({ job, descLoading, savedJobs, toggleSaveJob, openModal,
       <div style={{ display: 'flex', gap: 16, marginBottom: 20 }}>
         <div style={{
           width: 56, height: 56, borderRadius: 8, background: 'var(--bg-2)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, flexShrink: 0,
-        }}>Job</div>
+          display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, flexShrink: 0, fontWeight: 700, color: 'var(--text-2)',
+        }}>{((job.company || '').trim() || 'J')[0].toUpperCase()}</div>
         <div style={{ flex: 1 }}>
           <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>{job.title}</h2>
           <div style={{ fontSize: 14, color: 'var(--text-2)', marginBottom: 2 }}>

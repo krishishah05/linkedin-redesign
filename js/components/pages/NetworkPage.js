@@ -10,6 +10,7 @@ function NetworkPage() {
   } = React.useContext(AppContext);
   const { data: users, loading: usersLoading } = useFetch(API.getUsers, []);
   const [tab, setTab] = React.useState('suggestions');
+  const [showAllInvitations, setShowAllInvitations] = React.useState(false);
 
   // Real incoming connection requests from other users
   const [incomingRequests, setIncomingRequests] = React.useState([]);
@@ -78,12 +79,13 @@ function NetworkPage() {
                 ))}
 
                 {/* Seeded invitations */}
-                {visibleInvitations.slice(0, 3).map((inv) => {
+                {visibleInvitations.slice(0, 3).map((inv, i) => {
                   const invUser = inv.user || inv;
                   const invName = invUser.name || inv.senderName || 'Unknown';
                   const invHeadline = invUser.headline || inv.headline || inv.title || '';
+                  const invKey = String(invUser.id || inv.senderId || `${invName}-${i}`);
                   return (
-                    <div key={invName} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div key={invKey} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                       <Avatar name={invName} size={48} colorOverride={invUser.avatarColor} />
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ fontSize: 14, fontWeight: 600 }}>{invName}</div>
