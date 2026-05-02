@@ -4,7 +4,10 @@
    Flask backend must be running on http://localhost:5000
    ============================================================ */
 (function () {
-  const BASE = 'https://linkedin-redesign-z364.onrender.com/api';
+  const LOCAL_API = `${window.location.protocol}//${window.location.hostname}:5000/api`;
+  const BASE = ['localhost', '127.0.0.1'].includes(window.location.hostname)
+    ? LOCAL_API
+    : 'https://linkedin-redesign-z364.onrender.com/api';
 
   function getToken() {
     try { return localStorage.getItem('nx-token') || ''; } catch { return ''; }
@@ -129,6 +132,8 @@
     // ── Conference Stories ────────────────────────────────────
     getConferenceStories: () => request('GET', '/conference-stories'),
     createConferenceStory: (data) => request('POST', '/conference-stories', data),
+    searchConferences: (location, field) =>
+      request('GET', `/conferences/search?location=${encodeURIComponent(location || '')}&field=${encodeURIComponent(field || '')}`),
 
     // ── AI Profile Improvement ────────────────────────────────
     getProfileImprovementTips: () => request('POST', '/profile/improve'),

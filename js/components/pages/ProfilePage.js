@@ -1,5 +1,5 @@
-/* ============================================================
-   PROFILEPAGE.JS — User profile
+﻿/* ============================================================
+   PROFILEPAGE.JS - User profile
    ============================================================ */
 
 /* Sub-component: pulls real users from API for "People also viewed" */
@@ -103,7 +103,7 @@ function ProfilePage({ userId }) {
       .catch(err => { setAiReadinessError(err.message || 'AI evaluation failed'); setAiReadinessLoading(false); });
   }
 
-  // AI readiness is triggered manually via the Analyze button — no auto-fetch on load
+  // AI readiness is triggered manually via the Analyze button - no auto-fetch on load
 
   function toggleSection(key) {
     setExpandedSections(prev => {
@@ -198,8 +198,7 @@ function ProfilePage({ userId }) {
                     <>
                       <button className="li-btn li-btn--outline li-btn--sm" onClick={() => openModal('edit-profile')}>Edit profile</button>
                       <button className="li-btn li-btn--ghost li-btn--sm" onClick={() => {
-                        const url = window.location.href.split('#')[0] + '#profile?id=' + user.id;
-                        copyLink(url, showToast);
+                        copyLink(getNexusProfileUrl(user), showToast);
                       }}>Share</button>
                     </>
                   ) : (
@@ -222,7 +221,7 @@ function ProfilePage({ userId }) {
                         {isFollowing ? 'Following' : 'Follow'}
                       </button>
                       <div style={{ position: 'relative' }}>
-                        <button className="li-btn li-btn--ghost li-btn--sm" onClick={() => setMoreMenuOpen(v => !v)}>···</button>
+                        <button className="li-btn li-btn--ghost li-btn--sm" onClick={() => setMoreMenuOpen(v => !v)}>Â·Â·Â·</button>
                         {moreMenuOpen && (
                           <div style={{ position: 'absolute', right: 0, top: '100%', marginTop: 4, background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 8, boxShadow: '0 4px 16px rgba(0,0,0,0.12)', zIndex: 200, minWidth: 160, overflow: 'hidden' }}
                             onMouseLeave={() => setMoreMenuOpen(false)}>
@@ -233,8 +232,7 @@ function ProfilePage({ userId }) {
                             <button style={{ display: 'block', width: '100%', textAlign: 'left', padding: '10px 16px', background: 'none', border: 'none', fontSize: 14, cursor: 'pointer', color: 'var(--text)' }}
                               onClick={() => {
                                 setMoreMenuOpen(false);
-                                const url = window.location.href.split('#')[0] + '#profile?id=' + user.id;
-                                copyLink(url, showToast);
+                                copyLink(getNexusProfileUrl(user), showToast);
                               }}>
                               Copy profile link
                             </button>
@@ -263,7 +261,7 @@ function ProfilePage({ userId }) {
                               }
                             }}
                           >
-                            {inPipeline ? '✓ Shortlisted' : '+ Shortlist'}
+                            {inPipeline ? 'âœ“ Shortlisted' : '+ Shortlist'}
                           </button>
                         );
                       })()}
@@ -314,7 +312,7 @@ function ProfilePage({ userId }) {
                       </button>
                     ) : null}
 
-                    {/* Dropdown picker — own profile only */}
+                    {/* Dropdown picker - own profile only */}
                     {isOwnProfile && statusPickerOpen && (
                       <div style={{
                         position: 'absolute', top: '100%', left: 0, marginTop: 6, zIndex: 200,
@@ -332,7 +330,7 @@ function ProfilePage({ userId }) {
                             <button key={o.key} onClick={() => {
                               setUserStatus(o.key);
                               setStatusPickerOpen(false);
-                              if (o.key === 'conferences') { showToast('Explore conferences near you →', 'success'); navigate('conferences'); }
+                              if (o.key === 'conferences') { showToast('Explore conferences near you â†’', 'success'); navigate('conferences'); }
                               else if (o.key === 'recruiting') showToast('Recruiter Mode is now available in the Me menu', 'success');
                               else if (o.key !== 'not_looking') showToast(`Status set to "${o.label}"`, 'success');
                             }} style={{
@@ -377,7 +375,7 @@ function ProfilePage({ userId }) {
                   <p style={{ fontSize: 14, color: 'var(--text)', lineHeight: 1.6 }}>
                     {expandedSections.has('about') || user.about.length <= 300
                       ? user.about
-                      : user.about.slice(0, 300) + '…'}
+                      : user.about.slice(0, 300) + '...'}
                   </p>
                   {user.about.length > 300 && (
                     <button className="li-btn li-btn--ghost li-btn--sm" style={{ marginTop: 8 }} onClick={() => toggleSection('about')}>
@@ -410,13 +408,13 @@ function ProfilePage({ userId }) {
                 </div>
                 {userPosts.length === 0 ? (
                   <p style={{ fontSize: 14, color: 'var(--text-2)', marginTop: 12 }}>
-                    {isOwnProfile ? 'Share an article, photo, or idea — your posts will appear here.' : `${user.name} hasn't posted recently.`}
+                    {isOwnProfile ? 'Share an article, photo, or idea - your posts will appear here.' : `${user.name} hasn't posted recently.`}
                   </p>
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 12 }}>
                     {userPosts.map(post => (
                       <div key={post.id} style={{ padding: '12px 0', borderBottom: '1px solid var(--border)', fontSize: 14, color: 'var(--text)', lineHeight: 1.5 }}>
-                        <p style={{ margin: '0 0 4px' }}>{(post.content || '').slice(0, 200)}{(post.content || '').length > 200 ? '…' : ''}</p>
+                        <p style={{ margin: '0 0 4px' }}>{(post.content || '').slice(0, 200)}{(post.content || '').length > 200 ? '...' : ''}</p>
                         <span style={{ fontSize: 12, color: 'var(--text-3)' }}>{formatTime(post.timestamp || post.createdAt)}</span>
                       </div>
                     ))}
@@ -449,8 +447,8 @@ function ProfilePage({ userId }) {
                         </div>
                         <div style={{ flex: 1 }}>
                           <div style={{ fontSize: 15, fontWeight: 700 }}>{exp.title}</div>
-                          <div style={{ fontSize: 14, color: 'var(--text-2)' }}>{exp.company}{exp.type && ` · ${exp.type}`}</div>
-                          <div style={{ fontSize: 13, color: 'var(--text-3)' }}>{exp.startDate} – {exp.endDate || 'Present'}{exp.duration && ` · ${exp.duration}`}</div>
+                          <div style={{ fontSize: 14, color: 'var(--text-2)' }}>{exp.company}{exp.type && ` Â· ${exp.type}`}</div>
+                          <div style={{ fontSize: 13, color: 'var(--text-3)' }}>{exp.startDate} - {exp.endDate || 'Present'}{exp.duration && ` Â· ${exp.duration}`}</div>
                           {exp.location && <div style={{ fontSize: 13, color: 'var(--text-3)' }}>{exp.location}</div>}
                           {exp.description && <p style={{ fontSize: 14, color: 'var(--text-2)', marginTop: 8, lineHeight: 1.5 }}>{exp.description}</p>}
                         </div>
@@ -492,8 +490,8 @@ function ProfilePage({ userId }) {
                       </div>
                       <div style={{ flex: 1 }}>
                         <div style={{ fontSize: 15, fontWeight: 700 }}>{edu.school}</div>
-                        <div style={{ fontSize: 14, color: 'var(--text-2)' }}>{edu.degree}{edu.field && ` · ${edu.field}`}</div>
-                        <div style={{ fontSize: 13, color: 'var(--text-3)' }}>{edu.startYear || edu.startDate} – {edu.endYear || edu.endDate || 'Present'}</div>
+                        <div style={{ fontSize: 14, color: 'var(--text-2)' }}>{edu.degree}{edu.field && ` Â· ${edu.field}`}</div>
+                        <div style={{ fontSize: 13, color: 'var(--text-3)' }}>{edu.startYear || edu.startDate} - {edu.endYear || edu.endDate || 'Present'}</div>
                         {edu.activities && <div style={{ fontSize: 13, color: 'var(--text-2)', marginTop: 4 }}>{edu.activities}</div>}
                       </div>
                       {isOwnProfile && <div style={{ display: 'flex', gap: 2 }}>
@@ -527,7 +525,7 @@ function ProfilePage({ userId }) {
                       </div>
                       <div style={{ flex: 1 }}>
                         <div style={{ fontSize: 15, fontWeight: 700 }}>{proj.name}</div>
-                        {proj.startDate && <div style={{ fontSize: 13, color: 'var(--text-3)' }}>{proj.startDate}{proj.endDate ? ` – ${proj.endDate}` : ''}</div>}
+                        {proj.startDate && <div style={{ fontSize: 13, color: 'var(--text-3)' }}>{proj.startDate}{proj.endDate ? ` - ${proj.endDate}` : ''}</div>}
                         {proj.description && <p style={{ fontSize: 14, color: 'var(--text-2)', marginTop: 4, lineHeight: 1.5 }}>{proj.description}</p>}
                         {proj.url && /^https?:\/\//i.test(proj.url) && <a href={proj.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 13, color: 'var(--blue)' }}>{proj.url}</a>}
                       </div>
@@ -540,7 +538,7 @@ function ProfilePage({ userId }) {
                   })}
                 </div>
               ) : (
-                <p style={{ fontSize: 14, color: 'var(--text-2)' }}>Showcase your work — add projects you've built or contributed to.</p>
+                <p style={{ fontSize: 14, color: 'var(--text-2)' }}>Showcase your work - add projects you've built or contributed to.</p>
               )}
             </div>
           )}
@@ -565,7 +563,7 @@ function ProfilePage({ userId }) {
                         <div style={{ fontSize: 15, fontWeight: 700 }}>{vol.role}</div>
                         <div style={{ fontSize: 14, color: 'var(--text-2)' }}>{vol.organization}</div>
                         {vol.cause && <div style={{ fontSize: 13, color: 'var(--text-3)' }}>{vol.cause}</div>}
-                        {vol.startDate && <div style={{ fontSize: 13, color: 'var(--text-3)' }}>{vol.startDate}{vol.endDate ? ` – ${vol.endDate}` : ''}</div>}
+                        {vol.startDate && <div style={{ fontSize: 13, color: 'var(--text-3)' }}>{vol.startDate}{vol.endDate ? ` - ${vol.endDate}` : ''}</div>}
                         {vol.description && <p style={{ fontSize: 14, color: 'var(--text-2)', marginTop: 4, lineHeight: 1.5 }}>{vol.description}</p>}
                       </div>
                       {isOwnProfile && <div style={{ display: 'flex', gap: 2 }}>
@@ -602,7 +600,7 @@ function ProfilePage({ userId }) {
                               aria-label={`Remove ${label} skill`}
                               style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-3)', padding: 0, lineHeight: 0, fontSize: 14, fontWeight: 700 }}
                               onMouseEnter={e => e.currentTarget.style.color = 'var(--red, #cc1016)'}
-                              onMouseLeave={e => e.currentTarget.style.color = 'var(--text-3)'}>×</button>
+                              onMouseLeave={e => e.currentTarget.style.color = 'var(--text-3)'}>Ã-</button>
                           )}
                         </span>
                       );
@@ -731,7 +729,7 @@ function ProfilePage({ userId }) {
                           setLocalCerts(updated);
                           try { localStorage.setItem(certStorageKey, JSON.stringify(updated)); } catch {}
                           showToast('Certification removed');
-                        }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-3)', fontSize: 18, lineHeight: 1, alignSelf: 'flex-start', padding: 0 }}>×</button>
+                        }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-3)', fontSize: 18, lineHeight: 1, alignSelf: 'flex-start', padding: 0 }}>Ã-</button>
                       )}
                     </div>
                   ))}
@@ -759,13 +757,13 @@ function ProfilePage({ userId }) {
                     style={{ fontSize: 12, padding: '3px 8px' }}
                     title="AI quality evaluation"
                   >
-                    {aiReadinessLoading ? 'Analyzing…' : '✦ Analyze'}
+                    {aiReadinessLoading ? 'Analyzing...' : ' Analyze'}
                   </button>
                 </div>
 
                 {/* Loading state */}
                 {aiReadinessLoading && !aiReadiness && (
-                  <div style={{ fontSize: 13, color: 'var(--text-3)', marginBottom: 8 }}>✦ Analyzing quality…</div>
+                  <div style={{ fontSize: 13, color: 'var(--text-3)', marginBottom: 8 }}> Analyzing quality...</div>
                 )}
 
                 {/* Error state */}
@@ -773,14 +771,14 @@ function ProfilePage({ userId }) {
                   <div style={{ fontSize: 12, color: 'var(--red)', marginBottom: 8 }}>{aiReadinessError}</div>
                 )}
 
-                {/* Score bar — only shown once AI data is ready */}
+                {/* Score bar - only shown once AI data is ready */}
                 {aiReadiness && (
                   <>
                     <div style={{ height: 6, background: 'var(--bg-2)', borderRadius: 3, marginBottom: 6 }}>
                       <div style={{ height: '100%', width: `${score}%`, background: barColor, borderRadius: 3, transition: 'width 0.4s ease' }} />
                     </div>
                     <div style={{ fontSize: 13, color: 'var(--text-2)', marginBottom: 14 }}>
-                      {level ? `${level} · ` : ''}{score}% quality score
+                      {level ? `${level} Â· ` : ''}{score}% quality score
                     </div>
                   </>
                 )}
@@ -835,7 +833,7 @@ function ProfilePage({ userId }) {
                     disabled={aiReadinessLoading}
                     style={{ marginTop: 12, width: '100%' }}
                   >
-                    {aiReadinessLoading ? 'Analyzing…' : 'Re-analyze'}
+                    {aiReadinessLoading ? 'Analyzing...' : 'Re-analyze'}
                   </button>
                 )}
               </div>

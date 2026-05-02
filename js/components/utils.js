@@ -54,6 +54,16 @@ function escapeHtml(str) {
     .replace(/'/g, '&#39;');
 }
 
+function getNexusProfileUrl(user) {
+  const slug = String(user?.name || '')
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '')
+    .replace(/-+/g, '');
+  return `nexus.io/in/${slug || 'profile'}`;
+}
+
 // ── Navigation ────────────────────────────────────────────────
 function navigate(path) {
   window.location.hash = path;

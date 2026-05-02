@@ -1,12 +1,12 @@
-"""
-Nexus — Flask Backend  (backend/app.py)
-CS485 Project — Spring 2026
+﻿"""
+Nexus - Flask Backend  (backend/app.py)
+CS485 Project - Spring 2026
 
 All mutable data (users, posts, conversations, messages, notifications,
 jobs, companies) lives in SQLite via database.py.
 
 Static reference data (events, groups, courses, news, invitations, hashtags)
-is served directly from data/*.py — they have no mutation routes.
+is served directly from data/*.py - they have no mutation routes.
 
 Run:
     pip3 install -r backend/requirements.txt
@@ -40,10 +40,12 @@ CORS(app, resources={r"/api/*": {"origins": "*"}})
 # Initialise DB (creates schema + seeds if empty)
 dbl.init_db()
 
-# ── The Muse live job cache ────────────────────────────────────
+# â”€â”€ The Muse live job cache â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 _muse_cache        = {"jobs": [], "fetched_at": 0.0}
 _muse_detail_cache = {}   # museId -> full job dict
 _MUSE_TTL          = 4 * 3600  # refresh every 4 hours
+_conference_search_cache = {}
+_CONFERENCE_SEARCH_TTL = 2 * 3600
 
 
 def _fetch_muse_jobs():
@@ -144,7 +146,7 @@ def _get_body():
     return body if isinstance(body, dict) else {}
 
 
-# ── Health check (used by Render's deploy health check) ───────
+# â”€â”€ Health check (used by Render's deploy health check) â”€â”€â”€â”€â”€â”€â”€
 
 @app.route("/api/health")
 def health():
@@ -152,14 +154,14 @@ def health():
 
 
 
-# ── Serve SPA ─────────────────────────────────────────────────
+# â”€â”€ Serve SPA â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 @app.route("/")
 def index():
     return send_from_directory(ROOT_DIR, "app.html")
 
 
-# ── Error handlers ────────────────────────────────────────────
+# â”€â”€ Error handlers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 @app.errorhandler(404)
 def not_found(e):
@@ -198,14 +200,14 @@ def service_unavailable(e):
 
 
 
-# ══════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # Auth / Account Endpoints
-# ══════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 @app.route("/api/auth/login", methods=["POST"])
 def login():
     """
-    POST /api/auth/login — authenticate an existing user.
+    POST /api/auth/login - authenticate an existing user.
     Body: { email, password }
     Returns { user, token } on success or 401 on failure.
     """
@@ -227,7 +229,7 @@ def login():
 @app.route("/api/auth/register", methods=["POST"])
 def register():
     """
-    POST /api/auth/register — create a new user account.
+    POST /api/auth/register - create a new user account.
     Body: { name, email, password }
     Returns the new user dict (201) or 400/409 on validation failure.
     """
@@ -257,13 +259,13 @@ def register():
     return jsonify({"user": user, "token": token}), 201
 
 
-# ══════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # User Endpoints
-# ══════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 @app.route("/api/me")
 def get_me():
-    """GET /api/me — current logged-in user profile."""
+    """GET /api/me - current logged-in user profile."""
     user = _auth_user()
     if not user:
         abort(401, description="Not authenticated")
@@ -272,7 +274,7 @@ def get_me():
 
 @app.route("/api/me", methods=["PUT", "PATCH"])
 def update_me():
-    """PUT /api/me — update current user profile fields."""
+    """PUT /api/me - update current user profile fields."""
     body = _get_body()
     allowed = {"name", "headline", "location", "about", "pronouns", "industry"}
     updates = {k: v for k, v in body.items() if k in allowed and isinstance(v, str)}
@@ -289,7 +291,7 @@ def update_me():
 
 @app.route("/api/me/education", methods=["POST"])
 def add_education():
-    """POST /api/me/education — append an education entry to the current user."""
+    """POST /api/me/education - append an education entry to the current user."""
     user = _auth_user()
     if not user:
         abort(401, description="Authentication required")
@@ -312,7 +314,7 @@ def add_education():
 
 @app.route("/api/me/experience", methods=["POST"])
 def add_experience():
-    """POST /api/me/experience — append a work experience entry to the current user."""
+    """POST /api/me/experience - append a work experience entry to the current user."""
     user = _auth_user()
     if not user:
         abort(401, description="Authentication required")
@@ -347,7 +349,7 @@ def add_experience():
 
 @app.route("/api/me/skills", methods=["POST"])
 def add_skill():
-    """POST /api/me/skills — append a skill to the current user."""
+    """POST /api/me/skills - append a skill to the current user."""
     user = _auth_user()
     if not user:
         abort(401, description="Authentication required")
@@ -484,7 +486,7 @@ def update_honor(index):
 
 @app.route("/api/me/experience/<int:index>", methods=["DELETE"])
 def delete_experience(index):
-    """DELETE /api/me/experience/:index — remove an experience entry by index."""
+    """DELETE /api/me/experience/:index - remove an experience entry by index."""
     user = _auth_user()
     if not user:
         abort(401, description="Authentication required")
@@ -498,7 +500,7 @@ def delete_experience(index):
 
 @app.route("/api/me/education/<int:index>", methods=["DELETE"])
 def delete_education(index):
-    """DELETE /api/me/education/:index — remove an education entry by index."""
+    """DELETE /api/me/education/:index - remove an education entry by index."""
     user = _auth_user()
     if not user:
         abort(401, description="Authentication required")
@@ -512,7 +514,7 @@ def delete_education(index):
 
 @app.route("/api/me/projects/<int:index>", methods=["DELETE"])
 def delete_project(index):
-    """DELETE /api/me/projects/:index — remove a project entry by index."""
+    """DELETE /api/me/projects/:index - remove a project entry by index."""
     user = _auth_user()
     if not user:
         abort(401, description="Authentication required")
@@ -526,7 +528,7 @@ def delete_project(index):
 
 @app.route("/api/me/volunteering/<int:index>", methods=["DELETE"])
 def delete_volunteering(index):
-    """DELETE /api/me/volunteering/:index — remove a volunteering entry by index."""
+    """DELETE /api/me/volunteering/:index - remove a volunteering entry by index."""
     user = _auth_user()
     if not user:
         abort(401, description="Authentication required")
@@ -540,7 +542,7 @@ def delete_volunteering(index):
 
 @app.route("/api/me/honors/<int:index>", methods=["DELETE"])
 def delete_honor(index):
-    """DELETE /api/me/honors/:index — remove a honor entry by index."""
+    """DELETE /api/me/honors/:index - remove a honor entry by index."""
     user = _auth_user()
     if not user:
         abort(401, description="Authentication required")
@@ -554,7 +556,7 @@ def delete_honor(index):
 
 @app.route("/api/me/skills/<int:index>", methods=["DELETE"])
 def delete_skill(index):
-    """DELETE /api/me/skills/:index — remove a skill by index."""
+    """DELETE /api/me/skills/:index - remove a skill by index."""
     user = _auth_user()
     if not user:
         abort(401, description="Authentication required")
@@ -568,7 +570,7 @@ def delete_skill(index):
 
 @app.route("/api/me/projects", methods=["POST"])
 def add_project():
-    """POST /api/me/projects — append a project entry to the current user."""
+    """POST /api/me/projects - append a project entry to the current user."""
     user = _auth_user()
     if not user:
         abort(401, description="Authentication required")
@@ -592,7 +594,7 @@ def add_project():
 
 @app.route("/api/me/volunteering", methods=["POST"])
 def add_volunteering():
-    """POST /api/me/volunteering — append a volunteering entry to the current user."""
+    """POST /api/me/volunteering - append a volunteering entry to the current user."""
     user = _auth_user()
     if not user:
         abort(401, description="Authentication required")
@@ -617,7 +619,7 @@ def add_volunteering():
 
 @app.route("/api/me/honors", methods=["POST"])
 def add_honor():
-    """POST /api/me/honors — append a honor/award entry to the current user."""
+    """POST /api/me/honors - append a honor/award entry to the current user."""
     user = _auth_user()
     if not user:
         abort(401, description="Authentication required")
@@ -639,7 +641,7 @@ def add_honor():
 
 @app.route("/api/groups", methods=["POST"])
 def create_group():
-    """POST /api/groups — create a new group (persisted in memory for the session)."""
+    """POST /api/groups - create a new group (persisted in memory for the session)."""
     user = _auth_user()
     if not user:
         abort(401, description="Authentication required")
@@ -667,14 +669,14 @@ def create_group():
 
 @app.route("/api/users")
 def get_users():
-    """GET /api/users — all users in the network (excludes current user)."""
+    """GET /api/users - all users in the network (excludes current user)."""
     current = _auth_user()
     return jsonify(dbl.get_all_users(current["id"] if current else 1))
 
 
 @app.route("/api/users/<int:user_id>")
 def get_user(user_id):
-    """GET /api/users/:id — single user by ID."""
+    """GET /api/users/:id - single user by ID."""
     user = dbl.get_user_by_id(user_id)
     if not user:
         abort(404, description=f"User {user_id} not found")
@@ -684,7 +686,7 @@ def get_user(user_id):
 @app.route("/api/users/<int:user_id>", methods=["DELETE"])
 def delete_user(user_id):
     """
-    DELETE /api/users/:id — remove a user account and all their data.
+    DELETE /api/users/:id - remove a user account and all their data.
     Cannot delete user id=1 (the primary demo account).
     Returns 204 on success, 404 if not found, 403 if protected.
     """
@@ -698,13 +700,13 @@ def delete_user(user_id):
     return "", 204
 
 
-# ══════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # Feed Endpoints
-# ══════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 @app.route("/api/feed")
 def get_feed():
-    """GET /api/feed — all posts, newest first, with userLiked flag."""
+    """GET /api/feed - all posts, newest first, with userLiked flag."""
     current_user = _auth_user()
     posts = dbl.get_all_posts()
     liked_ids = dbl.get_post_likes_for_user(current_user["id"]) if current_user else set()
@@ -715,7 +717,7 @@ def get_feed():
 
 @app.route("/api/feed", methods=["POST"])
 def create_post():
-    """POST /api/feed — create a new post. Body: {content: str, imageUrl?: str}"""
+    """POST /api/feed - create a new post. Body: {content: str, imageUrl?: str}"""
     body = _get_body()
     content = (body.get("content") or "").strip()
     if not content:
@@ -734,7 +736,7 @@ def create_post():
 
 @app.route("/api/feed/<int:post_id>", methods=["DELETE"])
 def delete_post(post_id):
-    """DELETE /api/feed/:id — delete a post (owner only)."""
+    """DELETE /api/feed/:id - delete a post (owner only)."""
     current_user = _require_auth_user()
     result = dbl.delete_post(post_id, current_user["id"])
     if result == "not_found":
@@ -746,7 +748,7 @@ def delete_post(post_id):
 
 @app.route("/api/feed/<int:post_id>/like", methods=["POST"])
 def toggle_post_like(post_id):
-    """POST /api/feed/:id/like — toggle like on a post."""
+    """POST /api/feed/:id/like - toggle like on a post."""
     current_user = _require_auth_user()
     result = dbl.toggle_post_like(post_id, current_user["id"])
     return jsonify(result)
@@ -754,7 +756,7 @@ def toggle_post_like(post_id):
 
 @app.route("/api/feed/<int:post_id>/comments", methods=["POST"])
 def add_post_comment(post_id):
-    """POST /api/feed/:id/comments — add a comment. Body: {text: str}"""
+    """POST /api/feed/:id/comments - add a comment. Body: {text: str}"""
     body = _get_body()
     text = (body.get("text") or "").strip()
     if not text:
@@ -766,19 +768,19 @@ def add_post_comment(post_id):
     return jsonify(comment), 201
 
 
-# ══════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # Conference Story Endpoints
-# ══════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 @app.route("/api/conference-stories")
 def get_conference_stories():
-    """GET /api/conference-stories — all conference stories, newest first."""
+    """GET /api/conference-stories - all conference stories, newest first."""
     return jsonify(dbl.get_conference_stories())
 
 
 @app.route("/api/conference-stories", methods=["POST"])
 def create_conference_story():
-    """POST /api/conference-stories — share a conference experience.
+    """POST /api/conference-stories - share a conference experience.
     Body: { conferenceName, tagline, description, photoUrl?, companyLogoUrl? }
     """
     user = _auth_user()
@@ -805,13 +807,138 @@ def create_conference_story():
     return jsonify(story), 201
 
 
-# ══════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # Job Endpoints
-# ══════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+
+def _fallback_conferences(location: str, field: str):
+    base_location = location or "San Francisco, CA"
+    base_field = field or "technology"
+    return [
+        {
+            "id": 1,
+            "name": f"{base_field.title()} Leadership Forum",
+            "category": base_field.title(),
+            "date": "May 12 to May 13, 2026",
+            "venue": "Downtown Conference Center",
+            "address": base_location,
+            "lat": 37.7841,
+            "lng": -122.4001,
+            "description": f"Professional sessions, networking, and practical workshops for people working in {base_field}.",
+            "attendees": 4200,
+            "price": "$499",
+            "tags": [base_field.title(), "Networking", "Workshops"],
+            "source": "fallback",
+        },
+        {
+            "id": 2,
+            "name": f"{base_field.title()} Builders Summit",
+            "category": base_field.title(),
+            "date": "June 4 to June 5, 2026",
+            "venue": "Innovation Hall",
+            "address": base_location,
+            "lat": 37.7779,
+            "lng": -122.4171,
+            "description": f"A focused event for hands-on learning, product demos, and peer conversations in {base_field}.",
+            "attendees": 1800,
+            "price": "$299",
+            "tags": [base_field.title(), "Product", "Career"],
+            "source": "fallback",
+        },
+        {
+            "id": 3,
+            "name": f"{base_field.title()} Career Exchange",
+            "category": base_field.title(),
+            "date": "July 8, 2026",
+            "venue": "Community Events Center",
+            "address": base_location,
+            "lat": 37.7951,
+            "lng": -122.3969,
+            "description": f"Recruiters, speakers, and practitioners share current hiring trends and career paths in {base_field}.",
+            "attendees": 950,
+            "price": "Free",
+            "tags": [base_field.title(), "Hiring", "Community"],
+            "source": "fallback",
+        },
+    ]
+
+
+def _coerce_float(value, fallback):
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return fallback
+
+
+@app.route("/api/conferences/search")
+def search_conferences():
+    """GET /api/conferences/search?location=&field= uses SerpAPI when configured."""
+    location = (request.args.get("location") or "San Francisco, CA").strip()[:120]
+    field = (request.args.get("field") or "technology").strip()[:80]
+    cache_key = f"{location.lower()}::{field.lower()}"
+    now = time.time()
+    cached = _conference_search_cache.get(cache_key)
+    if cached and now - cached["fetched_at"] < _CONFERENCE_SEARCH_TTL:
+        return jsonify(cached["items"])
+
+    api_key = os.environ.get("SERPAPI_API_KEY", "").strip()
+    if not api_key:
+        items = _fallback_conferences(location, field)
+        _conference_search_cache[cache_key] = {"items": items, "fetched_at": now}
+        return jsonify(items)
+
+    import requests as req_lib
+
+    query = f"{field} conferences in {location}"
+    try:
+        resp = req_lib.get(
+            "https://serpapi.com/search.json",
+            params={"engine": "google_events", "q": query, "api_key": api_key},
+            timeout=8,
+        )
+        resp.raise_for_status()
+        payload = resp.json()
+        events = payload.get("events_results") or []
+        items = []
+        fallback_coords = _fallback_conferences(location, field)
+        for idx, event in enumerate(events[:20], start=1):
+            address = event.get("address")
+            if isinstance(address, list):
+                address = ", ".join(str(part) for part in address if part)
+            fallback = fallback_coords[(idx - 1) % len(fallback_coords)]
+            venue = event.get("venue") or {}
+            venue_name = venue.get("name") if isinstance(venue, dict) else ""
+            gps = event.get("gps_coordinates") or {}
+            date_info = event.get("date") or {}
+            date_text = date_info.get("when") if isinstance(date_info, dict) else event.get("date")
+            items.append({
+                "id": idx,
+                "name": event.get("title") or f"{field.title()} Conference",
+                "category": field.title(),
+                "date": date_text or "Date to be announced",
+                "venue": venue_name or "Venue to be announced",
+                "address": address or location,
+                "lat": _coerce_float(gps.get("latitude"), fallback["lat"]),
+                "lng": _coerce_float(gps.get("longitude"), fallback["lng"]),
+                "description": event.get("description") or event.get("snippet") or "Conference details are available from the event organizer.",
+                "attendees": 0,
+                "price": "See event",
+                "tags": [field.title(), location],
+                "link": event.get("link") or "",
+                "source": "serpapi",
+            })
+        if not items:
+            items = _fallback_conferences(location, field)
+    except Exception:
+        items = _fallback_conferences(location, field)
+
+    _conference_search_cache[cache_key] = {"items": items, "fetched_at": now}
+    return jsonify(items)
+
 
 @app.route("/api/jobs")
 def get_jobs():
-    """GET /api/jobs — live jobs from The Muse (4h cache), fallback to static seed."""
+    """GET /api/jobs - live jobs from The Muse (4h cache), fallback to static seed."""
     now = time.time()
     if now - _muse_cache["fetched_at"] > _MUSE_TTL or not _muse_cache["jobs"]:
         try:
@@ -827,7 +954,7 @@ def get_jobs():
 
 @app.route("/api/jobs/<int:job_id>")
 def get_job(job_id):
-    """GET /api/jobs/:id — single job listing. For Muse jobs, fetches full description."""
+    """GET /api/jobs/:id - single job listing. For Muse jobs, fetches full description."""
     if job_id >= 10000:
         now = time.time()
         if now - _muse_cache["fetched_at"] > _MUSE_TTL or not _muse_cache["jobs"]:
@@ -870,26 +997,26 @@ def get_job(job_id):
     return jsonify(job)
 
 
-# ══════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # Company Endpoints
-# ══════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 @app.route("/api/companies/<int:company_id>")
 def get_company(company_id):
-    """GET /api/companies/:id — company detail."""
+    """GET /api/companies/:id - company detail."""
     company = dbl.get_company_by_id(company_id)
     if not company:
         abort(404, description=f"Company {company_id} not found")
     return jsonify(company)
 
 
-# ══════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # Conversation Endpoints
-# ══════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 @app.route("/api/conversations", methods=["POST"])
 def create_conversation():
-    """POST /api/conversations — start a new conversation with another user."""
+    """POST /api/conversations - start a new conversation with another user."""
     user = _auth_user()
     if not user:
         abort(401, description="Authentication required")
@@ -906,7 +1033,7 @@ def create_conversation():
 
 @app.route("/api/conversations")
 def get_conversations_list():
-    """GET /api/conversations — message threads for the current user."""
+    """GET /api/conversations - message threads for the current user."""
     user = _auth_user()
     if not user:
         abort(401, description="Authentication required")
@@ -915,7 +1042,7 @@ def get_conversations_list():
 
 @app.route("/api/conversations/<int:conv_id>")
 def get_conversation(conv_id):
-    """GET /api/conversations/:id — single conversation with full messages."""
+    """GET /api/conversations/:id - single conversation with full messages."""
     user = _auth_user()
     if not user:
         abort(401, description="Authentication required")
@@ -931,7 +1058,7 @@ def get_conversation(conv_id):
 
 @app.route("/api/conversations/<int:conv_id>/messages", methods=["POST"])
 def post_message(conv_id):
-    """POST /api/conversations/:id/messages — send a message. Body: {text: str}"""
+    """POST /api/conversations/:id/messages - send a message. Body: {text: str}"""
     # Verify conversation exists
     conv = dbl.get_conversation_by_id(conv_id)
     if not conv:
@@ -950,19 +1077,19 @@ def post_message(conv_id):
     return jsonify(msg), 201
 
 
-# ══════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # Notification Endpoints
-# ══════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 @app.route("/api/notifications")
 def get_notifications():
-    """GET /api/notifications — all notifications."""
+    """GET /api/notifications - all notifications."""
     return jsonify(dbl.get_all_notifications())
 
 
 @app.route("/api/notifications/<int:notif_id>/read", methods=["PATCH"])
 def mark_notification_read(notif_id):
-    """PATCH /api/notifications/:id/read — mark a notification as read."""
+    """PATCH /api/notifications/:id/read - mark a notification as read."""
     notif = dbl.mark_notification_read(notif_id)
     if not notif:
         abort(404, description=f"Notification {notif_id} not found")
@@ -971,14 +1098,14 @@ def mark_notification_read(notif_id):
 
 @app.route("/api/notifications/read-all", methods=["PATCH"])
 def mark_all_notifications_read():
-    """PATCH /api/notifications/read-all — mark all notifications as read."""
+    """PATCH /api/notifications/read-all - mark all notifications as read."""
     dbl.mark_all_notifications_read()
     return jsonify({"success": True})
 
 
-# ══════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # Static Reference Data (read-only, served from data/*.py)
-# ══════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 @app.route("/api/events")
 def get_events():
@@ -989,7 +1116,7 @@ def get_events():
 
 @app.route("/api/events", methods=["POST"])
 def create_event():
-    """POST /api/events — create a new event."""
+    """POST /api/events - create a new event."""
     body = _get_body()
     if not body.get("name"):
         abort(400, description="name is required")
@@ -1000,7 +1127,7 @@ def create_event():
 
 @app.route("/api/events/<event_id>/attend", methods=["POST"])
 def toggle_event_attend(event_id):
-    """POST /api/events/:id/attend — toggle attendance."""
+    """POST /api/events/:id/attend - toggle attendance."""
     current_user = _require_auth_user()
     src = "user" if str(event_id).startswith("u") else "static"
     result = dbl.toggle_event_attend(event_id, src, current_user["id"])
@@ -1045,13 +1172,13 @@ def get_hashtags():
     return jsonify(static_data.HASHTAGS)
 
 
-# ══════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # Search Endpoint
-# ══════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 @app.route("/api/search")
 def search():
-    """GET /api/search?q=query — search across users, jobs, companies, posts."""
+    """GET /api/search?q=query - search across users, jobs, companies, posts."""
     q = (request.args.get("q") or "").strip()
     if not q:
         return jsonify({"users": [], "jobs": [], "companies": [], "posts": [], "query": ""})
@@ -1059,13 +1186,13 @@ def search():
     return jsonify(dbl.search(q, exclude_user_id=current["id"] if current else 1))
 
 
-# ══════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # Profile Readiness Endpoint
-# ══════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 @app.route("/api/profile-readiness")
 def get_profile_readiness():
-    """GET /api/profile-readiness — compute profile completeness score."""
+    """GET /api/profile-readiness - compute profile completeness score."""
     u = _auth_user()
     if not u:
         abort(401, description="Authentication required")
@@ -1098,20 +1225,20 @@ def get_profile_readiness():
     return jsonify({"score": score, "sections": sections, "fixes": fixes})
 
 
-# ══════════════════════════════════════════════════════════════
-# Outreach — Story #1 (Outreach Message Guidance)  (NX.API.3)
-# ══════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# Outreach - Story #1 (Outreach Message Guidance)  (NX.API.3)
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 @app.route("/api/profile-readiness/ai", methods=["POST"])
 def ai_profile_readiness():
-    """POST /api/profile-readiness/ai — AI quality evaluation; does not replace /api/profile-readiness."""
+    """POST /api/profile-readiness/ai - AI quality evaluation; does not replace /api/profile-readiness."""
     user = _auth_user()
     if not user:
         abort(401, description="Authentication required")
 
     api_key = os.environ.get("GROQ_API_KEY", "")
     if not api_key:
-        abort(503, description="AI service not configured — set GROQ_API_KEY in .env")
+        abort(503, description="AI service not configured - set GROQ_API_KEY in .env")
 
     headline = (user.get("headline") or "").strip()
     about    = (user.get("about") or "").strip()
@@ -1125,7 +1252,7 @@ def ai_profile_readiness():
         desc = (e.get("description") or "").strip()
         exp_lines.append(
             f"- {e.get('title','?')} at {e.get('company','?')} "
-            f"({e.get('startDate','')}–{e.get('endDate','Present')})"
+            f"({e.get('startDate','')}-{e.get('endDate','Present')})"
             + (f"\n  Desc: {desc[:200]}" if desc else " (no description)")
         )
 
@@ -1134,7 +1261,7 @@ def ai_profile_readiness():
         field = e.get("field") or e.get("fieldOfStudy") or "?"
         start = e.get("startDate") or e.get("startYear") or ""
         end   = e.get("endDate")   or e.get("endYear")   or ""
-        edu_lines.append(f"- {e.get('degree','?')} in {field} at {e.get('school','?')} ({start}–{end})")
+        edu_lines.append(f"- {e.get('degree','?')} in {field} at {e.get('school','?')} ({start}-{end})")
 
     skill_names = [(s["name"] if isinstance(s, dict) else s) for s in skills_list[:20]]
 
@@ -1155,7 +1282,7 @@ def ai_profile_readiness():
 
     system_prompt = (
         'You are a LinkedIn profile coach. Evaluate quality (not just presence). '
-        'Return ONLY valid JSON — no markdown fences — with EXACTLY this shape:\n'
+        'Return ONLY valid JSON - no markdown fences - with EXACTLY this shape:\n'
         '{"score":<int 0-100>,"level":<"Beginner"|"Developing"|"Strong"|"All-Star">,'
         '"summary":"<2 honest sentences>","sections":['
         '{"key":"headline","label":"Headline","score":<int>,"feedback":"<feedback>"},'
@@ -1168,13 +1295,13 @@ def ai_profile_readiness():
         'Feedback rules (STRICT):\n'
         '- Every section with score < 100 MUST end with a specific "To reach 100%: ..." sentence.\n'
         '- Sections scoring 100 may simply say what is excellent about them.\n'
-        '- Be concrete — name exactly what is missing or what to add/change.\n\n'
+        '- Be concrete - name exactly what is missing or what to add/change.\n\n'
         'Scoring rules (strict):\n'
-        '- Empty/missing field → 0\n'
-        '- Very short/vague (headline="hi", about="student") → 5-20\n'
-        '- Mediocre/generic → 40-60\n'
-        '- Good, specific, professional → 70-85\n'
-        '- Excellent, achievement-focused → 86-100\n'
+        '- Empty/missing field â†’ 0\n'
+        '- Very short/vague (headline="hi", about="student") â†’ 5-20\n'
+        '- Mediocre/generic â†’ 40-60\n'
+        '- Good, specific, professional â†’ 70-85\n'
+        '- Excellent, achievement-focused â†’ 86-100\n'
         'Overall score = weighted avg: headline 20%, about 20%, experience 30%, '
         'education 15%, skills 10%, projects 5%.'
     )
@@ -1211,14 +1338,14 @@ def ai_profile_readiness():
             sec["score"] = max(0, min(100, int(sec.get("score", 0))))
     except Exception as exc:
         app.logger.exception("AI profile readiness failed: %s", exc)
-        abort(502, description="AI evaluation failed — try again")
+        abort(502, description="AI evaluation failed - try again")
 
     return jsonify(result), 200
 
 
 @app.route("/api/outreach/generate", methods=["POST"])
 def outreach_generate():
-    """POST /api/outreach/generate — personalised outreach draft."""
+    """POST /api/outreach/generate - personalised outreach draft."""
     body = _get_body()
 
     raw_id = body.get("recipientId")
@@ -1264,13 +1391,13 @@ def outreach_generate():
     return jsonify(result), 200
 
 
-# ══════════════════════════════════════════════════════════════
-# Outreach — Story #7 (Outreach Readiness Check)  (NX.API.4)
-# ══════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# Outreach - Story #7 (Outreach Readiness Check)  (NX.API.4)
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 @app.route("/api/outreach/readiness")
 def outreach_readiness():
-    """GET /api/outreach/readiness?userId=<int> — profile readiness score."""
+    """GET /api/outreach/readiness?userId=<int> - profile readiness score."""
     raw_id = (request.args.get("userId") or "").strip()
 
     if raw_id:
@@ -1292,13 +1419,13 @@ def outreach_readiness():
     return jsonify(outreach_mod.compute_outreach_readiness(user)), 200
 
 
-# ══════════════════════════════════════════════════════════════
-# AI Profile Improvement  (OpenRouter)
-# ══════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# AI Profile Improvement
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 @app.route("/api/profile/improve", methods=["POST"])
 def profile_improve():
-    """POST /api/profile/improve — ask an LLM for actionable profile tips."""
+    """POST /api/profile/improve - ask an LLM for actionable profile tips."""
     user = _auth_user()
     if not user:
         abort(401, description="Authentication required")
@@ -1310,7 +1437,7 @@ def profile_improve():
     # Build a concise profile summary for the prompt
     exp_lines = []
     for e in (user.get("experience") or [])[:4]:
-        exp_lines.append(f"- {e.get('title','?')} at {e.get('company','?')} ({e.get('startDate','')}–{e.get('endDate','Present')})")
+        exp_lines.append(f"- {e.get('title','?')} at {e.get('company','?')} ({e.get('startDate','')}-{e.get('endDate','Present')})")
 
     edu_lines = []
     for e in (user.get("education") or [])[:3]:
@@ -1329,7 +1456,7 @@ def profile_improve():
     profile_text = f"""Name: {user.get('name', 'Unknown')}
 Headline: {headline if headline else '(none)'}
 Location: {user.get('location') or '(not set)'}
-About section: {about_len} characters{'' if about_len == 0 else ' — present'}
+About section: {about_len} characters{'' if about_len == 0 else ' - present'}
 Experience ({len(user.get('experience') or [])} entries):
 {chr(10).join(exp_lines) or '  (none)'}
 Education ({len(user.get('education') or [])} entries):
@@ -1343,7 +1470,7 @@ Open to Work: {user.get('openToWork', False)}"""
         "EXACTLY 5 concise, actionable improvement tips as a JSON array of strings. "
         "Each tip should be one sentence and start with an action verb. "
         "Focus on gaps, weak sections, and LinkedIn best practices. "
-        "Respond ONLY with valid JSON — no markdown, no explanation outside the array."
+        "Respond ONLY with valid JSON - no markdown, no explanation outside the array."
     )
 
     model = os.environ.get("OPENROUTER_MODEL", "meta-llama/llama-3.1-8b-instruct:free")
@@ -1389,41 +1516,41 @@ Open to Work: {user.get('openToWork', False)}"""
     return jsonify({"tips": tips}), 200
 
 
-# ══════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # Social State Endpoints
-# ══════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 @app.route("/api/me/social")
 def get_social_state():
-    """GET /api/me/social — all social state for the current user."""
+    """GET /api/me/social - all social state for the current user."""
     user = _require_auth_user()
     return jsonify(dbl.get_social_state(user["id"]))
 
 
 @app.route("/api/me/saved-jobs/<int:job_id>", methods=["POST"])
 def toggle_saved_job(job_id):
-    """POST /api/me/saved-jobs/:id — toggle saved job."""
+    """POST /api/me/saved-jobs/:id - toggle saved job."""
     user = _require_auth_user()
     return jsonify(dbl.toggle_saved_job(user["id"], job_id))
 
 
 @app.route("/api/me/saved-jobs/<int:job_id>", methods=["PUT"])
 def save_job(job_id):
-    """PUT /api/me/saved-jobs/:id — explicitly save a job (idempotent)."""
+    """PUT /api/me/saved-jobs/:id - explicitly save a job (idempotent)."""
     user = _require_auth_user()
     return jsonify(dbl.save_job(user["id"], job_id))
 
 
 @app.route("/api/me/saved-jobs/<int:job_id>", methods=["DELETE"])
 def unsave_job(job_id):
-    """DELETE /api/me/saved-jobs/:id — explicitly unsave a job (idempotent)."""
+    """DELETE /api/me/saved-jobs/:id - explicitly unsave a job (idempotent)."""
     user = _require_auth_user()
     return jsonify(dbl.unsave_job(user["id"], job_id))
 
 
 @app.route("/api/me/connection-requests")
 def get_connection_requests():
-    """GET /api/me/connection-requests — users who have sent the current user a pending request."""
+    """GET /api/me/connection-requests - users who have sent the current user a pending request."""
     user = _auth_user()
     if not user:
         abort(401, description="Authentication required")
@@ -1432,7 +1559,7 @@ def get_connection_requests():
 
 @app.route("/api/me/connection-requests/<int:requester_id>", methods=["DELETE"])
 def decline_connection_request(requester_id):
-    """DELETE /api/me/connection-requests/:id — decline a pending connection request."""
+    """DELETE /api/me/connection-requests/:id - decline a pending connection request."""
     user = _auth_user()
     if not user:
         abort(401, description="Authentication required")
@@ -1441,42 +1568,42 @@ def decline_connection_request(requester_id):
 
 @app.route("/api/me/connections/<int:target_id>", methods=["POST"])
 def connect_user(target_id):
-    """POST /api/me/connections/:id — send a connection request."""
+    """POST /api/me/connections/:id - send a connection request."""
     user = _require_auth_user()
     return jsonify(dbl.connect_user(user["id"], target_id))
 
 
 @app.route("/api/me/connections/<int:target_id>/accept", methods=["POST"])
 def accept_connection(target_id):
-    """POST /api/me/connections/:id/accept — confirm a connection."""
+    """POST /api/me/connections/:id/accept - confirm a connection."""
     user = _require_auth_user()
     return jsonify(dbl.accept_connection(target_id, user["id"]))
 
 
 @app.route("/api/me/following/<int:target_id>", methods=["POST"])
 def toggle_following(target_id):
-    """POST /api/me/following/:id — toggle follow."""
+    """POST /api/me/following/:id - toggle follow."""
     user = _require_auth_user()
     return jsonify(dbl.toggle_following(user["id"], target_id))
 
 
 @app.route("/api/me/applied-jobs/<int:job_id>", methods=["POST"])
 def apply_to_job(job_id):
-    """POST /api/me/applied-jobs/:id — mark a job as applied."""
+    """POST /api/me/applied-jobs/:id - mark a job as applied."""
     user = _require_auth_user()
     return jsonify(dbl.apply_to_job(user["id"], job_id))
 
 
 @app.route("/api/me/groups/<int:group_id>/toggle", methods=["POST"])
 def toggle_group(group_id):
-    """POST /api/me/groups/:id/toggle — join or leave a group."""
+    """POST /api/me/groups/:id/toggle - join or leave a group."""
     user = _require_auth_user()
     return jsonify(dbl.toggle_group(user["id"], group_id))
 
 
 @app.route("/api/me/invitations/dismiss", methods=["POST"])
 def dismiss_invitation():
-    """POST /api/me/invitations/dismiss — dismiss an invitation. Body: {key: str}"""
+    """POST /api/me/invitations/dismiss - dismiss an invitation. Body: {key: str}"""
     body = _get_body()
     key = str(body.get("key") or "").strip()
     if not key:
@@ -1485,20 +1612,20 @@ def dismiss_invitation():
     return jsonify(dbl.dismiss_invitation(user["id"], key))
 
 
-# ══════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # Cover Letter Generation  (Groq)
-# ══════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 @app.route("/api/cover-letter/generate", methods=["POST"])
 def generate_cover_letter():
-    """POST /api/cover-letter/generate — tailor a cover letter via Groq LLM."""
+    """POST /api/cover-letter/generate - tailor a cover letter via Groq LLM."""
     user = _auth_user()
     if not user:
         abort(401, description="Authentication required")
 
     api_key = os.environ.get("GROQ_API_KEY", "")
     if not api_key:
-        abort(503, description="AI service not configured — set GROQ_API_KEY in .env")
+        abort(503, description="AI service not configured - set GROQ_API_KEY in .env")
 
     body = request.get_json(silent=True) or {}
     prompt = (body.get("prompt") or "").strip()
@@ -1528,7 +1655,7 @@ def generate_cover_letter():
         letter = resp.json()["choices"][0]["message"]["content"].strip()
     except Exception as exc:
         app.logger.exception("Groq API request failed: %s", exc)
-        abort(502, description="AI service error — check your GROQ_API_KEY")
+        abort(502, description="AI service error - check your GROQ_API_KEY")
 
     return jsonify({"letter": letter}), 200
 

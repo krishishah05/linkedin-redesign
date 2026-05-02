@@ -1,25 +1,25 @@
-/* ============================================================
-   APPCONTEXT.JS — Global React state and actions
+﻿/* ============================================================
+   APPCONTEXT.JS â€” Global React state and actions
    Replaces the monolithic App.state object from app.js.
    ============================================================ */
 
 const TRANSLATIONS = {
-  en: { home:'Home', myNetwork:'My Network', jobs:'Jobs', messaging:'Messaging', conferences:'Conferences', me:'Me ▾', meShort:'Me', search:'Search', startPost:'Start a post', photo:'Photo', video:'Video', writeArticle:'Write article', post:'Post', publish:'Publish', cancel:'Cancel', whatToTalk:'What do you want to talk about?', editTemplate:'Edit the template, then publish your article…', like:'Like', comment:'Comment', repost:'Repost', send:'Send', network:'Network', signOut:'Sign out', settingsPrivacy:'Settings & Privacy', messages:'Messages', chooseTemplate:'Choose an article template', uploadVideoUrl:'Upload video URL…', pasteImageUrl:'Paste image URL…', article:'ARTICLE' },
-  es: { home:'Inicio', myNetwork:'Mi Red', jobs:'Empleos', messaging:'Mensajes', conferences:'Conferencias', me:'Yo ▾', meShort:'Yo', search:'Buscar', startPost:'Iniciar publicación', photo:'Foto', video:'Vídeo', writeArticle:'Escribir artículo', post:'Publicar', publish:'Publicar', cancel:'Cancelar', whatToTalk:'¿De qué quieres hablar?', editTemplate:'Edita la plantilla y publica tu artículo…', like:'Me gusta', comment:'Comentar', repost:'Compartir', send:'Enviar', network:'Red', signOut:'Cerrar sesión', settingsPrivacy:'Configuración', messages:'Mensajes', chooseTemplate:'Elige una plantilla de artículo', uploadVideoUrl:'URL del vídeo…', pasteImageUrl:'URL de la imagen…', article:'ARTÍCULO' },
-  fr: { home:'Accueil', myNetwork:'Mon Réseau', jobs:'Emplois', messaging:'Messagerie', conferences:'Conférences', me:'Moi ▾', meShort:'Moi', search:'Rechercher', startPost:'Commencer une publication', photo:'Photo', video:'Vidéo', writeArticle:'Écrire un article', post:'Publier', publish:'Publier', cancel:'Annuler', whatToTalk:'De quoi souhaitez-vous parler ?', editTemplate:'Modifiez le modèle, puis publiez votre article…', like:'Aimer', comment:'Commenter', repost:'Repartager', send:'Envoyer', network:'Réseau', signOut:'Se déconnecter', settingsPrivacy:'Paramètres', messages:'Messages', chooseTemplate:'Choisissez un modèle d\'article', uploadVideoUrl:'URL de la vidéo…', pasteImageUrl:'URL de l\'image…', article:'ARTICLE' },
-  de: { home:'Startseite', myNetwork:'Mein Netzwerk', jobs:'Jobs', messaging:'Nachrichten', conferences:'Konferenzen', me:'Ich ▾', meShort:'Ich', search:'Suchen', startPost:'Beitrag starten', photo:'Foto', video:'Video', writeArticle:'Artikel schreiben', post:'Posten', publish:'Veröffentlichen', cancel:'Abbrechen', whatToTalk:'Worüber möchtest du sprechen?', editTemplate:'Vorlage bearbeiten und Artikel veröffentlichen…', like:'Gefällt mir', comment:'Kommentieren', repost:'Teilen', send:'Senden', network:'Netzwerk', signOut:'Abmelden', settingsPrivacy:'Einstellungen', messages:'Nachrichten', chooseTemplate:'Artikelvorlage wählen', uploadVideoUrl:'Video-URL…', pasteImageUrl:'Bild-URL…', article:'ARTIKEL' },
-  ja: { home:'ホーム', myNetwork:'マイネットワーク', jobs:'求人', messaging:'メッセージ', conferences:'カンファレンス', me:'自分 ▾', meShort:'自分', search:'検索', startPost:'投稿を開始', photo:'写真', video:'動画', writeArticle:'記事を書く', post:'投稿', publish:'公開', cancel:'キャンセル', whatToTalk:'何について話したいですか？', editTemplate:'テンプレートを編集して記事を公開…', like:'いいね', comment:'コメント', repost:'共有', send:'送信', network:'ネットワーク', signOut:'ログアウト', settingsPrivacy:'設定', messages:'メッセージ', chooseTemplate:'記事テンプレートを選択', uploadVideoUrl:'動画URLを入力…', pasteImageUrl:'画像URLを入力…', article:'記事' },
+  en: { home:'Home', myNetwork:'My Network', jobs:'Jobs', messaging:'Messaging', conferences:'Conferences', me:'Me â-¾', meShort:'Me', search:'Search', startPost:'Start a post', photo:'Photo', video:'Video', writeArticle:'Write article', post:'Post', publish:'Publish', cancel:'Cancel', whatToTalk:'What do you want to talk about?', editTemplate:'Edit the template, then publish your articleâ€¦', like:'Like', comment:'Comment', repost:'Repost', send:'Send', network:'Network', signOut:'Sign out', settingsPrivacy:'Settings & Privacy', messages:'Messages', chooseTemplate:'Choose an article template', uploadVideoUrl:'Upload video URLâ€¦', pasteImageUrl:'Paste image URLâ€¦', article:'ARTICLE' },
+  es: { home:'Inicio', myNetwork:'Mi Red', jobs:'Empleos', messaging:'Mensajes', conferences:'Conferencias', me:'Yo â-¾', meShort:'Yo', search:'Buscar', startPost:'Iniciar publicaciÃ³n', photo:'Foto', video:'VÃ­deo', writeArticle:'Escribir artÃ­culo', post:'Publicar', publish:'Publicar', cancel:'Cancelar', whatToTalk:'Â¿De quÃ© quieres hablar?', editTemplate:'Edita la plantilla y publica tu artÃ­culoâ€¦', like:'Me gusta', comment:'Comentar', repost:'Compartir', send:'Enviar', network:'Red', signOut:'Cerrar sesiÃ³n', settingsPrivacy:'ConfiguraciÃ³n', messages:'Mensajes', chooseTemplate:'Elige una plantilla de artÃ­culo', uploadVideoUrl:'URL del vÃ­deoâ€¦', pasteImageUrl:'URL de la imagenâ€¦', article:'ARTÃCULO' },
+  fr: { home:'Accueil', myNetwork:'Mon RÃ©seau', jobs:'Emplois', messaging:'Messagerie', conferences:'ConfÃ©rences', me:'Moi â-¾', meShort:'Moi', search:'Rechercher', startPost:'Commencer une publication', photo:'Photo', video:'VidÃ©o', writeArticle:'Ã‰crire un article', post:'Publier', publish:'Publier', cancel:'Annuler', whatToTalk:'De quoi souhaitez-vous parlerÂ ?', editTemplate:'Modifiez le modÃ¨le, puis publiez votre articleâ€¦', like:'Aimer', comment:'Commenter', repost:'Repartager', send:'Envoyer', network:'RÃ©seau', signOut:'Se dÃ©connecter', settingsPrivacy:'ParamÃ¨tres', messages:'Messages', chooseTemplate:'Choisissez un modÃ¨le d\'article', uploadVideoUrl:'URL de la vidÃ©oâ€¦', pasteImageUrl:'URL de l\'imageâ€¦', article:'ARTICLE' },
+  de: { home:'Startseite', myNetwork:'Mein Netzwerk', jobs:'Jobs', messaging:'Nachrichten', conferences:'Konferenzen', me:'Ich â-¾', meShort:'Ich', search:'Suchen', startPost:'Beitrag starten', photo:'Foto', video:'Video', writeArticle:'Artikel schreiben', post:'Posten', publish:'VerÃ¶ffentlichen', cancel:'Abbrechen', whatToTalk:'WorÃ¼ber mÃ¶chtest du sprechen?', editTemplate:'Vorlage bearbeiten und Artikel verÃ¶ffentlichenâ€¦', like:'GefÃ¤llt mir', comment:'Kommentieren', repost:'Teilen', send:'Senden', network:'Netzwerk', signOut:'Abmelden', settingsPrivacy:'Einstellungen', messages:'Nachrichten', chooseTemplate:'Artikelvorlage wÃ¤hlen', uploadVideoUrl:'Video-URLâ€¦', pasteImageUrl:'Bild-URLâ€¦', article:'ARTIKEL' },
+  ja: { home:'ãƒ›ãƒ¼ãƒ ', myNetwork:'ãƒžã‚¤ãƒãƒƒãƒˆãƒ¯ãƒ¼ã‚¯', jobs:'æ±‚äºº', messaging:'ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸', conferences:'ã‚«ãƒ³ãƒ•ã‚¡ãƒ¬ãƒ³ã‚¹', me:'è‡ªåˆ† â-¾', meShort:'è‡ªåˆ†', search:'æ¤œç´¢', startPost:'æŠ•ç¨¿ã‚’é-‹å§‹', photo:'å†™çœŸ', video:'å‹•ç”»', writeArticle:'è¨˜äº‹ã‚’æ›¸ã', post:'æŠ•ç¨¿', publish:'å...¬é-‹', cancel:'ã‚­ãƒ£ãƒ³ã‚»ãƒ«', whatToTalk:'ä½•ã«ã¤ã„ã¦è©±ã-ãŸã„ã§ã™ã‹ï¼Ÿ', editTemplate:'ãƒ†ãƒ³ãƒ-ãƒ¬ãƒ¼ãƒˆã‚’ç·¨é›†ã-ã¦è¨˜äº‹ã‚’å...¬é-‹â€¦', like:'ã„ã„ã­', comment:'ã‚³ãƒ¡ãƒ³ãƒˆ', repost:'å...±æœ‰', send:'é€ä¿¡', network:'ãƒãƒƒãƒˆãƒ¯ãƒ¼ã‚¯', signOut:'ãƒ­ã‚°ã‚¢ã‚¦ãƒˆ', settingsPrivacy:'è¨­å®š', messages:'ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸', chooseTemplate:'è¨˜äº‹ãƒ†ãƒ³ãƒ-ãƒ¬ãƒ¼ãƒˆã‚’é¸æŠž', uploadVideoUrl:'å‹•ç”»URLã‚’å...¥åŠ›â€¦', pasteImageUrl:'ç”»åƒURLã‚’å...¥åŠ›â€¦', article:'è¨˜äº‹' },
 };
 
 const AppContext = React.createContext(null);
 
 function AppProvider({ children }) {
-  // ── Server data ───────────────────────────────────────────
+  // â”€â”€ Server data â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const [currentUser, setCurrentUser] = React.useState(null);
   const [appLoading, setAppLoading] = React.useState(true);
   const [appError, setAppError] = React.useState(null);
 
-  // ── UI state (mirrors App.state) ──────────────────────────
+  // â”€â”€ UI state (mirrors App.state) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // Loaded from user-scoped key once currentUser is known (see effect below)
   const [likedPosts, setLikedPosts] = React.useState(() => new Set());
   const [savedJobs, setSavedJobs] = React.useState(() => {
@@ -52,7 +52,7 @@ function AppProvider({ children }) {
     () => localStorage.getItem('li-dark-mode') === '1'
   );
 
-  // ── Recruiter mode (only active for users with isRecruiter flag) ─────────
+  // â”€â”€ Recruiter mode (only active for users with isRecruiter flag) â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const [recruiterMode, setRecruiterModeState] = React.useState(
     () => localStorage.getItem('li-recruiter-mode') === '1'
   );
@@ -186,14 +186,14 @@ function AppProvider({ children }) {
     try { localStorage.setItem(`${key}-${uid}`, JSON.stringify([...set])); } catch (_) {}
   }
 
-  // ── Modal state ───────────────────────────────────────────
+  // â”€â”€ Modal state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const [activeModal, setActiveModal] = React.useState(null);
   const [modalData, setModalData] = React.useState(null);
 
-  // ── Toast state ───────────────────────────────────────────
+  // â”€â”€ Toast state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const [toasts, setToasts] = React.useState([]);
 
-  // ── Load user-scoped state once currentUser is known ─────
+  // â”€â”€ Load user-scoped state once currentUser is known â”€â”€â”€â”€â”€
   React.useEffect(() => {
     if (!currentUser) return;
     const uid = currentUser.id;
@@ -209,7 +209,7 @@ function AppProvider({ children }) {
     } catch (_) {}
   }, [currentUser?.id]);
 
-  // ── Bootstrap: fetch current user on mount ────────────────
+  // â”€â”€ Bootstrap: fetch current user on mount â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   React.useEffect(() => {
     API.getMe()
       .then(user => {
@@ -218,7 +218,7 @@ function AppProvider({ children }) {
       })
       .catch(err => {
         if (err.status === 401) {
-          // Session expired or invalid — clear stored credentials and go to login
+          // Session expired or invalid â€” clear stored credentials and go to login
           try {
             localStorage.removeItem('nx-token');
             localStorage.removeItem('nx-uid');
@@ -231,7 +231,7 @@ function AppProvider({ children }) {
       });
   }, []);
 
-  // ── Load social state from server (overrides localStorage) ─
+  // â”€â”€ Load social state from server (overrides localStorage) â”€
   React.useEffect(() => {
     if (!appLoading && !appError) {
       API.getSocialState()
@@ -281,18 +281,18 @@ function AppProvider({ children }) {
     });
   }, []);
 
-  // ── Dark mode effect ──────────────────────────────────────
+  // â”€â”€ Dark mode effect â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   React.useEffect(() => {
     document.body.classList.toggle('dark-mode', darkMode);
     localStorage.setItem('li-dark-mode', darkMode ? '1' : '0');
   }, [darkMode]);
 
-  // ── Settings persistence ──────────────────────────────────
+  // â”€â”€ Settings persistence â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   React.useEffect(() => {
     try { localStorage.setItem('li-settings', JSON.stringify(settings)); } catch {}
   }, [settings]);
 
-  // ── Actions ───────────────────────────────────────────────
+  // â”€â”€ Actions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   function toggleLike(postId) {
     const key = String(postId);
     setLikedPosts(prev => {

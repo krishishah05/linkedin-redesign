@@ -1,10 +1,10 @@
-/* ============================================================
-   COVERLETTERPAGE.JS — AI-powered cover letter generator
+﻿/* ============================================================
+   COVERLETTERPAGE.JS - AI-powered cover letter generator
    ============================================================ */
 
-// ── LLM integration point ─────────────────────────────────────
-// Input:  prompt (string) — complete context built from the form
-// Output: Promise<string> — the edited cover letter text
+// â”€â”€ LLM integration point â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Input:  prompt (string) - complete context built from the form
+// Output: Promise<string> - the edited cover letter text
 async function generateCoverLetterFromLLM(prompt) {
   const data = await API.coverLetterGenerate(prompt);
   return data.letter;
@@ -16,14 +16,14 @@ function trimExtractedText(text) {
   return text.slice(0, MAX_EXTRACTED_CHARS) + '\n... [truncated]';
 }
 
-// ── Pre-written templates ─────────────────────────────────────
+// â”€â”€ Pre-written templates â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Each template is real cover letter text with [bracketed] placeholders.
 // The LLM fills in the placeholders and tailors the content to the specific job.
 const COVER_LETTER_TEMPLATES = [
   {
     id: 'professional',
     label: 'Classic Professional',
-    description: 'Formal and structured — works for most corporate roles',
+    description: 'Formal and structured - works for most corporate roles',
     preview: 'Dear Hiring Manager, I am writing to express my strong interest in the [Job Title] position...',
     text: `Dear Hiring Manager,
 
@@ -41,13 +41,13 @@ Sincerely,
   {
     id: 'creative',
     label: 'Creative & Modern',
-    description: 'Engaging and personality-driven — great for startups or creative fields',
+    description: 'Engaging and personality-driven - great for startups or creative fields',
     preview: 'Dear Hiring Team, When I came across the [Job Title] opening at [Company], I knew immediately...',
     text: `Dear Hiring Team,
 
 When I came across the [Job Title] opening at [Company], I knew immediately this was the kind of opportunity I had been looking for. My background as [Current Role/Headline] has given me a unique perspective, and I am ready to bring that energy somewhere it will truly matter.
 
-What excites me most about [Company] is [relevant company quality or mission]. I have spent my career building expertise at the intersection of [relevant area] and [relevant area], and I am eager to apply that at an organization that values bold thinking. I do not just want to fill a role — I want to help build something.
+What excites me most about [Company] is [relevant company quality or mission]. I have spent my career building expertise at the intersection of [relevant area] and [relevant area], and I am eager to apply that at an organization that values bold thinking. I do not just want to fill a role - I want to help build something.
 
 My proudest professional moments have come from [relevant type of achievement], and I am confident that working with your team would give me more opportunities to do exactly that.
 
@@ -59,13 +59,13 @@ Best,
   {
     id: 'career-changer',
     label: 'Career Changer',
-    description: 'Highlights transferable skills — ideal when switching industries or roles',
+    description: 'Highlights transferable skills - ideal when switching industries or roles',
     preview: 'Dear Hiring Manager, My path to applying for the [Job Title] role at [Company] may not be...',
     text: `Dear Hiring Manager,
 
 My path to applying for the [Job Title] role at [Company] may not be the most conventional, but I believe it makes me a stronger candidate. My background as [Current Role/Headline] has equipped me with a set of transferable skills that directly apply to the challenges of this position.
 
-Working in [previous field or role type], I developed [transferable skill 1] and [transferable skill 2] — capabilities that translate directly to what [Company] is looking for. I have spent considerable time studying the [target field] space, and I bring a fresh perspective that complements the experience of those who have worked in it their entire careers.
+Working in [previous field or role type], I developed [transferable skill 1] and [transferable skill 2] - capabilities that translate directly to what [Company] is looking for. I have spent considerable time studying the [target field] space, and I bring a fresh perspective that complements the experience of those who have worked in it their entire careers.
 
 I am a fast learner, deeply motivated, and ready to invest in making this transition successful. [Company]'s mission resonates with me personally, and that drive will show in everything I do.
 
@@ -77,7 +77,7 @@ Sincerely,
   {
     id: 'new-grad',
     label: 'Recent Graduate',
-    description: 'Leads with education and potential — perfect for entry-level applications',
+    description: 'Leads with education and potential - perfect for entry-level applications',
     preview: 'Dear Hiring Manager, As a recent graduate with a degree in [Field], I am excited to apply...',
     text: `Dear Hiring Manager,
 
@@ -97,13 +97,13 @@ Sincerely,
   {
     id: 'technical',
     label: 'Technical / STEM',
-    description: 'Leads with technical skills and measurable impact — for engineering and tech roles',
+    description: 'Leads with technical skills and measurable impact - for engineering and tech roles',
     preview: 'Dear Hiring Manager, I am applying for the [Job Title] position at [Company] with a strong...',
     text: `Dear Hiring Manager,
 
 I am applying for the [Job Title] position at [Company] with a strong background in [primary technical domain] and a track record of building and shipping reliable systems. As [Current Role/Headline], I have worked across the full lifecycle of [relevant type of product or system], from design and implementation through deployment and maintenance.
 
-My technical skills include [relevant skill 1], [relevant skill 2], and [relevant skill 3]. In my current role, I have [specific technical achievement with measurable impact]. I approach engineering problems with both precision and pragmatism — I care deeply about code quality, but never at the expense of shipping.
+My technical skills include [relevant skill 1], [relevant skill 2], and [relevant skill 3]. In my current role, I have [specific technical achievement with measurable impact]. I approach engineering problems with both precision and pragmatism - I care deeply about code quality, but never at the expense of shipping.
 
 [Company]'s work on [relevant technical area or product] is particularly compelling to me. I am drawn to teams that move fast, write well-tested code, and are not afraid to challenge established approaches when something better exists.
 
@@ -115,16 +115,16 @@ Best regards,
   {
     id: 'executive',
     label: 'Concise / Executive',
-    description: 'Short and direct — best for senior roles or when brevity is preferred',
+    description: 'Short and direct - best for senior roles or when brevity is preferred',
     preview: 'Dear Hiring Manager, I am writing to apply for the [Job Title] role at [Company]. With [X]...',
     text: `Dear Hiring Manager,
 
-I am writing to apply for the [Job Title] role at [Company]. With [X] years of experience as [Current Role/Headline], I have a proven ability to [core competency] and [core competency] — and I am looking for the right opportunity to bring that to a new challenge.
+I am writing to apply for the [Job Title] role at [Company]. With [X] years of experience as [Current Role/Headline], I have a proven ability to [core competency] and [core competency] - and I am looking for the right opportunity to bring that to a new challenge.
 
 My key qualifications for this role:
-• [Relevant experience or achievement]
-• [Relevant experience or achievement]
-• [Relevant experience or achievement]
+â€¢ [Relevant experience or achievement]
+â€¢ [Relevant experience or achievement]
+â€¢ [Relevant experience or achievement]
 
 I am confident in my fit for this position and would welcome a conversation to discuss next steps.
 
@@ -135,7 +135,7 @@ Sincerely,
   },
 ];
 
-// ── Page component ────────────────────────────────────────────
+// â”€â”€ Page component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function CoverLetterPage() {
   const { currentUser, showToast, savedJobs } = React.useContext(AppContext);
   const { data: jobs, loading: jobsLoading } = useFetch(API.getJobs, []);
@@ -163,6 +163,15 @@ function CoverLetterPage() {
   const [generatedLetter, setGeneratedLetter] = React.useState('');
   const [isGenerating, setIsGenerating]       = React.useState(false);
   const [generationError, setGenerationError] = React.useState('');
+  const [savedDrafts, setSavedDrafts] = React.useState(() => {
+    try {
+      const raw = localStorage.getItem('li-cover-letter-drafts');
+      return raw ? JSON.parse(raw) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [selectedDraftId, setSelectedDraftId] = React.useState('');
 
   function loadFromJob(job) {
     setJobTitle(job.title || '');
@@ -174,7 +183,7 @@ function CoverLetterPage() {
     const file = e.target.files[0];
     if (!file) return;
     if (file.size > 5 * 1024 * 1024) {
-      showToast('File too large — please upload under 5 MB.', 'error');
+      showToast('File too large - please upload under 5 MB.', 'error');
       return;
     }
     const ext = file.name.split('.').pop().toLowerCase();
@@ -197,7 +206,7 @@ function CoverLetterPage() {
         const result = await mammoth.extractRawText({ arrayBuffer: buf });
         text = result.value;
       } else if (ext === 'doc') {
-        showToast('DOC format is not supported — please save as DOCX and re-upload.', 'error');
+        showToast('DOC format is not supported - please save as DOCX and re-upload.', 'error');
         return;
       } else {
         showToast('Unsupported file type.', 'error');
@@ -227,8 +236,8 @@ function CoverLetterPage() {
     if (exp.length > 0) {
       lines.push('Work Experience:');
       exp.slice(0, 5).forEach(e => {
-        const dates = `${e.startDate || ''}${e.endDate ? ` – ${e.endDate}` : ''}`;
-        lines.push(`  • ${e.title} at ${e.company}${e.type ? ` (${e.type})` : ''}${dates ? `, ${dates}` : ''}`);
+        const dates = `${e.startDate || ''}${e.endDate ? ` - ${e.endDate}` : ''}`;
+        lines.push(`  â€¢ ${e.title} at ${e.company}${e.type ? ` (${e.type})` : ''}${dates ? `, ${dates}` : ''}`);
         if (e.description) lines.push(`    ${e.description}`);
       });
     }
@@ -237,7 +246,7 @@ function CoverLetterPage() {
     if (edu.length > 0) {
       lines.push('Education:');
       edu.slice(0, 3).forEach(e => {
-        lines.push(`  • ${e.degree || ''}${e.field ? ` in ${e.field}` : ''} — ${e.school}${e.startDate || e.startYear ? ` (${e.startDate || e.startYear} – ${e.endDate || e.endYear || 'Present'})` : ''}`);
+        lines.push(`  â€¢ ${e.degree || ''}${e.field ? ` in ${e.field}` : ''} - ${e.school}${e.startDate || e.startYear ? ` (${e.startDate || e.startYear} - ${e.endDate || e.endYear || 'Present'})` : ''}`);
       });
     }
 
@@ -245,7 +254,7 @@ function CoverLetterPage() {
     if (proj.length > 0) {
       lines.push('Projects:');
       proj.slice(0, 4).forEach(p => {
-        lines.push(`  • ${p.name}${p.description ? `: ${p.description}` : ''}`);
+        lines.push(`  â€¢ ${p.name}${p.description ? `: ${p.description}` : ''}`);
       });
     }
 
@@ -258,7 +267,7 @@ function CoverLetterPage() {
     if (vol.length > 0) {
       lines.push('Volunteering:');
       vol.slice(0, 2).forEach(v => {
-        lines.push(`  • ${v.role} at ${v.organization}${v.cause ? ` (${v.cause})` : ''}`);
+        lines.push(`  â€¢ ${v.role} at ${v.organization}${v.cause ? ` (${v.cause})` : ''}`);
       });
     }
 
@@ -266,7 +275,7 @@ function CoverLetterPage() {
     if (honors.length > 0) {
       lines.push('Honors & Awards:');
       honors.slice(0, 3).forEach(h => {
-        lines.push(`  • ${h.title}${h.issuer ? ` — ${h.issuer}` : ''}`);
+        lines.push(`  â€¢ ${h.title}${h.issuer ? ` - ${h.issuer}` : ''}`);
       });
     }
 
@@ -311,7 +320,7 @@ function CoverLetterPage() {
     return [
       'Edit the following cover letter template for a specific job application.',
       'Fill in all placeholder text shown in [brackets] using the applicant\'s real information from the profile below.',
-      'Reference specific job titles, companies, projects, and skills from the profile to make the letter concrete — do not use generic placeholder language.',
+      'Reference specific job titles, companies, projects, and skills from the profile to make the letter concrete - do not use generic placeholder language.',
       'Tailor the letter to highlight why this applicant is a strong fit for the specific position.',
       'Keep the overall structure and tone of the template.',
       '',
@@ -372,7 +381,7 @@ function CoverLetterPage() {
 
   function handleDownload() {
     if (!generatedLetter) return;
-    if (!window.jspdf?.jsPDF) { showToast('PDF library not loaded — try refreshing.', 'error'); return; }
+    if (!window.jspdf?.jsPDF) { showToast('PDF library not loaded - try refreshing.', 'error'); return; }
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
 
@@ -399,6 +408,46 @@ function CoverLetterPage() {
     doc.save(`cover-letter-${(company || 'draft').toLowerCase().replace(/\s+/g, '-')}.pdf`);
   }
 
+  function saveCurrentDraft() {
+    if (!generatedLetter.trim()) {
+      showToast('Generate or write a cover letter before saving.', 'error');
+      return;
+    }
+    const draft = {
+      id: String(Date.now()),
+      title: `${jobTitle.trim() || 'Cover letter'} at ${company.trim() || 'Company'}`,
+      jobTitle: jobTitle.trim(),
+      company: company.trim(),
+      jobDescription,
+      letter: generatedLetter,
+      savedAt: new Date().toISOString(),
+    };
+    const next = [draft, ...savedDrafts].slice(0, 12);
+    setSavedDrafts(next);
+    localStorage.setItem('li-cover-letter-drafts', JSON.stringify(next));
+    setSelectedDraftId(draft.id);
+    showToast('Draft saved.', 'success');
+  }
+
+  function loadDraft(id) {
+    const draft = savedDrafts.find(d => d.id === id);
+    if (!draft) return;
+    setSelectedDraftId(id);
+    setJobTitle(draft.jobTitle || '');
+    setCompany(draft.company || '');
+    setJobDescription(draft.jobDescription || '');
+    setGeneratedLetter(draft.letter || '');
+    setGenerationError('');
+  }
+
+  function deleteDraft(id) {
+    const next = savedDrafts.filter(d => d.id !== id);
+    setSavedDrafts(next);
+    localStorage.setItem('li-cover-letter-drafts', JSON.stringify(next));
+    if (selectedDraftId === id) setSelectedDraftId('');
+    showToast('Draft deleted.', 'success');
+  }
+
   const inputStyle = {
     width: '100%', padding: '8px 10px', boxSizing: 'border-box',
     border: '1px solid var(--border-2)', borderRadius: 4,
@@ -419,13 +468,13 @@ function CoverLetterPage() {
       <div className="li-card" style={{ padding: '20px 24px', marginBottom: 16 }}>
         <h1 style={{ fontSize: 22, fontWeight: 700, margin: '0 0 4px' }}>Cover Letter Generator</h1>
         <p style={{ color: 'var(--text-2)', fontSize: 14, margin: 0 }}>
-          Pick a template or upload your own cover letter — the AI will tailor it to the job.
+          Pick a template or upload your own cover letter - the AI will tailor it to the job.
         </p>
       </div>
 
       <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
 
-        {/* ── Left panel: inputs ──────────────────────────────── */}
+        {/* â”€â”€ Left panel: inputs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
         <div style={{ flex: '0 0 460px', display: 'flex', flexDirection: 'column', gap: 16 }}>
 
           {/* Job details card */}
@@ -433,12 +482,12 @@ function CoverLetterPage() {
             <h2 style={{ fontSize: 15, fontWeight: 700, margin: '0 0 16px' }}>Job Details</h2>
 
             <div style={{ marginBottom: 16 }}>
-              <label style={labelStyle}>Load from saved jobs</label>
+              <label style={labelStyle}>Saved jobs</label>
               {jobsLoading ? (
-                <div style={{ fontSize: 13, color: 'var(--text-3)' }}>Loading…</div>
+                <div style={{ fontSize: 13, color: 'var(--text-3)' }}>Loading...</div>
               ) : savedJobsList.length === 0 ? (
                 <div style={{ fontSize: 13, color: 'var(--text-3)' }}>
-                  No saved jobs yet — save jobs from the Jobs page to load them here.
+                  No saved jobs yet - save jobs from the Jobs page to load them here.
                 </div>
               ) : (
                 <select
@@ -463,10 +512,10 @@ function CoverLetterPage() {
                   }}
                   style={{ ...inputStyle, cursor: 'pointer' }}
                 >
-                  <option value="" disabled>Select a saved job…</option>
+                  <option value="" disabled>Select a saved job...</option>
                   {savedJobsList.map(j => (
                     <option key={j.id} value={String(j.id)}>
-                      {j.title} — {j.company}
+                      {j.title} - {j.company}
                     </option>
                   ))}
                 </select>
@@ -508,6 +557,33 @@ function CoverLetterPage() {
                 style={{ ...inputStyle, resize: 'vertical' }}
               />
             </div>
+          </div>
+
+          <div className="li-card" style={{ padding: 20 }}>
+            <h2 style={{ fontSize: 15, fontWeight: 700, margin: '0 0 12px' }}>Saved Drafts</h2>
+            {savedDrafts.length === 0 ? (
+              <p style={{ fontSize: 13, color: 'var(--text-3)', margin: 0 }}>
+                Saved cover letter drafts will appear here.
+              </p>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <select
+                  value={selectedDraftId}
+                  onChange={e => loadDraft(e.target.value)}
+                  style={{ ...inputStyle, cursor: 'pointer' }}
+                >
+                  <option value="" disabled>Select a saved draft</option>
+                  {savedDrafts.map(d => (
+                    <option key={d.id} value={d.id}>{d.title}</option>
+                  ))}
+                </select>
+                {selectedDraftId && (
+                  <button type="button" className="li-btn li-btn--ghost li-btn--sm" onClick={() => deleteDraft(selectedDraftId)}>
+                    Delete selected draft
+                  </button>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Starting point card */}
@@ -605,7 +681,7 @@ function CoverLetterPage() {
                     ? <span style={{ color: '#057642', fontWeight: 600 }}>{uploadedFileName}</span>
                     : <span>Click to upload your cover letter</span>
                   }
-                  {!uploadedText && <span style={{ fontSize: 11 }}>Max 5 MB · PDF, DOCX, TXT</span>}
+                  {!uploadedText && <span style={{ fontSize: 11 }}>Max 5 MB Â· PDF, DOCX, TXT</span>}
                 </label>
                 <input
                   id="cl-file-upload"
@@ -640,7 +716,7 @@ function CoverLetterPage() {
           </button>
         </div>
 
-        {/* ── Right panel: output ─────────────────────────────── */}
+        {/* â”€â”€ Right panel: output â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
         <div style={{ flex: 1, minWidth: 280 }}>
           <div className="li-card" style={{ padding: 20, minHeight: 400 }}>
 
@@ -650,6 +726,9 @@ function CoverLetterPage() {
                 <div style={{ display: 'flex', gap: 8 }}>
                   <button type="button" className="li-btn li-btn--ghost li-btn--sm" onClick={handleCopy}>
                     Copy
+                  </button>
+                  <button type="button" className="li-btn li-btn--ghost li-btn--sm" onClick={saveCurrentDraft}>
+                    Save draft
                   </button>
                   <button type="button" className="li-btn li-btn--ghost li-btn--sm" onClick={handleDownload}>
                     Download
@@ -691,7 +770,7 @@ function CoverLetterPage() {
               </div>
             )}
 
-            {/* Editable output — user can tweak before copying/downloading */}
+            {/* Editable output - user can tweak before copying/downloading */}
             {generatedLetter && !isGenerating && (
               <textarea
                 value={generatedLetter}

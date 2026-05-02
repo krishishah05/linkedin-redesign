@@ -254,8 +254,10 @@ function PostCreator({ user, onPost, openModal, showToast }) {
   ];
 
   function submit() {
-    if (!draft.trim()) return;
-    onPost(draft.trim(), imageUrl && !imageUrl.startsWith('blob:') ? imageUrl : null, videoUrl.trim() || null);
+    const cleanImageUrl = imageUrl.trim();
+    const cleanVideoUrl = videoUrl.trim();
+    if (!draft.trim() && !cleanImageUrl && !cleanVideoUrl) return;
+    onPost(draft.trim(), cleanImageUrl || null, cleanVideoUrl || null);
     setDraft('');
     setImageUrl('');
     setPhotoPreviewUrl('');
@@ -272,8 +274,13 @@ function PostCreator({ user, onPost, openModal, showToast }) {
       const nextPreview = URL.createObjectURL(file);
       if (photoPreviewUrl) URL.revokeObjectURL(photoPreviewUrl);
       setPhotoPreviewUrl(nextPreview);
-      setImageUrl('');
       setExpanded(true);
+      const reader = new FileReader();
+      reader.onload = () => {
+        setImageUrl(typeof reader.result === 'string' ? reader.result : '');
+      };
+      reader.onerror = () => showToast('Could not read this photo.', 'error');
+      reader.readAsDataURL(file);
     }
     e.target.value = '';
   }
@@ -282,7 +289,15 @@ function PostCreator({ user, onPost, openModal, showToast }) {
   function activateVideo() { setMediaInputType('video'); setShowMediaInput(v => !v); setExpanded(true); }
   function activateArticle() { setShowArticleTemplates(true); }
   function selectTemplate(tmpl) { setDraft(tmpl.body); setIsArticle(true); setShowArticleTemplates(false); setExpanded(true); }
-  function cancelAll() { setExpanded(false); setIsArticle(false); setShowArticleTemplates(false); setShowMediaInput(false); setPhotoPreviewUrl(''); }
+  function cancelAll() {
+    setExpanded(false);
+    setIsArticle(false);
+    setShowArticleTemplates(false);
+    setShowMediaInput(false);
+    setImageUrl('');
+    setPhotoPreviewUrl('');
+    setVideoUrl('');
+  }
 
   if (showArticleTemplates) {
     return (
@@ -351,17 +366,20 @@ function PostCreator({ user, onPost, openModal, showToast }) {
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 8, padding: '8px 0' }}>
           <input
             className="li-input"
-            placeholder={mediaInputType === 'video' ? t('uploadVideoUrl') : t('pasteImageUrl')}
-            value={mediaInputType === 'video' ? videoUrl : imageUrl}
-            onChange={e => mediaInputType === 'video' ? setVideoUrl(e.target.value) : setImageUrl(e.target.value)}
+            placeholder={t('uploadVideoUrl')}
+            value={videoUrl}
+            onChange={e => setVideoUrl(e.target.value)}
             style={{ flex: 1, fontSize: 13 }}
           />
-          {(mediaInputType === 'video' ? videoUrl : imageUrl) && (
-            <button onClick={() => mediaInputType === 'video' ? setVideoUrl('') : setImageUrl('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-3)', fontSize: 18, lineHeight: 1 }}>×</button>
+          {videoUrl && (
+            <button onClick={() => setVideoUrl('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-3)', fontSize: 18, lineHeight: 1 }}>×</button>
           )}
         </div>
       )}
-      {expanded && (imageUrl || photoPreviewUrl) && (
+      {expanded && videoUrl.trim() && (
+        <video src={videoUrl.trim()} controls style={{ maxHeight: 180, borderRadius: 8, width: '100%', marginTop: 4, background: '#000' }} />
+      )}
+      {expanded && !videoUrl.trim() && (imageUrl || photoPreviewUrl) && (
         <img src={photoPreviewUrl || imageUrl} alt="preview" style={{ maxHeight: 180, borderRadius: 8, objectFit: 'cover', width: '100%', marginTop: 4 }}
           onError={e => { e.target.style.display = 'none'; }} />
       )}
@@ -397,12 +415,12 @@ function PostCreator({ user, onPost, openModal, showToast }) {
             <button onClick={cancelAll} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-2)', fontSize: 14, padding: '4px 8px' }}>{t('cancel')}</button>
             <button
               onClick={submit}
-              disabled={!draft.trim() || draft.length > MAX}
+              disabled={(!draft.trim() && !imageUrl.trim() && !videoUrl.trim()) || draft.length > MAX}
               style={{
-                background: draft.trim() && draft.length <= MAX ? 'var(--blue)' : 'var(--border)',
-                color: draft.trim() && draft.length <= MAX ? '#fff' : 'var(--text-3)',
+                background: (draft.trim() || imageUrl.trim() || videoUrl.trim()) && draft.length <= MAX ? 'var(--blue)' : 'var(--border)',
+                color: (draft.trim() || imageUrl.trim() || videoUrl.trim()) && draft.length <= MAX ? '#fff' : 'var(--text-3)',
                 border: 'none', borderRadius: 20, padding: '8px 22px', fontSize: 14, fontWeight: 600,
-                cursor: draft.trim() && draft.length <= MAX ? 'pointer' : 'not-allowed',
+                cursor: (draft.trim() || imageUrl.trim() || videoUrl.trim()) && draft.length <= MAX ? 'pointer' : 'not-allowed',
               }}>
               {isArticle ? t('publish') : t('post')}
             </button>

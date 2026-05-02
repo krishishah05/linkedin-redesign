@@ -21,7 +21,7 @@ function ShortlistPanel() {
       const exp0 = (u.experience || [])[0] || {};
       const edu0 = (u.education  || [])[0] || {};
       const skills = (u.skills || []).slice(0, 15).map(s => (typeof s === 'object' ? s.name : s)).join('; ');
-      const url = `${window.location.origin}${window.location.pathname}#profile?id=${u.id}`;
+      const url = getNexusProfileUrl(u);
       return [u.name, exp0.title, exp0.company, u.headline, u.location, skills, edu0.school, edu0.degree, u.connections, u.openToWork ? 'Yes' : 'No', url]
         .map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(',');
     });
@@ -54,7 +54,7 @@ function ShortlistPanel() {
           'Degree':        edu0.degree   || '',
           'Connections':   u.connections || 0,
           'Open to Work':  u.openToWork  ? 'Yes' : 'No',
-          'Profile URL':   `${window.location.origin}${window.location.pathname}#profile?id=${u.id}`,
+          'Profile URL':   getNexusProfileUrl(u),
         };
       });
       const XLSX = window.XLSX;
