@@ -38,13 +38,12 @@ function Router() {
     'notifications': <NotificationsPage />,
     'search':        <SearchPage query={params.q || ''} />,
     'company':       <CompanyPage companyId={params.id} />,
-    'groups':        <GroupsPage />,
-    'group-detail':  <GroupDetailPage groupId={params.id} />,
     'events':        <EventsPage />,
     'learning':      <LearningPage />,
     'settings':      <SettingsPage />,
     'conferences':   <ConferencesPage />,
     'article':       <ArticlePage />,
+    'cover-letter':  <CoverLetterPage />,
   };
 
   return pageMap[route] || pageMap['feed'];
