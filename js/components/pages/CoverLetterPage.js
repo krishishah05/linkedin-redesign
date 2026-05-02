@@ -446,7 +446,10 @@ function CoverLetterPage() {
                     const val = e.target.value;
                     setSelectedJobId(val);
                     const job = savedJobsList.find(j => String(j.id) === val);
-                    if (job) loadFromJob(job);
+                    if (job) {
+                      loadFromJob(job);
+                      API.getJob(job.id).then(full => { if (full) loadFromJob(full); }).catch(() => {});
+                    }
                   }}
                   style={{ ...inputStyle, cursor: 'pointer' }}
                 >
