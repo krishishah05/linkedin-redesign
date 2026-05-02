@@ -63,6 +63,16 @@ function ProfilePage({ userId }) {
   });
   const [showAddCert, setShowAddCert] = React.useState(false);
   const [certForm, setCertForm] = React.useState({ name: '', org: '', issueDate: '' });
+  const certStorageKey = `li-certs-${userId || (currentUser && currentUser.id)}`;
+
+  React.useEffect(() => {
+    try {
+      const s = localStorage.getItem(certStorageKey);
+      setLocalCerts(s ? JSON.parse(s) : []);
+    } catch {
+      setLocalCerts([]);
+    }
+  }, [certStorageKey]);
 
   const STATUS_OPTIONS = [
     { key: 'open_to_work', label: 'Open to work', desc: "Show recruiters you're available", bg: '#E6F4EA', color: '#057642', dot: '#057642' },
@@ -73,11 +83,10 @@ function ProfilePage({ userId }) {
 
   function addLocalCert() {
     if (!certForm.name.trim()) return;
-    const newCert = { id: Date.now(), name: certForm.name.trim(), org: certForm.org.trim(), issueDate: certForm.issueDate };
+    const newCert = { id: Date.now(), localOnly: true, name: certForm.name.trim(), org: certForm.org.trim(), issueDate: certForm.issueDate };
     const updated = [newCert, ...localCerts];
     setLocalCerts(updated);
-    const key = `li-certs-${userId || (currentUser && currentUser.id)}`;
-    try { localStorage.setItem(key, JSON.stringify(updated)); } catch {}
+    try { localStorage.setItem(certStorageKey, JSON.stringify(updated)); } catch {}
     setCertForm({ name: '', org: '', issueDate: '' });
     setShowAddCert(false);
     showToast('Certification added!', 'success');
@@ -668,7 +677,10 @@ function ProfilePage({ userId }) {
 
           {/* Licenses & Certifications */}
           {(() => {
-            const allCerts = [...(user.certifications || []), ...localCerts];
+            const allCerts = [
+              ...(user.certifications || []).map(cert => ({ ...cert, localOnly: false })),
+              ...localCerts.map(cert => ({ ...cert, localOnly: true })),
+            ];
             if (allCerts.length === 0 && !isOwnProfile) return null;
             return (
               <div className="li-card" style={{ padding: 24 }}>
@@ -735,11 +747,11 @@ function ProfilePage({ userId }) {
                           </div>
                         )}
                       </div>
-                      {isOwnProfile && cert.id && (
+                      {isOwnProfile && cert.localOnly && (
                         <button onClick={() => {
                           const updated = localCerts.filter(c => c.id !== cert.id);
                           setLocalCerts(updated);
-                          try { localStorage.setItem(`li-certs-${userId || currentUser?.id}`, JSON.stringify(updated)); } catch {}
+                          try { localStorage.setItem(certStorageKey, JSON.stringify(updated)); } catch {}
                           showToast('Certification removed');
                         }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-3)', fontSize: 18, lineHeight: 1, alignSelf: 'flex-start', padding: 0 }}>×</button>
                       )}

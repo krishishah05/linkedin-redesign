@@ -3,7 +3,7 @@
    ============================================================ */
 function SettingsPage() {
   const { settings, setSettings, darkMode, setDarkMode, showToast, currentUser, setCurrentUser,
-          language, setLanguage, recruiterMode, toggleRecruiterMode, userStatus } = React.useContext(AppContext);
+          language, setLanguage, recruiterMode, toggleRecruiterMode, userStatus, setUserStatus } = React.useContext(AppContext);
   const [tab, setTab] = React.useState('account');
   const [savingAccount, setSavingAccount] = React.useState(false);
   const [updatingPw, setUpdatingPw] = React.useState(false);
@@ -166,8 +166,12 @@ function SettingsPage() {
                   value={settings.showConnections}
                   onChange={v => { setSettings(s => ({ ...s, showConnections: v })); showToast('Connection visibility updated'); }} />
                 <Toggle label="Open to Work" desc="Let recruiters know you're looking for work"
-                  value={settings.openToWork}
-                  onChange={v => { setSettings(s => ({ ...s, openToWork: v })); showToast('Open to Work ' + (v ? 'enabled' : 'disabled')); }} />
+                  value={userStatus === 'open_to_work'}
+                  onChange={v => {
+                    setSettings(s => ({ ...s, openToWork: v }));
+                    setUserStatus(v ? 'open_to_work' : null);
+                    showToast('Open to Work ' + (v ? 'enabled' : 'disabled'));
+                  }} />
                 <Toggle label="Profile views" desc="Show when you've viewed someone's profile"
                   value={settings.profileViews !== false}
                   onChange={v => { setSettings(s => ({ ...s, profileViews: v })); showToast('Profile view setting updated'); }} />

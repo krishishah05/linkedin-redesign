@@ -1559,6 +1559,8 @@ def create_conference_story(author_id: int, conference_name: str, tagline: str,
                              description: str, photo_url: str = None,
                              company_logo_url: str = None):
     user = get_user_by_id(author_id)
+    if not user:
+        return None
     now  = _ts()
     blob = {
         "conferenceName":  conference_name,

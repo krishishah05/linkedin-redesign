@@ -4,11 +4,11 @@
    ============================================================ */
 
 const TRANSLATIONS = {
-  en: { home:'Home', myNetwork:'My Network', jobs:'Jobs', messaging:'Messaging', conferences:'Conferences', me:'Me ▾', search:'Search', startPost:'Start a post', photo:'Photo', video:'Video', writeArticle:'Write article', post:'Post', publish:'Publish', cancel:'Cancel', whatToTalk:'What do you want to talk about?', editTemplate:'Edit the template, then publish your article…', like:'Like', comment:'Comment', repost:'Repost', send:'Send', network:'Network', signOut:'Sign out', settingsPrivacy:'Settings & Privacy', messages:'Messages', chooseTemplate:'Choose an article template', uploadVideoUrl:'Upload video URL…', pasteImageUrl:'Paste image URL…', article:'ARTICLE' },
-  es: { home:'Inicio', myNetwork:'Mi Red', jobs:'Empleos', messaging:'Mensajes', conferences:'Conferencias', me:'Yo ▾', search:'Buscar', startPost:'Iniciar publicación', photo:'Foto', video:'Vídeo', writeArticle:'Escribir artículo', post:'Publicar', publish:'Publicar', cancel:'Cancelar', whatToTalk:'¿De qué quieres hablar?', editTemplate:'Edita la plantilla y publica tu artículo…', like:'Me gusta', comment:'Comentar', repost:'Compartir', send:'Enviar', network:'Red', signOut:'Cerrar sesión', settingsPrivacy:'Configuración', messages:'Mensajes', chooseTemplate:'Elige una plantilla de artículo', uploadVideoUrl:'URL del vídeo…', pasteImageUrl:'URL de la imagen…', article:'ARTÍCULO' },
-  fr: { home:'Accueil', myNetwork:'Mon Réseau', jobs:'Emplois', messaging:'Messagerie', conferences:'Conférences', me:'Moi ▾', search:'Rechercher', startPost:'Commencer une publication', photo:'Photo', video:'Vidéo', writeArticle:'Écrire un article', post:'Publier', publish:'Publier', cancel:'Annuler', whatToTalk:'De quoi souhaitez-vous parler ?', editTemplate:'Modifiez le modèle, puis publiez votre article…', like:'Aimer', comment:'Commenter', repost:'Repartager', send:'Envoyer', network:'Réseau', signOut:'Se déconnecter', settingsPrivacy:'Paramètres', messages:'Messages', chooseTemplate:'Choisissez un modèle d\'article', uploadVideoUrl:'URL de la vidéo…', pasteImageUrl:'URL de l\'image…', article:'ARTICLE' },
-  de: { home:'Startseite', myNetwork:'Mein Netzwerk', jobs:'Jobs', messaging:'Nachrichten', conferences:'Konferenzen', me:'Ich ▾', search:'Suchen', startPost:'Beitrag starten', photo:'Foto', video:'Video', writeArticle:'Artikel schreiben', post:'Posten', publish:'Veröffentlichen', cancel:'Abbrechen', whatToTalk:'Worüber möchtest du sprechen?', editTemplate:'Vorlage bearbeiten und Artikel veröffentlichen…', like:'Gefällt mir', comment:'Kommentieren', repost:'Teilen', send:'Senden', network:'Netzwerk', signOut:'Abmelden', settingsPrivacy:'Einstellungen', messages:'Nachrichten', chooseTemplate:'Artikelvorlage wählen', uploadVideoUrl:'Video-URL…', pasteImageUrl:'Bild-URL…', article:'ARTIKEL' },
-  ja: { home:'ホーム', myNetwork:'マイネットワーク', jobs:'求人', messaging:'メッセージ', conferences:'カンファレンス', me:'自分 ▾', search:'検索', startPost:'投稿を開始', photo:'写真', video:'動画', writeArticle:'記事を書く', post:'投稿', publish:'公開', cancel:'キャンセル', whatToTalk:'何について話したいですか？', editTemplate:'テンプレートを編集して記事を公開…', like:'いいね', comment:'コメント', repost:'共有', send:'送信', network:'ネットワーク', signOut:'ログアウト', settingsPrivacy:'設定', messages:'メッセージ', chooseTemplate:'記事テンプレートを選択', uploadVideoUrl:'動画URLを入力…', pasteImageUrl:'画像URLを入力…', article:'記事' },
+  en: { home:'Home', myNetwork:'My Network', jobs:'Jobs', messaging:'Messaging', conferences:'Conferences', me:'Me ▾', meShort:'Me', search:'Search', startPost:'Start a post', photo:'Photo', video:'Video', writeArticle:'Write article', post:'Post', publish:'Publish', cancel:'Cancel', whatToTalk:'What do you want to talk about?', editTemplate:'Edit the template, then publish your article…', like:'Like', comment:'Comment', repost:'Repost', send:'Send', network:'Network', signOut:'Sign out', settingsPrivacy:'Settings & Privacy', messages:'Messages', chooseTemplate:'Choose an article template', uploadVideoUrl:'Upload video URL…', pasteImageUrl:'Paste image URL…', article:'ARTICLE' },
+  es: { home:'Inicio', myNetwork:'Mi Red', jobs:'Empleos', messaging:'Mensajes', conferences:'Conferencias', me:'Yo ▾', meShort:'Yo', search:'Buscar', startPost:'Iniciar publicación', photo:'Foto', video:'Vídeo', writeArticle:'Escribir artículo', post:'Publicar', publish:'Publicar', cancel:'Cancelar', whatToTalk:'¿De qué quieres hablar?', editTemplate:'Edita la plantilla y publica tu artículo…', like:'Me gusta', comment:'Comentar', repost:'Compartir', send:'Enviar', network:'Red', signOut:'Cerrar sesión', settingsPrivacy:'Configuración', messages:'Mensajes', chooseTemplate:'Elige una plantilla de artículo', uploadVideoUrl:'URL del vídeo…', pasteImageUrl:'URL de la imagen…', article:'ARTÍCULO' },
+  fr: { home:'Accueil', myNetwork:'Mon Réseau', jobs:'Emplois', messaging:'Messagerie', conferences:'Conférences', me:'Moi ▾', meShort:'Moi', search:'Rechercher', startPost:'Commencer une publication', photo:'Photo', video:'Vidéo', writeArticle:'Écrire un article', post:'Publier', publish:'Publier', cancel:'Annuler', whatToTalk:'De quoi souhaitez-vous parler ?', editTemplate:'Modifiez le modèle, puis publiez votre article…', like:'Aimer', comment:'Commenter', repost:'Repartager', send:'Envoyer', network:'Réseau', signOut:'Se déconnecter', settingsPrivacy:'Paramètres', messages:'Messages', chooseTemplate:'Choisissez un modèle d\'article', uploadVideoUrl:'URL de la vidéo…', pasteImageUrl:'URL de l\'image…', article:'ARTICLE' },
+  de: { home:'Startseite', myNetwork:'Mein Netzwerk', jobs:'Jobs', messaging:'Nachrichten', conferences:'Konferenzen', me:'Ich ▾', meShort:'Ich', search:'Suchen', startPost:'Beitrag starten', photo:'Foto', video:'Video', writeArticle:'Artikel schreiben', post:'Posten', publish:'Veröffentlichen', cancel:'Abbrechen', whatToTalk:'Worüber möchtest du sprechen?', editTemplate:'Vorlage bearbeiten und Artikel veröffentlichen…', like:'Gefällt mir', comment:'Kommentieren', repost:'Teilen', send:'Senden', network:'Netzwerk', signOut:'Abmelden', settingsPrivacy:'Einstellungen', messages:'Nachrichten', chooseTemplate:'Artikelvorlage wählen', uploadVideoUrl:'Video-URL…', pasteImageUrl:'Bild-URL…', article:'ARTIKEL' },
+  ja: { home:'ホーム', myNetwork:'マイネットワーク', jobs:'求人', messaging:'メッセージ', conferences:'カンファレンス', me:'自分 ▾', meShort:'自分', search:'検索', startPost:'投稿を開始', photo:'写真', video:'動画', writeArticle:'記事を書く', post:'投稿', publish:'公開', cancel:'キャンセル', whatToTalk:'何について話したいですか？', editTemplate:'テンプレートを編集して記事を公開…', like:'いいね', comment:'コメント', repost:'共有', send:'送信', network:'ネットワーク', signOut:'ログアウト', settingsPrivacy:'設定', messages:'メッセージ', chooseTemplate:'記事テンプレートを選択', uploadVideoUrl:'動画URLを入力…', pasteImageUrl:'画像URLを入力…', article:'記事' },
 };
 
 const AppContext = React.createContext(null);
@@ -59,18 +59,23 @@ function AppProvider({ children }) {
 
   // User availability status: 'open_to_work' | 'conferences' | 'recruiting' | 'not_looking' | null
   // Declared before the effects below that reference it to avoid TDZ errors.
-  const [userStatus, setUserStatusState] = React.useState(
-    () => localStorage.getItem('li-user-status') || null
-  );
+  const [userStatus, setUserStatusState] = React.useState(null);
   const [recruiterPanelOpen, setRecruiterPanelOpen] = React.useState(false);
 
   // Auto-set 'recruiting' status for recruiter accounts that haven't picked a status yet
   React.useEffect(() => {
-    if (currentUser?.isRecruiter && !localStorage.getItem('li-user-status')) {
+    if (!currentUser?.id) return;
+    const statusKey = `li-user-status-${currentUser.id}`;
+    const savedStatus = localStorage.getItem(statusKey);
+    if (savedStatus) {
+      setUserStatusState(savedStatus);
+    } else if (currentUser.isRecruiter) {
       setUserStatusState('recruiting');
-      localStorage.setItem('li-user-status', 'recruiting');
+      localStorage.setItem(statusKey, 'recruiting');
+    } else {
+      setUserStatusState(null);
     }
-    if (currentUser && !currentUser.isRecruiter) {
+    if (!currentUser.isRecruiter) {
       setRecruiterModeState(false);
       setRecruiterPanelOpen(false);
       localStorage.removeItem('li-recruiter-mode');
@@ -95,8 +100,11 @@ function AppProvider({ children }) {
 
   function setUserStatus(status) {
     setUserStatusState(status);
-    if (status) localStorage.setItem('li-user-status', status);
-    else localStorage.removeItem('li-user-status');
+    const uid = currentUser?.id || userIdRef.current;
+    if (!uid) return;
+    const statusKey = `li-user-status-${uid}`;
+    if (status) localStorage.setItem(statusKey, status);
+    else localStorage.removeItem(statusKey);
   }
 
   function toggleRecruiterMode() {

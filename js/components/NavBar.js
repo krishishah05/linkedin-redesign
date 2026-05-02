@@ -355,10 +355,12 @@ function NavBar() {
                   className="li-dropdown__item"
                   role="menuitem"
                   onClick={() => {
+                    const statusKey = currentUser?.id ? `li-user-status-${currentUser.id}` : null;
                     localStorage.removeItem('nx-token'); localStorage.removeItem('nx-uid');
                     ['li-liked-posts','li-saved-jobs','li-connections','li-following','li-pending-conn',
                      'li-dismissed-inv','li-applied-jobs','li-joined-groups','li-settings',
                      'li-language','li-user-status','li-recruiter-mode'].forEach(k => localStorage.removeItem(k));
+                    if (statusKey) localStorage.removeItem(statusKey);
                     window.location.href = 'index.html';
                   }}
                 >

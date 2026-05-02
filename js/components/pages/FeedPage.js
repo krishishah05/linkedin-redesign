@@ -225,6 +225,7 @@ function PostCreator({ user, onPost, openModal, showToast }) {
   const [draft, setDraft] = React.useState('');
   const [expanded, setExpanded] = React.useState(false);
   const [imageUrl, setImageUrl] = React.useState('');
+  const [photoPreviewUrl, setPhotoPreviewUrl] = React.useState('');
   const [showMediaInput, setShowMediaInput] = React.useState(false);
   const [mediaInputType, setMediaInputType] = React.useState('photo');
   const [showArticleTemplates, setShowArticleTemplates] = React.useState(false);
@@ -232,6 +233,12 @@ function PostCreator({ user, onPost, openModal, showToast }) {
   const [videoUrl, setVideoUrl] = React.useState('');
   const MAX = 3000;
   const photoInputRef = React.useRef(null);
+
+  React.useEffect(() => {
+    return () => {
+      if (photoPreviewUrl) URL.revokeObjectURL(photoPreviewUrl);
+    };
+  }, [photoPreviewUrl]);
 
   const ARTICLE_TEMPLATES = [
     { id: 'insight', title: 'Industry Insight', emoji: '📊', preview: 'Trends & observations from your field',
@@ -248,9 +255,10 @@ function PostCreator({ user, onPost, openModal, showToast }) {
 
   function submit() {
     if (!draft.trim()) return;
-    onPost(draft.trim(), imageUrl || null, videoUrl.trim() || null);
+    onPost(draft.trim(), imageUrl && !imageUrl.startsWith('blob:') ? imageUrl : null, videoUrl.trim() || null);
     setDraft('');
     setImageUrl('');
+    setPhotoPreviewUrl('');
     setVideoUrl('');
     setShowMediaInput(false);
     setExpanded(false);
@@ -260,7 +268,13 @@ function PostCreator({ user, onPost, openModal, showToast }) {
 
   function handlePhotoCapture(e) {
     const file = e.target.files && e.target.files[0];
-    if (file) { setImageUrl(URL.createObjectURL(file)); setExpanded(true); }
+    if (file) {
+      const nextPreview = URL.createObjectURL(file);
+      if (photoPreviewUrl) URL.revokeObjectURL(photoPreviewUrl);
+      setPhotoPreviewUrl(nextPreview);
+      setImageUrl('');
+      setExpanded(true);
+    }
     e.target.value = '';
   }
 
@@ -268,7 +282,7 @@ function PostCreator({ user, onPost, openModal, showToast }) {
   function activateVideo() { setMediaInputType('video'); setShowMediaInput(v => !v); setExpanded(true); }
   function activateArticle() { setShowArticleTemplates(true); }
   function selectTemplate(tmpl) { setDraft(tmpl.body); setIsArticle(true); setShowArticleTemplates(false); setExpanded(true); }
-  function cancelAll() { setExpanded(false); setIsArticle(false); setShowArticleTemplates(false); setShowMediaInput(false); }
+  function cancelAll() { setExpanded(false); setIsArticle(false); setShowArticleTemplates(false); setShowMediaInput(false); setPhotoPreviewUrl(''); }
 
   if (showArticleTemplates) {
     return (
@@ -347,8 +361,8 @@ function PostCreator({ user, onPost, openModal, showToast }) {
           )}
         </div>
       )}
-      {expanded && imageUrl && (
-        <img src={imageUrl} alt="preview" style={{ maxHeight: 180, borderRadius: 8, objectFit: 'cover', width: '100%', marginTop: 4 }}
+      {expanded && (imageUrl || photoPreviewUrl) && (
+        <img src={photoPreviewUrl || imageUrl} alt="preview" style={{ maxHeight: 180, borderRadius: 8, objectFit: 'cover', width: '100%', marginTop: 4 }}
           onError={e => { e.target.style.display = 'none'; }} />
       )}
       {expanded && (

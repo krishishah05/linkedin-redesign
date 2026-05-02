@@ -51,6 +51,11 @@ function ConferencesPage() {
   const filtered = activeFilter === 'All' ? CONFERENCES : CONFERENCES.filter(c => c.category === activeFilter);
   const selectedConf = CONFERENCES.find(c => c.id === selectedId);
 
+  React.useEffect(() => {
+    if (activeFilter === 'All' || !selectedConf) return;
+    if (selectedConf.category !== activeFilter) setSelectedId(null);
+  }, [activeFilter, selectedConf]);
+
   /* ── Load stories from backend ─────────────────────────────── */
   React.useEffect(() => {
     API.getConferenceStories()
@@ -236,8 +241,9 @@ function ConferencesPage() {
                 </div>
               )}
               {stories.map(story => (
-                <div key={story.id} onClick={() => setViewingStory(story)}
-                  style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, cursor: 'pointer', flexShrink: 0 }}>
+                <button key={story.id} type="button" onClick={() => setViewingStory(story)}
+                  style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, cursor: 'pointer', flexShrink: 0, border: 'none', background: 'none', padding: 0, font: 'inherit' }}
+                  aria-label={`Open ${story.author ? story.author.name : 'user'}'s conference story`}>
                   <div style={{
                     width: 52, height: 52, borderRadius: '50%',
                     background: storyGradient(story),
@@ -255,7 +261,7 @@ function ConferencesPage() {
                   <div style={{ fontSize: 10, color: 'var(--text-2)', maxWidth: 52, textAlign: 'center', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {story.author ? story.author.name.split(' ')[0] : 'User'}
                   </div>
-                </div>
+                </button>
               ))}
             </div>
           </div>
@@ -273,13 +279,14 @@ function ConferencesPage() {
               const isActive = conf.id === selectedId;
               const isReg = registeredIds.has(conf.id);
               return (
-                <div key={conf.id}
+                <button key={conf.id} type="button"
                   onClick={() => setSelectedId(id => id === conf.id ? null : conf.id)}
                   style={{
-                    padding: '14px 16px', cursor: 'pointer',
+                    width: '100%', textAlign: 'left', padding: '14px 16px', cursor: 'pointer',
+                    borderTop: 0, borderRight: 0, borderBottom: '1px solid var(--border)',
                     borderLeft: `4px solid ${isActive ? color : 'transparent'}`,
                     background: isActive ? color + '0A' : 'transparent',
-                    borderBottom: '1px solid var(--border)', transition: 'all 0.12s',
+                    transition: 'all 0.12s', font: 'inherit',
                   }}
                   onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = 'var(--bg)'; }}
                   onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'transparent'; }}
@@ -311,7 +318,7 @@ function ConferencesPage() {
                     ))}
                     {isReg && <span style={{ fontSize: 11, color: '#057642', fontWeight: 700, marginLeft: 'auto' }}>✓ Registered</span>}
                   </div>
-                </div>
+                </button>
               );
             })}
           </div>
@@ -336,11 +343,12 @@ function ConferencesPage() {
           }}>
             <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-3)', marginBottom: 7, textTransform: 'uppercase', letterSpacing: 0.6 }}>Categories</div>
             {Object.entries(CAT_COLORS).map(([cat, color]) => (
-              <div key={cat} onClick={() => setActiveFilter(a => a === cat ? 'All' : cat)}
-                style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 5, cursor: 'pointer' }}>
+              <button key={cat} type="button" onClick={() => setActiveFilter(a => a === cat ? 'All' : cat)}
+                style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 5, cursor: 'pointer', border: 'none', background: 'none', padding: 0, font: 'inherit', width: '100%', textAlign: 'left' }}
+                aria-pressed={activeFilter === cat}>
                 <div style={{ width: 10, height: 10, borderRadius: '50%', background: color, flexShrink: 0 }} />
                 <span style={{ fontSize: 12, color: activeFilter === cat ? 'var(--text)' : 'var(--text-2)', fontWeight: activeFilter === cat ? 700 : 400 }}>{cat}</span>
-              </div>
+              </button>
             ))}
           </div>
 

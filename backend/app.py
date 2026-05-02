@@ -800,6 +800,8 @@ def create_conference_story():
         user["id"], conference_name, tagline, description,
         photo_url, company_logo_url
     )
+    if not story:
+        abort(404, description="Author not found")
     return jsonify(story), 201
 
 
