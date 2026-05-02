@@ -6,8 +6,9 @@
 function ConferencesPage() {
   const { showToast } = React.useContext(AppContext);
 
-  const [locationQ, setLocationQ] = React.useState('San Francisco, CA');
+  const [locationQ, setLocationQ] = React.useState('');
   const [fieldQ, setFieldQ] = React.useState('technology');
+  const [searchCenter, setSearchCenter] = React.useState(null); // geocoded center for searched location
   const [conferences, setConferences] = React.useState([]);
   const [selectedId, setSelectedId] = React.useState(null);
   const [searching, setSearching] = React.useState(false);
@@ -20,15 +21,21 @@ function ConferencesPage() {
   });
   const [storySubmitting, setStorySubmitting] = React.useState(false);
 
-  // Map center follows the selected/first conference
+  // Map center follows selected conf, or first conf with valid coords, or geocoded search center
+  const SF_DEFAULT = { lat: 37.7749, lng: -122.4194 };
+  function isDefaultCoord(lat, lng) {
+    return Math.abs(lat - SF_DEFAULT.lat) < 0.001 && Math.abs(lng - SF_DEFAULT.lng) < 0.001;
+  }
   const mapCenter = React.useMemo(() => {
     if (selectedId) {
       const c = conferences.find(x => String(x.id) === String(selectedId));
-      if (c) return { lat: c.lat, lng: c.lng };
+      if (c && !isDefaultCoord(c.lat, c.lng)) return { lat: c.lat, lng: c.lng };
     }
-    if (conferences.length) return { lat: conferences[0].lat, lng: conferences[0].lng };
-    return { lat: 37.7749, lng: -122.4194 };
-  }, [selectedId, conferences]);
+    const first = conferences.find(c => !isDefaultCoord(c.lat, c.lng));
+    if (first) return { lat: first.lat, lng: first.lng };
+    if (searchCenter) return searchCenter;
+    return SF_DEFAULT;
+  }, [selectedId, conferences, searchCenter]);
 
   const selectedConf = conferences.find(c => String(c.id) === String(selectedId));
   const selectedConfUrl = getSafeHttpUrl(selectedConf?.link);
@@ -40,24 +47,48 @@ function ConferencesPage() {
       .catch(() => {});
   }, []);
 
-  // Initial search on mount
-  React.useEffect(() => { searchConferences(); }, []);
+  // Geocode a place name → { lat, lng } using OSM Nominatim (free, no key)
+  async function geocodePlace(place) {
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(place)}`,
+        { headers: { 'Accept-Language': 'en-US' } }
+      );
+      const data = await res.json();
+      if (data && data[0]) return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
+    } catch (_) {}
+    return null;
+  }
 
-  function searchConferences(e) {
+  async function searchConferences(e) {
     if (e) e.preventDefault();
-    const location = locationQ.trim() || 'San Francisco, CA';
+    const location = locationQ.trim() || 'United States';
     const field = fieldQ.trim() || 'technology';
     setSearching(true);
     setSelectedId(null);
+
+    // Geocode the searched location so the map centers correctly
+    const geo = await geocodePlace(location);
+    if (geo) setSearchCenter(geo);
+
     API.searchConferences(location, field)
       .then(items => {
-        const clean = (Array.isArray(items) ? items : []).map((item, i) => ({
-          ...item,
-          id: item.id || i + 1,
-          lat: Number(item.lat) || 37.7749,
-          lng: Number(item.lng) || -122.4194,
-          tags: Array.isArray(item.tags) ? item.tags : [],
-        }));
+        const fallbackLat = geo ? geo.lat : SF_DEFAULT.lat;
+        const fallbackLng = geo ? geo.lng : SF_DEFAULT.lng;
+        // Spread conferences near the geocoded center if they lack real coords
+        const clean = (Array.isArray(items) ? items : []).map((item, i) => {
+          const rawLat = Number(item.lat);
+          const rawLng = Number(item.lng);
+          const hasReal = rawLat !== 0 && rawLng !== 0 && !isNaN(rawLat) && !isNaN(rawLng);
+          const jitter = (i % 5) * 0.008 - 0.016; // small spread so markers don't stack
+          return {
+            ...item,
+            id: item.id || i + 1,
+            lat: hasReal ? rawLat : fallbackLat + jitter,
+            lng: hasReal ? rawLng : fallbackLng + jitter * 1.5,
+            tags: Array.isArray(item.tags) ? item.tags : [],
+          };
+        });
         setConferences(clean);
         setSelectedId(clean[0]?.id || null);
       })
@@ -143,7 +174,7 @@ function ConferencesPage() {
           <div>
             <h1 style={{ fontSize: 19, fontWeight: 750, margin: 0, color: 'var(--text)' }}>Conferences</h1>
             <p style={{ fontSize: 12, color: 'var(--text-2)', margin: '2px 0 0' }}>
-              Search by location and field — conferences appear on the map with attendee stories.
+              Search by location and field. Conferences appear on the map with attendee stories.
             </p>
           </div>
           <form onSubmit={searchConferences} style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
@@ -152,7 +183,7 @@ function ConferencesPage() {
             <input value={fieldQ} onChange={e => setFieldQ(e.target.value)}
               placeholder="Field or topic" style={confInputStyle} />
             <button className="li-btn li-btn--primary li-btn--sm" type="submit" disabled={searching}>
-              {searching ? 'Searching…' : 'Search'}
+              {searching ? 'Searching...' : 'Search'}
             </button>
           </form>
         </div>
@@ -198,14 +229,11 @@ function ConferencesPage() {
             </div>
           </div>
 
-          {/* Conference count + share button */}
-          <div style={{ padding: '10px 16px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          {/* Conference count */}
+          <div style={{ padding: '10px 16px', borderBottom: '1px solid var(--border)' }}>
             <div style={{ fontSize: 13, color: 'var(--text-2)' }}>
-              {searching ? 'Searching…' : `${conferences.length} conference${conferences.length !== 1 ? 's' : ''}`}
+              {searching ? 'Searching...' : `${conferences.length} conference${conferences.length !== 1 ? 's' : ''}`}
             </div>
-            <button data-testid="share-conference-story-btn" type="button" className="li-btn li-btn--ghost li-btn--sm" onClick={() => setShowStoryForm(true)}>
-              Share experience
-            </button>
           </div>
 
           {/* Conference list */}
@@ -249,7 +277,7 @@ function ConferencesPage() {
           <LightMap
             centerLat={mapCenter.lat}
             centerLng={mapCenter.lng}
-            zoom={11}
+            zoom={10}
             markers={mapMarkers}
             onMarkerClick={onMarkerClick}
           />
@@ -534,8 +562,8 @@ function ConferenceStoryForm({ conferences, storyForm, setStoryForm, submitting,
               rows={4} style={{ ...storyInputStyle, resize: 'vertical', fontFamily: 'inherit' }} />
           </ConferenceField>
           {[
-            { label: 'Photo URL', key: 'photoUrl', placeholder: 'https://… (displayed as story background)' },
-            { label: 'Company/conference logo URL', key: 'companyLogoUrl', placeholder: 'https://…' },
+            { label: 'Photo URL', key: 'photoUrl', placeholder: 'https://... (displayed as story background)' },
+            { label: 'Company/conference logo URL', key: 'companyLogoUrl', placeholder: 'https://...' },
           ].map(f => (
             <ConferenceField key={f.key} label={f.label}>
               <input type="url" value={storyForm[f.key]}
@@ -546,7 +574,7 @@ function ConferenceStoryForm({ conferences, storyForm, setStoryForm, submitting,
           <div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
             <button type="button" className="li-btn li-btn--ghost" style={{ flex: 1 }} onClick={onClose}>Cancel</button>
             <button type="submit" className="li-btn li-btn--primary" style={{ flex: 2 }} disabled={submitting}>
-              {submitting ? 'Sharing…' : 'Share experience ✨'}
+              {submitting ? 'Sharing...' : 'Share experience'}
             </button>
           </div>
         </form>

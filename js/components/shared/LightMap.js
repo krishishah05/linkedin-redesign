@@ -121,6 +121,19 @@ function LightMap({ centerLat = 37.7749, centerLng = -122.4194, zoom = 11, marke
     setDrag({ px: 0, py: 0 });
   }
 
+  // Double-click: zoom in centered on click position
+  function onDoubleClick(e) {
+    e.preventDefault();
+    const rect = containerRef.current.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const clickY = e.clientY - rect.top;
+    // Offset so the clicked point becomes the new center
+    const offsetX = clickX - size.w / 2;
+    const offsetY = clickY - size.h / 2;
+    setDrag(prev => ({ px: prev.px - offsetX / 2, py: prev.py - offsetY / 2 }));
+    setCurrentZoom(z => Math.min(18, z + 1));
+  }
+
   // ── Render ───────────────────────────────────────────────────
   return (
     <div
@@ -130,6 +143,7 @@ function LightMap({ centerLat = 37.7749, centerLng = -122.4194, zoom = 11, marke
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
       onPointerLeave={onPointerUp}
+      onDoubleClick={onDoubleClick}
     >
       {/* Tile images */}
       {tiles.map(tile => (
