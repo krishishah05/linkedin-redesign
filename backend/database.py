@@ -836,6 +836,7 @@ def delete_user(user_id: int):
     if not row:
         conn.close()
         return False
+    _execute(conn, "DELETE FROM conference_stories WHERE author_id=%s", (int(user_id),))
     _execute(conn, "DELETE FROM users WHERE id=%s", (int(user_id),))
     conn.commit()
     conn.close()

@@ -81,6 +81,12 @@ def _create_schema(db_path: str):
             user_id    INTEGER NOT NULL,
             PRIMARY KEY (event_id, event_src, user_id)
         );
+        CREATE TABLE IF NOT EXISTS conference_stories (
+            id         INTEGER PRIMARY KEY AUTOINCREMENT,
+            author_id  INTEGER NOT NULL,
+            created_at INTEGER NOT NULL,
+            data       TEXT NOT NULL
+        );
     """)
     conn.commit()
     conn.close()
@@ -503,6 +509,20 @@ class TestDeleteUser:
         seed_user(isolated_db, uid=2, name="Bob", email="b@b.com")
         database.delete_user(2)
         assert database.get_user_by_id(2) is None
+
+    def test_delete_user_removes_conference_stories(self, isolated_db):
+        seed_user(isolated_db, uid=2, name="Bob", email="b@b.com")
+        conn = sqlite3.connect(isolated_db)
+        conn.execute(
+            "INSERT INTO conference_stories (author_id, created_at, data) VALUES (?,?,?)",
+            (2, 123, json.dumps({"author": {"id": 2, "name": "Bob"}})),
+        )
+        conn.commit()
+        conn.close()
+
+        assert database.delete_user(2) is True
+        rows = _raw_all(isolated_db, "SELECT * FROM conference_stories WHERE author_id=?", (2,))
+        assert rows == []
 
 
 # ===========================================================================

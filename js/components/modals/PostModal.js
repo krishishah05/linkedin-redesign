@@ -1,19 +1,38 @@
 /* ============================================================
-   POSTMODAL.JS — Create a post
+   POSTMODAL.JS - Create a post
    ============================================================ */
 function PostModal() {
   const { currentUser, closeModal, showToast } = React.useContext(AppContext);
   const [text, setText] = React.useState('');
   const [imageUrl, setImageUrl] = React.useState('');
-  const [showImageInput, setShowImageInput] = React.useState(false);
+  const [videoUrl, setVideoUrl] = React.useState('');
+  const [showMediaInput, setShowMediaInput] = React.useState(false);
   const [posting, setPosting] = React.useState(false);
   const MAX = 3000;
+  const photoInputRef = React.useRef(null);
+
+  function handlePhotoUpload(e) {
+    const file = e.target.files && e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        setImageUrl(typeof reader.result === 'string' ? reader.result : '');
+        setVideoUrl('');
+        setShowMediaInput(false);
+      };
+      reader.onerror = () => showToast('Could not read this photo.', 'error');
+      reader.readAsDataURL(file);
+    }
+    e.target.value = '';
+  }
 
   function handleSubmit() {
-    if (!text.trim()) { showToast('Write something first', 'error'); return; }
+    const cleanImageUrl = imageUrl.trim();
+    const cleanVideoUrl = videoUrl.trim();
+    if (!text.trim() && !cleanImageUrl && !cleanVideoUrl) { showToast('Write something or add media first', 'error'); return; }
     if (posting) return;
     setPosting(true);
-    API.createPost(text.trim(), imageUrl.trim() || null)
+    API.createPost(text.trim(), cleanImageUrl || null, cleanVideoUrl || null)
       .then(() => {
         showToast('Post published!');
         closeModal();
@@ -29,6 +48,13 @@ function PostModal() {
     <div className="li-modal-overlay" style={{ display: 'flex' }}
       onClick={e => { if (e.target === e.currentTarget) closeModal(); }}>
       <div className="li-modal">
+        <input
+          ref={photoInputRef}
+          type="file"
+          accept="image/*"
+          style={{ display: 'none' }}
+          onChange={handlePhotoUpload}
+        />
         <div className="li-modal__header">
           <span className="li-modal__title">Create a post</span>
           <button className="li-modal__close" onClick={closeModal}>
@@ -46,7 +72,7 @@ function PostModal() {
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
                 </svg>
-                Anyone ▾
+                Anyone
               </button>
             </div>
           </div>
@@ -58,19 +84,23 @@ function PostModal() {
             onChange={e => setText(e.target.value)}
             autoFocus
           />
-          {showImageInput && (
+          {showMediaInput && (
             <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 8 }}>
               <input
                 className="li-input"
-                placeholder="Paste image URL…"
-                value={imageUrl}
-                onChange={e => setImageUrl(e.target.value)}
+                placeholder="Paste video URL..."
+                value={videoUrl}
+                onChange={e => setVideoUrl(e.target.value)}
                 style={{ flex: 1, fontSize: 13 }}
               />
-              {imageUrl && (
-                <button onClick={() => setImageUrl('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-3)', fontSize: 18 }}>×</button>
+              {videoUrl && (
+                <button onClick={() => setVideoUrl('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-3)', fontSize: 18 }}>x</button>
               )}
             </div>
+          )}
+          {videoUrl && (
+            <video src={videoUrl} controls
+              style={{ maxHeight: 220, borderRadius: 8, width: '100%', marginTop: 8, background: '#000' }} />
           )}
           {imageUrl && (
             <img src={imageUrl} alt="preview"
@@ -89,7 +119,12 @@ function PostModal() {
               <button key={btn.label} className="li-post-tool-btn"
                 onClick={() => {
                   if (btn.label === 'Write article') { closeModal(); navigate('article'); return; }
-                  setShowImageInput(v => !v);
+                  if (btn.label === 'Photo') {
+                    photoInputRef.current && photoInputRef.current.click();
+                    return;
+                  }
+                  setImageUrl('');
+                  setShowMediaInput(true);
                 }}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill={btn.color}>{btn.icon}</svg>
                 {btn.label}
@@ -100,10 +135,10 @@ function PostModal() {
             <button
               className="li-btn li-btn--primary"
               onClick={handleSubmit}
-              disabled={!text.trim() || posting}
+              disabled={(!text.trim() && !imageUrl.trim() && !videoUrl.trim()) || posting}
               style={{ padding: '8px 20px', fontSize: 14 }}
             >
-              {posting ? 'Posting…' : 'Post'}
+              {posting ? 'Posting...' : 'Post'}
             </button>
           </div>
         </div>

@@ -1,5 +1,5 @@
-/* ============================================================
-   PROFILEPAGE.JS — User profile
+﻿/* ============================================================
+   PROFILEPAGE.JS - User profile
    ============================================================ */
 
 /* Sub-component: pulls real users from API for "People also viewed" */
@@ -52,7 +52,6 @@ function ProfilePage({ userId }) {
 
   const [expandedSections, setExpandedSections] = React.useState(new Set());
   const [moreMenuOpen, setMoreMenuOpen] = React.useState(false);
-  const [aiTips, setAiTips] = React.useState(null);
   const [statusPickerOpen, setStatusPickerOpen] = React.useState(false);
   const [localCerts, setLocalCerts] = React.useState(() => {
     try {
@@ -77,7 +76,7 @@ function ProfilePage({ userId }) {
   const STATUS_OPTIONS = [
     { key: 'open_to_work', label: 'Open to work', desc: "Show recruiters you're available", bg: '#E6F4EA', color: '#057642', dot: '#057642' },
     { key: 'conferences', label: 'Looking for conferences', desc: 'Discover events in your area', bg: '#E8F4FD', color: '#0a66c2', dot: '#0a66c2' },
-    { key: 'recruiting', label: 'Recruiting', desc: 'Unlock Recruiter Mode features', bg: '#F3E8FD', color: '#7c3aed', dot: '#7c3aed' },
+    { key: 'recruiting', label: 'Recruiting', desc: 'Unlock Recruiter Mode features', bg: '#F3E8FD', color: '#7c3aed', dot: '#7c3aed', recruiterOnly: true },
     { key: 'not_looking', label: 'Not looking', desc: 'Hide your availability status', bg: 'var(--bg-2)', color: 'var(--text-2)', dot: 'var(--text-3)' },
   ];
 
@@ -91,21 +90,9 @@ function ProfilePage({ userId }) {
     setShowAddCert(false);
     showToast('Certification added!', 'success');
   }
-  const [aiLoading, setAiLoading] = React.useState(false);
-  const [aiError, setAiError] = React.useState(null);
-
   const [aiReadiness, setAiReadiness] = React.useState(null);
   const [aiReadinessLoading, setAiReadinessLoading] = React.useState(false);
   const [aiReadinessError, setAiReadinessError] = React.useState(null);
-
-  function fetchAiTips() {
-    setAiLoading(true);
-    setAiError(null);
-    setAiTips(null);
-    API.getProfileImprovementTips()
-      .then(res => { setAiTips(res.tips); setAiLoading(false); })
-      .catch(err => { setAiError(err.message || 'Failed to load tips'); setAiLoading(false); });
-  }
 
   function fetchAiReadiness() {
     setAiReadinessLoading(true);
@@ -116,7 +103,7 @@ function ProfilePage({ userId }) {
       .catch(err => { setAiReadinessError(err.message || 'AI evaluation failed'); setAiReadinessLoading(false); });
   }
 
-  // AI readiness is triggered manually via the Analyze button — no auto-fetch on load
+  // AI readiness is triggered manually via the Analyze button - no auto-fetch on load
 
   function toggleSection(key) {
     setExpandedSections(prev => {
@@ -211,18 +198,8 @@ function ProfilePage({ userId }) {
                     <>
                       <button className="li-btn li-btn--outline li-btn--sm" onClick={() => openModal('edit-profile')}>Edit profile</button>
                       <button className="li-btn li-btn--ghost li-btn--sm" onClick={() => {
-                        const url = window.location.href.split('#')[0] + '#profile?id=' + user.id;
-                        copyLink(url, showToast);
+                        copyLink(getNexusProfileUrl(user), showToast);
                       }}>Share</button>
-                      <button
-                        className="li-btn li-btn--ghost li-btn--sm"
-                        style={{ display: 'flex', alignItems: 'center', gap: 4 }}
-                        onClick={fetchAiTips}
-                        disabled={aiLoading}
-                      >
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 15h-2v-6h2zm0-8h-2V7h2z"/></svg>
-                        {aiLoading ? 'Loading…' : '✦ AI Tips'}
-                      </button>
                     </>
                   ) : (
                     <>
@@ -244,7 +221,7 @@ function ProfilePage({ userId }) {
                         {isFollowing ? 'Following' : 'Follow'}
                       </button>
                       <div style={{ position: 'relative' }}>
-                        <button className="li-btn li-btn--ghost li-btn--sm" onClick={() => setMoreMenuOpen(v => !v)}>···</button>
+                        <button className="li-btn li-btn--ghost li-btn--sm" onClick={() => setMoreMenuOpen(v => !v)}>...</button>
                         {moreMenuOpen && (
                           <div style={{ position: 'absolute', right: 0, top: '100%', marginTop: 4, background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 8, boxShadow: '0 4px 16px rgba(0,0,0,0.12)', zIndex: 200, minWidth: 160, overflow: 'hidden' }}
                             onMouseLeave={() => setMoreMenuOpen(false)}>
@@ -255,15 +232,14 @@ function ProfilePage({ userId }) {
                             <button style={{ display: 'block', width: '100%', textAlign: 'left', padding: '10px 16px', background: 'none', border: 'none', fontSize: 14, cursor: 'pointer', color: 'var(--text)' }}
                               onClick={() => {
                                 setMoreMenuOpen(false);
-                                const url = window.location.href.split('#')[0] + '#profile?id=' + user.id;
-                                copyLink(url, showToast);
+                                copyLink(getNexusProfileUrl(user), showToast);
                               }}>
                               Copy profile link
                             </button>
                           </div>
                         )}
                       </div>
-                      {userStatus === 'recruiting' && recruiterMode && (() => {
+                      {currentUser?.isRecruiter && userStatus === 'recruiting' && recruiterMode && (() => {
                         const inPipeline = shortlisted.has(String(user.id));
                         return (
                           <button
@@ -285,7 +261,7 @@ function ProfilePage({ userId }) {
                               }
                             }}
                           >
-                            {inPipeline ? '✓ Shortlisted' : '+ Shortlist'}
+                            {inPipeline ? 'Shortlisted' : '+ Shortlist'}
                           </button>
                         );
                       })()}
@@ -336,7 +312,7 @@ function ProfilePage({ userId }) {
                       </button>
                     ) : null}
 
-                    {/* Dropdown picker — own profile only */}
+                    {/* Dropdown picker - own profile only */}
                     {isOwnProfile && statusPickerOpen && (
                       <div style={{
                         position: 'absolute', top: '100%', left: 0, marginTop: 6, zIndex: 200,
@@ -347,14 +323,14 @@ function ProfilePage({ userId }) {
                         <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', padding: '4px 10px 8px', textTransform: 'uppercase', letterSpacing: 0.5 }}>
                           Your availability
                         </div>
-                        {STATUS_OPTIONS.map(o => {
+                        {STATUS_OPTIONS.filter(o => !o.recruiterOnly || currentUser?.isRecruiter).map(o => {
                           const current = userStatus || (user.openToWork ? 'open_to_work' : null);
                           const isActive = current === o.key;
                           return (
                             <button key={o.key} onClick={() => {
                               setUserStatus(o.key);
                               setStatusPickerOpen(false);
-                              if (o.key === 'conferences') { showToast('Explore conferences near you →', 'success'); navigate('conferences'); }
+                              if (o.key === 'conferences') { showToast('Explore conferences near you', 'success'); navigate('conferences'); }
                               else if (o.key === 'recruiting') showToast('Recruiter Mode is now available in the Me menu', 'success');
                               else if (o.key !== 'not_looking') showToast(`Status set to "${o.label}"`, 'success');
                             }} style={{
@@ -399,7 +375,7 @@ function ProfilePage({ userId }) {
                   <p style={{ fontSize: 14, color: 'var(--text)', lineHeight: 1.6 }}>
                     {expandedSections.has('about') || user.about.length <= 300
                       ? user.about
-                      : user.about.slice(0, 300) + '…'}
+                      : user.about.slice(0, 300) + '...'}
                   </p>
                   {user.about.length > 300 && (
                     <button className="li-btn li-btn--ghost li-btn--sm" style={{ marginTop: 8 }} onClick={() => toggleSection('about')}>
@@ -432,13 +408,13 @@ function ProfilePage({ userId }) {
                 </div>
                 {userPosts.length === 0 ? (
                   <p style={{ fontSize: 14, color: 'var(--text-2)', marginTop: 12 }}>
-                    {isOwnProfile ? 'Share an article, photo, or idea — your posts will appear here.' : `${user.name} hasn't posted recently.`}
+                    {isOwnProfile ? 'Share an article, photo, or idea - your posts will appear here.' : `${user.name} hasn't posted recently.`}
                   </p>
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 12 }}>
                     {userPosts.map(post => (
                       <div key={post.id} style={{ padding: '12px 0', borderBottom: '1px solid var(--border)', fontSize: 14, color: 'var(--text)', lineHeight: 1.5 }}>
-                        <p style={{ margin: '0 0 4px' }}>{(post.content || '').slice(0, 200)}{(post.content || '').length > 200 ? '…' : ''}</p>
+                        <p style={{ margin: '0 0 4px' }}>{(post.content || '').slice(0, 200)}{(post.content || '').length > 200 ? '...' : ''}</p>
                         <span style={{ fontSize: 12, color: 'var(--text-3)' }}>{formatTime(post.timestamp || post.createdAt)}</span>
                       </div>
                     ))}
@@ -471,8 +447,8 @@ function ProfilePage({ userId }) {
                         </div>
                         <div style={{ flex: 1 }}>
                           <div style={{ fontSize: 15, fontWeight: 700 }}>{exp.title}</div>
-                          <div style={{ fontSize: 14, color: 'var(--text-2)' }}>{exp.company}{exp.type && ` · ${exp.type}`}</div>
-                          <div style={{ fontSize: 13, color: 'var(--text-3)' }}>{exp.startDate} – {exp.endDate || 'Present'}{exp.duration && ` · ${exp.duration}`}</div>
+                          <div style={{ fontSize: 14, color: 'var(--text-2)' }}>{exp.company}{exp.type && ` | ${exp.type}`}</div>
+                          <div style={{ fontSize: 13, color: 'var(--text-3)' }}>{exp.startDate} - {exp.endDate || 'Present'}{exp.duration && ` | ${exp.duration}`}</div>
                           {exp.location && <div style={{ fontSize: 13, color: 'var(--text-3)' }}>{exp.location}</div>}
                           {exp.description && <p style={{ fontSize: 14, color: 'var(--text-2)', marginTop: 8, lineHeight: 1.5 }}>{exp.description}</p>}
                         </div>
@@ -514,8 +490,8 @@ function ProfilePage({ userId }) {
                       </div>
                       <div style={{ flex: 1 }}>
                         <div style={{ fontSize: 15, fontWeight: 700 }}>{edu.school}</div>
-                        <div style={{ fontSize: 14, color: 'var(--text-2)' }}>{edu.degree}{edu.field && ` · ${edu.field}`}</div>
-                        <div style={{ fontSize: 13, color: 'var(--text-3)' }}>{edu.startYear || edu.startDate} – {edu.endYear || edu.endDate || 'Present'}</div>
+                        <div style={{ fontSize: 14, color: 'var(--text-2)' }}>{edu.degree}{edu.field && ` | ${edu.field}`}</div>
+                        <div style={{ fontSize: 13, color: 'var(--text-3)' }}>{edu.startYear || edu.startDate} - {edu.endYear || edu.endDate || 'Present'}</div>
                         {edu.activities && <div style={{ fontSize: 13, color: 'var(--text-2)', marginTop: 4 }}>{edu.activities}</div>}
                       </div>
                       {isOwnProfile && <div style={{ display: 'flex', gap: 2 }}>
@@ -549,7 +525,7 @@ function ProfilePage({ userId }) {
                       </div>
                       <div style={{ flex: 1 }}>
                         <div style={{ fontSize: 15, fontWeight: 700 }}>{proj.name}</div>
-                        {proj.startDate && <div style={{ fontSize: 13, color: 'var(--text-3)' }}>{proj.startDate}{proj.endDate ? ` – ${proj.endDate}` : ''}</div>}
+                        {proj.startDate && <div style={{ fontSize: 13, color: 'var(--text-3)' }}>{proj.startDate}{proj.endDate ? ` - ${proj.endDate}` : ''}</div>}
                         {proj.description && <p style={{ fontSize: 14, color: 'var(--text-2)', marginTop: 4, lineHeight: 1.5 }}>{proj.description}</p>}
                         {proj.url && /^https?:\/\//i.test(proj.url) && <a href={proj.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 13, color: 'var(--blue)' }}>{proj.url}</a>}
                       </div>
@@ -562,7 +538,7 @@ function ProfilePage({ userId }) {
                   })}
                 </div>
               ) : (
-                <p style={{ fontSize: 14, color: 'var(--text-2)' }}>Showcase your work — add projects you've built or contributed to.</p>
+                <p style={{ fontSize: 14, color: 'var(--text-2)' }}>Showcase your work - add projects you've built or contributed to.</p>
               )}
             </div>
           )}
@@ -587,7 +563,7 @@ function ProfilePage({ userId }) {
                         <div style={{ fontSize: 15, fontWeight: 700 }}>{vol.role}</div>
                         <div style={{ fontSize: 14, color: 'var(--text-2)' }}>{vol.organization}</div>
                         {vol.cause && <div style={{ fontSize: 13, color: 'var(--text-3)' }}>{vol.cause}</div>}
-                        {vol.startDate && <div style={{ fontSize: 13, color: 'var(--text-3)' }}>{vol.startDate}{vol.endDate ? ` – ${vol.endDate}` : ''}</div>}
+                        {vol.startDate && <div style={{ fontSize: 13, color: 'var(--text-3)' }}>{vol.startDate}{vol.endDate ? ` - ${vol.endDate}` : ''}</div>}
                         {vol.description && <p style={{ fontSize: 14, color: 'var(--text-2)', marginTop: 4, lineHeight: 1.5 }}>{vol.description}</p>}
                       </div>
                       {isOwnProfile && <div style={{ display: 'flex', gap: 2 }}>
@@ -624,7 +600,7 @@ function ProfilePage({ userId }) {
                               aria-label={`Remove ${label} skill`}
                               style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-3)', padding: 0, lineHeight: 0, fontSize: 14, fontWeight: 700 }}
                               onMouseEnter={e => e.currentTarget.style.color = 'var(--red, #cc1016)'}
-                              onMouseLeave={e => e.currentTarget.style.color = 'var(--text-3)'}>×</button>
+                              onMouseLeave={e => e.currentTarget.style.color = 'var(--text-3)'}>x</button>
                           )}
                         </span>
                       );
@@ -753,7 +729,7 @@ function ProfilePage({ userId }) {
                           setLocalCerts(updated);
                           try { localStorage.setItem(certStorageKey, JSON.stringify(updated)); } catch {}
                           showToast('Certification removed');
-                        }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-3)', fontSize: 18, lineHeight: 1, alignSelf: 'flex-start', padding: 0 }}>×</button>
+                        }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-3)', fontSize: 18, lineHeight: 1, alignSelf: 'flex-start', padding: 0 }}>x</button>
                       )}
                     </div>
                   ))}
@@ -781,13 +757,13 @@ function ProfilePage({ userId }) {
                     style={{ fontSize: 12, padding: '3px 8px' }}
                     title="AI quality evaluation"
                   >
-                    {aiReadinessLoading ? 'Analyzing…' : '✦ Analyze'}
+                    {aiReadinessLoading ? 'Analyzing...' : ' Analyze'}
                   </button>
                 </div>
 
                 {/* Loading state */}
                 {aiReadinessLoading && !aiReadiness && (
-                  <div style={{ fontSize: 13, color: 'var(--text-3)', marginBottom: 8 }}>✦ Analyzing quality…</div>
+                  <div style={{ fontSize: 13, color: 'var(--text-3)', marginBottom: 8 }}> Analyzing quality...</div>
                 )}
 
                 {/* Error state */}
@@ -795,14 +771,14 @@ function ProfilePage({ userId }) {
                   <div style={{ fontSize: 12, color: 'var(--red)', marginBottom: 8 }}>{aiReadinessError}</div>
                 )}
 
-                {/* Score bar — only shown once AI data is ready */}
+                {/* Score bar - only shown once AI data is ready */}
                 {aiReadiness && (
                   <>
                     <div style={{ height: 6, background: 'var(--bg-2)', borderRadius: 3, marginBottom: 6 }}>
                       <div style={{ height: '100%', width: `${score}%`, background: barColor, borderRadius: 3, transition: 'width 0.4s ease' }} />
                     </div>
                     <div style={{ fontSize: 13, color: 'var(--text-2)', marginBottom: 14 }}>
-                      {level ? `${level} · ` : ''}{score}% quality score
+                      {level ? `${level} | ` : ''}{score}% quality score
                     </div>
                   </>
                 )}
@@ -857,45 +833,12 @@ function ProfilePage({ userId }) {
                     disabled={aiReadinessLoading}
                     style={{ marginTop: 12, width: '100%' }}
                   >
-                    {aiReadinessLoading ? 'Analyzing…' : 'Re-analyze'}
+                    {aiReadinessLoading ? 'Analyzing...' : 'Re-analyze'}
                   </button>
                 )}
               </div>
             );
           })()}
-
-          {/* AI Profile Tips card */}
-          {isOwnProfile && (aiTips || aiLoading || aiError) && (
-            <div className="li-card" style={{ padding: 20, marginBottom: 16 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                <span style={{ fontSize: 16 }}>✦</span>
-                <h3 style={{ fontSize: 14, fontWeight: 700 }}>AI Profile Tips</h3>
-              </div>
-              {aiLoading && (
-                <div style={{ fontSize: 13, color: 'var(--text-2)' }}>Analyzing your profile…</div>
-              )}
-              {aiError && (
-                <div style={{ fontSize: 13, color: 'var(--red)' }}>{aiError}</div>
-              )}
-              {aiTips && (
-                <ol style={{ paddingLeft: 18, margin: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  {aiTips.map((tip, i) => (
-                    <li key={i} style={{ fontSize: 13, color: 'var(--text)', lineHeight: 1.5 }}>{tip}</li>
-                  ))}
-                </ol>
-              )}
-              {aiTips && (
-                <button
-                  className="li-btn li-btn--ghost li-btn--sm"
-                  style={{ marginTop: 12 }}
-                  onClick={fetchAiTips}
-                  disabled={aiLoading}
-                >
-                  Refresh tips
-                </button>
-              )}
-            </div>
-          )}
 
           <PeopleAlsoViewed currentUserId={userId} />
         </div>

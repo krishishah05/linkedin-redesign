@@ -119,7 +119,7 @@ function SettingsPage() {
                     <div>
                       <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 4 }}>Nexus URL</label>
                       <input className="li-settings-input" readOnly
-                        value={`nexus.io/in/${(currentUser?.name || '').toLowerCase().replace(/\s+/g, '')}`}
+                        value={getNexusProfileUrl(currentUser)}
                         style={{ width: '100%', boxSizing: 'border-box', color: 'var(--text-2)' }} />
                     </div>
                   </div>
@@ -162,9 +162,6 @@ function SettingsPage() {
                 <Toggle label="Public profile" desc="Make your profile visible to everyone"
                   value={settings.publicProfile}
                   onChange={v => { setSettings(s => ({ ...s, publicProfile: v })); showToast('Profile visibility updated'); }} />
-                <Toggle label="Show connections" desc="Let others see your connections list"
-                  value={settings.showConnections}
-                  onChange={v => { setSettings(s => ({ ...s, showConnections: v })); showToast('Connection visibility updated'); }} />
                 <Toggle label="Open to Work" desc="Let recruiters know you're looking for work"
                   value={userStatus === 'open_to_work'}
                   onChange={v => {
@@ -172,9 +169,6 @@ function SettingsPage() {
                     setUserStatus(v ? 'open_to_work' : null);
                     showToast('Open to Work ' + (v ? 'enabled' : 'disabled'));
                   }} />
-                <Toggle label="Profile views" desc="Show when you've viewed someone's profile"
-                  value={settings.profileViews !== false}
-                  onChange={v => { setSettings(s => ({ ...s, profileViews: v })); showToast('Profile view setting updated'); }} />
               </div>
             )}
 
@@ -208,10 +202,7 @@ function SettingsPage() {
             {tab === 'security' && (
               <div>
                 <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 16 }}>Sign in & security</h2>
-                <Toggle label="Two-factor authentication" desc="Add an extra layer of security to your account"
-                  value={settings.twoFactor}
-                  onChange={v => { setSettings(s => ({ ...s, twoFactor: v })); showToast('Two-factor authentication ' + (v ? 'enabled' : 'disabled')); }} />
-                <div style={{ paddingTop: 16 }}>
+                <div>
                   <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 12 }}>Change password</h3>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 400 }}>
                     <div>

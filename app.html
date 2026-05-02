@@ -1,11 +1,11 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Nexus</title>
   <link rel="stylesheet" href="css/style.css" />
-  <!-- Leaflet CSS — map tiles for ConferencesPage -->
+  <!-- Leaflet CSS - map tiles for ConferencesPage -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
   <style>
     /* Extra inline styles for icons & quick overrides */
@@ -30,10 +30,10 @@
 <!-- React mounts the entire app here -->
 <div id="react-root"></div>
 
-<!-- ═══════════════════════════════════════════════
+<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
      SCRIPTS
-     Load order: CDN libs → plain JS → Babel components
-═══════════════════════════════════════════════ -->
+     Load order: CDN libs â†’ plain JS â†’ Babel components
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
 
 <!-- React 18 + ReactDOM 18 (UMD builds, no build step needed) -->
 <script crossorigin src="https://unpkg.com/react@18.3.1/umd/react.development.js"
@@ -43,25 +43,25 @@
   integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm"
   crossorigin="anonymous"></script>
 
-<!-- Babel standalone — transforms type="text/babel" scripts in-browser -->
+<!-- Babel standalone - transforms type="text/babel" scripts in-browser -->
 <script src="https://unpkg.com/@babel/standalone@7.27.1/babel.min.js"
   integrity="sha384-gfdDnMJZ5KDBvTE8ubvJFTQpYg0sEBsV/T5HU1fjbkytB0atp//jUAocPT6F3NKX"
   crossorigin="anonymous"></script>
 
-<!-- SheetJS — Excel export for Recruiter Shortlist (pinned version for reliability) -->
+<!-- SheetJS - Excel export for Recruiter Shortlist (pinned version for reliability) -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"
   integrity="sha384-vtjasyidUo0kW94K5MXDXntzOJpQgBKXmE7e2Ga4LG0skTTLeBi97eFAXsqewJjw"
   crossorigin="anonymous"></script>
 
-<!-- Leaflet — map for ConferencesPage -->
+<!-- Leaflet - map for ConferencesPage -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV/XN/WLEo=" crossorigin=""></script>
 
-<!-- jsPDF — PDF export for Cover Letter generator -->
+<!-- jsPDF - PDF export for Cover Letter generator -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"
   integrity="sha512-qZvrmS2ekKPF2mSznTQsxqPgnpkI4DNTlrdUmTzrDgektczlKNRRhy5X5AAOnx5S09ydFYWUNSfcEqDTTHgtNA=="
   crossorigin="anonymous"></script>
 
-<!-- PDF.js — read uploaded PDF cover letters -->
+<!-- PDF.js - read uploaded PDF cover letters -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"
   integrity="sha512-q+4IiFWdPC/bNAnUpZx6aXDx/h77yEQtN4I1sIHydcbZK34hLaR3CAeYSJshoXlOq3mjEf7XJE8YWIUHMhfoCQ=="
   crossorigin="anonymous"></script>
@@ -72,7 +72,7 @@
   }
 </script>
 
-<!-- mammoth.js — read uploaded DOCX cover letters -->
+<!-- mammoth.js - read uploaded DOCX cover letters -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"
   integrity="sha512-sG5Q7boJL+ft/weuz6Mmi9XBD+bEzE9AI2FMP4YMFxp3FpTFUQSQQm5K5cSgJCyed6bWs3W8f8h0lp36lHXhQA=="
   crossorigin="anonymous"></script>
@@ -97,17 +97,17 @@
   });
 </script>
 
-<!-- ── Shared utilities & context ──────────────────────────── -->
+<!-- -- Shared utilities & context ---------------------------- -->
 <script type="text/babel" src="js/components/utils.js?v=9"></script>
 <script type="text/babel" src="js/components/AppContext.js?v=9"></script>
 
-<!-- ── Shared UI components ────────────────────────────────── -->
+<!-- -- Shared UI components ---------------------------------- -->
 <script type="text/babel" src="js/components/shared/Avatar.js?v=9"></script>
 <script type="text/babel" src="js/components/shared/LoadingSpinner.js?v=9"></script>
 <script type="text/babel" src="js/components/shared/ShortlistPanel.js?v=9"></script>
 <script type="text/babel" src="js/components/ToastContainer.js?v=9"></script>
 
-<!-- ── Page components ─────────────────────────────────────── -->
+<!-- -- Page components --------------------------------------- -->
 <script type="text/babel" src="js/components/pages/FeedPage.js?v=9"></script>
 <script type="text/babel" src="js/components/pages/ProfilePage.js?v=9"></script>
 <script type="text/babel" src="js/components/pages/NetworkPage.js?v=9"></script>
@@ -123,7 +123,7 @@
 <script type="text/babel" src="js/components/pages/ConferencesPage.js?v=9"></script>
 <script type="text/babel" src="js/components/pages/CoverLetterPage.js?v=9"></script>
 
-<!-- ── Modal components ────────────────────────────────────── -->
+<!-- -- Modal components -------------------------------------- -->
 <script type="text/babel" src="js/components/modals/PostModal.js?v=9"></script>
 <script type="text/babel" src="js/components/modals/ImageViewerModal.js?v=9"></script>
 <script type="text/babel" src="js/components/modals/ConnectModal.js?v=9"></script>
@@ -141,11 +141,11 @@
 <script type="text/babel" src="js/components/modals/AddHonorModal.js?v=9"></script>
 <script type="text/babel" src="js/components/modals/ModalContainer.js?v=9"></script>
 
-<!-- ── Navigation components ───────────────────────────────── -->
+<!-- -- Navigation components --------------------------------- -->
 <script type="text/babel" src="js/components/NavBar.js?v=9"></script>
 <script type="text/babel" src="js/components/MobileNav.js?v=9"></script>
 
-<!-- ── Root — mounts React app (must be last) ──────────────── -->
+<!-- -- Root - mounts React app (must be last) ---------------- -->
 <script type="text/babel" src="js/components/App.js?v=9"></script>
 
 </body>

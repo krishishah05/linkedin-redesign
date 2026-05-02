@@ -60,7 +60,7 @@ function MessagingPage() {
   // Load users for compose picker
   React.useEffect(() => {
     API.getUsers?.().then(u => setNetworkUsers(u || [])).catch(() => { });
-  }, [])
+  }, []);
 
   // Scroll to bottom when messages change
   React.useEffect(() => {
