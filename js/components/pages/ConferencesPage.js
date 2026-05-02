@@ -44,7 +44,7 @@ function ConferencesPage() {
   React.useEffect(() => {
     API.getConferenceStories()
       .then(data => setStories(Array.isArray(data) ? data : []))
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   // Geocode a place name → { lat, lng } using OSM Nominatim (free, no key)
@@ -56,44 +56,67 @@ function ConferencesPage() {
       );
       const data = await res.json();
       if (data && data[0]) return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
-    } catch (_) {}
+    } catch (_) { }
     return null;
   }
 
   async function searchConferences(e) {
     if (e) e.preventDefault();
-    const location = locationQ.trim() || 'United States';
-    const field = fieldQ.trim() || 'technology';
+
+    const location = locationQ.trim() || "United States";
+    const field = fieldQ.trim() || "technology";
+
     setSearching(true);
     setSelectedId(null);
 
-    // Geocode the searched location so the map centers correctly
-    const geo = await geocodePlace(location);
-    if (geo) setSearchCenter(geo);
+    try {
+      // 1. Get center of searched location
+      const geo = await geocodePlace(location);
+      if (geo) setSearchCenter(geo);
 
-    API.searchConferences(location, field)
-      .then(items => {
-        const fallbackLat = geo ? geo.lat : SF_DEFAULT.lat;
-        const fallbackLng = geo ? geo.lng : SF_DEFAULT.lng;
-        // Spread conferences near the geocoded center if they lack real coords
-        const clean = (Array.isArray(items) ? items : []).map((item, i) => {
-          const rawLat = Number(item.lat);
-          const rawLng = Number(item.lng);
-          const hasReal = rawLat !== 0 && rawLng !== 0 && !isNaN(rawLat) && !isNaN(rawLng);
-          const jitter = (i % 5) * 0.008 - 0.016; // small spread so markers don't stack
+      // 2. Call your backend (which calls SerpAPI)
+      const res = await fetch(`/api/conferences/search?location=${encodeURIComponent(location)}&field=${encodeURIComponent(field)}`);
+      const data = await res.json();
+
+      const events = data.events_results || [];
+
+      // 3. Convert + geocode each event
+      const cleaned = await Promise.all(
+        events.map(async (event, i) => {
+          let coords = null;
+
+          if (event.address) {
+            coords = await geocodePlace(event.address);
+          }
+
+          const fallbackLat = geo?.lat || 37.7749;
+          const fallbackLng = geo?.lng || -122.4194;
+
+          const jitter = (i % 5) * 0.008 - 0.016;
+
           return {
-            ...item,
-            id: item.id || i + 1,
-            lat: hasReal ? rawLat : fallbackLat + jitter,
-            lng: hasReal ? rawLng : fallbackLng + jitter * 1.5,
-            tags: Array.isArray(item.tags) ? item.tags : [],
+            id: i + 1,
+            name: event.title,
+            date: event.date?.start_date || "TBD",
+            address: event.address || "Unknown",
+            description: event.description || "",
+            link: event.link,
+            lat: coords?.lat ?? fallbackLat + jitter,
+            lng: coords?.lng ?? fallbackLng + jitter,
+            tags: [field],
           };
-        });
-        setConferences(clean);
-        setSelectedId(clean[0]?.id || null);
-      })
-      .catch(() => showToast('Could not load conferences. Showing cached results.', 'error'))
-      .finally(() => setSearching(false));
+        })
+      );
+
+      setConferences(cleaned);
+      setSelectedId(cleaned[0]?.id || null);
+
+    } catch (err) {
+      console.error(err);
+      showToast("Failed to fetch conferences", "error");
+    } finally {
+      setSearching(false);
+    }
   }
 
   // Build markers for LightMap

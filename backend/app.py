@@ -177,6 +177,33 @@ def index():
 
 # â”€â”€ Error handlers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
+import requests
+
+@app.route('/api/conferences/search', methods=['GET'])
+def search_conferences():
+    location = request.args.get('location', '')
+    field = request.args.get('field', 'technology')
+
+    try:
+        query = f"{field} conference in {location}"
+
+        url = "https://serpapi.com/search.json"
+        params = {
+            "engine": "google_events",
+            "q": query,
+            "api_key": os.getenv("SERPAPI_API_KEY")
+        }
+
+        response = requests.get(url, params=params)
+        data = response.json()
+
+        # Return raw data (frontend will clean it)
+        return jsonify(data)
+
+    except Exception as e:
+        print(e)
+        return jsonify({"error": "Failed to fetch conferences"}), 500
+
 @app.errorhandler(404)
 def not_found(e):
     return jsonify({"error": str(e)}), 404
@@ -909,75 +936,6 @@ def _coerce_float(value, fallback):
         return float(value)
     except (TypeError, ValueError):
         return fallback
-
-
-@app.route("/api/conferences/search")
-def search_conferences():
-    """GET /api/conferences/search?location=&field= uses SerpAPI when configured."""
-    location = (request.args.get("location") or "San Francisco, CA").strip()[:120]
-    field = (request.args.get("field") or "technology").strip()[:80]
-    cache_key = f"{location.lower()}::{field.lower()}"
-    now = time.time()
-    _purge_conference_search_cache(now)
-    cached = _conference_search_cache.get(cache_key)
-    if cached and now - cached["fetched_at"] < _CONFERENCE_SEARCH_TTL:
-        return jsonify(cached["items"])
-
-    api_key = os.environ.get("SERPAPI_API_KEY", "").strip()
-    if not api_key:
-        items = _fallback_conferences(location, field)
-        _conference_search_cache[cache_key] = {"items": items, "fetched_at": now}
-        _purge_conference_search_cache(now)
-        return jsonify(items)
-
-    import requests as req_lib
-
-    query = f"{field} conferences in {location}"
-    try:
-        resp = req_lib.get(
-            "https://serpapi.com/search.json",
-            params={"engine": "google_events", "q": query, "api_key": api_key},
-            timeout=8,
-        )
-        resp.raise_for_status()
-        payload = resp.json()
-        events = payload.get("events_results") or []
-        items = []
-        fallback_coords = _fallback_conferences(location, field)
-        for idx, event in enumerate(events[:20], start=1):
-            address = event.get("address")
-            if isinstance(address, list):
-                address = ", ".join(str(part) for part in address if part)
-            fallback = fallback_coords[(idx - 1) % len(fallback_coords)]
-            venue = event.get("venue") or {}
-            venue_name = venue.get("name") if isinstance(venue, dict) else ""
-            gps = event.get("gps_coordinates") or {}
-            date_info = event.get("date") or {}
-            date_text = date_info.get("when") if isinstance(date_info, dict) else event.get("date")
-            items.append({
-                "id": idx,
-                "name": event.get("title") or f"{field.title()} Conference",
-                "category": field.title(),
-                "date": date_text or "Date to be announced",
-                "venue": venue_name or "Venue to be announced",
-                "address": address or location,
-                "lat": _coerce_float(gps.get("latitude"), fallback["lat"]),
-                "lng": _coerce_float(gps.get("longitude"), fallback["lng"]),
-                "description": event.get("description") or event.get("snippet") or "Conference details are available from the event organizer.",
-                "attendees": 0,
-                "price": "See event",
-                "tags": [field.title(), location],
-                "link": event.get("link") or "",
-                "source": "serpapi",
-            })
-        if not items:
-            items = _fallback_conferences(location, field)
-    except Exception:
-        items = _fallback_conferences(location, field)
-
-    _conference_search_cache[cache_key] = {"items": items, "fetched_at": now}
-    _purge_conference_search_cache(now)
-    return jsonify(items)
 
 
 @app.route("/api/jobs")
