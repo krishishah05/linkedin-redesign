@@ -1094,7 +1094,13 @@
     const configuredApiBase = typeof window !== 'undefined' && typeof window.__API_BASE__ === 'string'
       ? window.__API_BASE__.replace(/\/+$/, '')
       : '';
-    const API_BASE = configuredApiBase || `${window.location.origin}/api`;
+    // On localhost the frontend runs on :8080 but the backend is on :5000 — match
+    // the same logic used in js/api.js so login/register calls reach the right port.
+    const _localApi = `${window.location.protocol}//${window.location.hostname}:5000/api`;
+    const _defaultApi = ['localhost', '127.0.0.1'].includes(window.location.hostname)
+      ? _localApi
+      : `${window.location.origin}/api`;
+    const API_BASE = configuredApiBase || _defaultApi;
     const TOTAL_STEPS = 10;
     let currentStep = 1;
     let _registered = false;
