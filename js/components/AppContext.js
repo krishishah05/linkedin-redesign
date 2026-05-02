@@ -20,9 +20,8 @@ function AppProvider({ children }) {
   const [appError, setAppError] = React.useState(null);
 
   // ── UI state (mirrors App.state) ──────────────────────────
-  const [likedPosts, setLikedPosts] = React.useState(() => {
-    try { const s = localStorage.getItem('li-liked-posts'); return s ? new Set(JSON.parse(s)) : new Set(); } catch { return new Set(); }
-  });
+  // Loaded from user-scoped key once currentUser is known (see effect below)
+  const [likedPosts, setLikedPosts] = React.useState(() => new Set());
   const [savedJobs, setSavedJobs] = React.useState(() => {
     try { const s = localStorage.getItem('li-saved-jobs'); return s ? new Set(JSON.parse(s)) : new Set(); } catch { return new Set(); }
   });
@@ -76,6 +75,7 @@ function AppProvider({ children }) {
   React.useEffect(() => {
     if (userStatus !== null && userStatus !== 'recruiting' && recruiterMode) {
       setRecruiterModeState(false);
+      setRecruiterPanelOpen(false);
       localStorage.removeItem('li-recruiter-mode');
     }
   }, [userStatus, recruiterMode]);
@@ -106,7 +106,9 @@ function AppProvider({ children }) {
     setShortlisted(prev => {
       const next = new Map(prev);
       next.set(String(user.id), user);
-      try { localStorage.setItem('li-shortlisted', JSON.stringify([...next])); } catch {}
+      if (userIdRef.current) {
+        try { localStorage.setItem(`li-shortlisted-${userIdRef.current}`, JSON.stringify([...next])); } catch {}
+      }
       return next;
     });
   }
@@ -115,14 +117,18 @@ function AppProvider({ children }) {
     setShortlisted(prev => {
       const next = new Map(prev);
       next.delete(String(userId));
-      try { localStorage.setItem('li-shortlisted', JSON.stringify([...next])); } catch {}
+      if (userIdRef.current) {
+        try { localStorage.setItem(`li-shortlisted-${userIdRef.current}`, JSON.stringify([...next])); } catch {}
+      }
       return next;
     });
   }
 
   function clearShortlist() {
     setShortlisted(new Map());
-    try { localStorage.removeItem('li-shortlisted'); } catch {}
+    if (userIdRef.current) {
+      try { localStorage.removeItem(`li-shortlisted-${userIdRef.current}`); } catch {}
+    }
   }
 
   const [settings, setSettings] = React.useState(() => {
@@ -183,7 +189,9 @@ function AppProvider({ children }) {
       const f = localStorage.getItem(`li-following-${uid}`);
       if (f) setFollowing(new Set(JSON.parse(f)));
       const l = localStorage.getItem(`li-liked-posts-${uid}`);
-      if (l) setLikedPosts(new Set(JSON.parse(l)));
+      setLikedPosts(l ? new Set(JSON.parse(l)) : new Set());
+      const sl = localStorage.getItem(`li-shortlisted-${uid}`);
+      setShortlisted(sl ? new Map(JSON.parse(sl)) : new Map());
     } catch (_) {}
   }, [currentUser?.id]);
 
@@ -284,7 +292,7 @@ function AppProvider({ children }) {
       setLikedPosts(prev => {
         const next = new Set(prev);
         if (next.has(key)) next.delete(key); else next.add(key);
-        try { localStorage.setItem('li-liked-posts', JSON.stringify([...next])); } catch {}
+        _save('li-liked-posts', next);
         return next;
       });
       showToast('Failed to react to post', 'error');

@@ -74,13 +74,11 @@ function MessagingPage() {
     setMsgLoading(true);
 
     // Decrement badge by this conversation's unread count, then zero it out
-    setUnreadByConv(prev => {
-      const n = prev[id] || 0;
-      if (n > 0) {
-        setUnreadMessages(cur => Math.max(0, cur - n));
-      }
-      return { ...prev, [id]: 0 };
-    });
+    const unreadCount = unreadByConv[id] || 0;
+    setUnreadByConv(prev => ({ ...prev, [id]: 0 }));
+    if (unreadCount > 0) {
+      setUnreadMessages(cur => Math.max(0, cur - unreadCount));
+    }
 
     // Also clear unreadCount on the local conversation list item
     setLocalConversations(prev =>

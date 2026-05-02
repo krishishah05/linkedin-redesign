@@ -61,6 +61,36 @@ function navigate(path) {
 // Expose globally for any legacy onclick="" attributes
 window.navigate = navigate;
 
+// ── Clipboard helper ──────────────────────────────────────────
+// Tries navigator.clipboard first; falls back to execCommand.
+// On clipboard rejection it retries via execCommand before surfacing error.
+function copyLink(url, showToast) {
+  function execCopy() {
+    let ta;
+    try {
+      ta = document.createElement('textarea');
+      ta.value = url;
+      ta.style.cssText = 'position:fixed;opacity:0';
+      document.body.appendChild(ta);
+      ta.focus(); ta.select();
+      const copied = document.execCommand('copy');
+      if (copied) { showToast('Link copied!'); }
+      else { showToast('Failed to copy link', 'error'); }
+    } catch (_) {
+      showToast('Failed to copy link', 'error');
+    } finally {
+      if (ta && ta.parentNode) { ta.parentNode.removeChild(ta); }
+    }
+  }
+  if (navigator.clipboard?.writeText) {
+    navigator.clipboard.writeText(url)
+      .then(() => showToast('Link copied!'))
+      .catch(() => execCopy());
+  } else {
+    execCopy();
+  }
+}
+
 // ── useFetch hook ─────────────────────────────────────────────
 // Shared data-fetching hook used by every page component.
 // Usage: const { data, loading, error } = useFetch(API.getFeed);

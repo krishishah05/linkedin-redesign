@@ -7,12 +7,13 @@ function ShortlistPanel() {
   const {
     shortlisted, removeFromShortlist, clearShortlist,
     recruiterPanelOpen, setRecruiterPanelOpen,
-    navigate,
+    currentUser, recruiterMode,
   } = React.useContext(AppContext);
+  const navigate = window.navigate;
 
   const profiles = [...shortlisted.values()];
 
-  if (!recruiterPanelOpen) return null;
+  if (!currentUser?.isRecruiter || !recruiterMode || !recruiterPanelOpen) return null;
 
   function downloadCSV() {
     const headers = ['Name','Current Role','Company','Headline','Location','Skills','Education','Degree','Connections','Open to Work','Profile URL'];
@@ -22,13 +23,14 @@ function ShortlistPanel() {
       const skills = (u.skills || []).slice(0, 15).map(s => (typeof s === 'object' ? s.name : s)).join('; ');
       const url = `${window.location.origin}${window.location.pathname}#profile?id=${u.id}`;
       return [u.name, exp0.title, exp0.company, u.headline, u.location, skills, edu0.school, edu0.degree, u.connections, u.openToWork ? 'Yes' : 'No', url]
-        .map(v => `"${String(v || '').replace(/"/g, '""')}"`).join(',');
+        .map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(',');
     });
     const blob = new Blob([[headers.join(','), ...rows].join('\n')], { type: 'text/csv' });
+    const objectUrl = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
+    a.href = objectUrl;
     a.download = `candidate-shortlist-${new Date().toISOString().split('T')[0]}.csv`;
-    a.click();
+    try { a.click(); } finally { URL.revokeObjectURL(objectUrl); }
   }
 
   function exportToExcel() {
@@ -55,6 +57,7 @@ function ShortlistPanel() {
           'Profile URL':   `${window.location.origin}${window.location.pathname}#profile?id=${u.id}`,
         };
       });
+      const XLSX = window.XLSX;
       const ws = XLSX.utils.json_to_sheet(rows);
       ws['!cols'] = [
         { wch: 22 }, { wch: 28 }, { wch: 24 }, { wch: 40 },
@@ -73,7 +76,11 @@ function ShortlistPanel() {
     <>
       {/* Backdrop */}
       <div
+        role="button"
+        tabIndex={0}
+        aria-label="Close shortlist panel"
         onClick={() => setRecruiterPanelOpen(false)}
+        onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ' || e.key === 'Escape') { e.preventDefault(); setRecruiterPanelOpen(false); } }}
         style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 1100 }}
       />
 

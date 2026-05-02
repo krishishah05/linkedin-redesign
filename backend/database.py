@@ -532,17 +532,53 @@ def update_current_user(updates: dict, user_id: int = 1):
 def add_education(user_id: int, entry: dict):
     """Append an education entry to a user's data. Returns updated user dict."""
     conn = _connect()
-    row = _execute(conn, "SELECT data FROM users WHERE id=%s", (user_id,)).fetchone()
-    if not row:
+    try:
+        if _USE_PG:  # pragma: no cover
+            row = _execute(conn, "SELECT data FROM users WHERE id=%s FOR UPDATE", (user_id,)).fetchone()
+        else:
+            conn.execute("BEGIN EXCLUSIVE")
+            row = _execute(conn, "SELECT data FROM users WHERE id=%s", (user_id,)).fetchone()
+        if not row:
+            conn.close()
+            return None
+        data = json.loads(row["data"])
+        edu_list = data.get("education", [])
+        entry["id"] = max((e.get("id", 0) for e in edu_list), default=0) + 1
+        edu_list.append(entry)
+        data["education"] = edu_list
+        _execute(conn, "UPDATE users SET data=%s WHERE id=%s", (json.dumps(data), user_id))
+        conn.commit()
+    except Exception:
+        conn.rollback()
         conn.close()
-        return None
-    data = json.loads(row["data"])
-    edu_list = data.get("education", [])
-    entry["id"] = max((e.get("id", 0) for e in edu_list), default=0) + 1
-    edu_list.append(entry)
-    data["education"] = edu_list
-    _execute(conn, "UPDATE users SET data=%s WHERE id=%s", (json.dumps(data), user_id))
-    conn.commit()
+        raise
+    conn.close()
+    return data
+
+
+def add_experience(user_id: int, entry: dict):
+    """Append a work experience entry to a user's data. Returns updated user dict."""
+    conn = _connect()
+    try:
+        if _USE_PG:  # pragma: no cover
+            row = _execute(conn, "SELECT data FROM users WHERE id=%s FOR UPDATE", (user_id,)).fetchone()
+        else:
+            conn.execute("BEGIN EXCLUSIVE")
+            row = _execute(conn, "SELECT data FROM users WHERE id=%s", (user_id,)).fetchone()
+        if not row:
+            conn.close()
+            return None
+        data = json.loads(row["data"])
+        exp_list = data.get("experience", [])
+        entry["id"] = max((e.get("id", 0) for e in exp_list), default=0) + 1
+        exp_list.append(entry)
+        data["experience"] = exp_list
+        _execute(conn, "UPDATE users SET data=%s WHERE id=%s", (json.dumps(data), user_id))
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        conn.close()
+        raise
     conn.close()
     return data
 
@@ -550,18 +586,27 @@ def add_education(user_id: int, entry: dict):
 def add_skill(user_id: int, skill: str):
     """Append a skill string to a user's skills list (no duplicates). Returns updated user dict."""
     conn = _connect()
-    row = _execute(conn, "SELECT data FROM users WHERE id=%s", (user_id,)).fetchone()
-    if not row:
+    try:
+        if _USE_PG:  # pragma: no cover
+            row = _execute(conn, "SELECT data FROM users WHERE id=%s FOR UPDATE", (user_id,)).fetchone()
+        else:
+            conn.execute("BEGIN EXCLUSIVE")
+            row = _execute(conn, "SELECT data FROM users WHERE id=%s", (user_id,)).fetchone()
+        if not row:
+            conn.close()
+            return None
+        data = json.loads(row["data"])
+        skills = data.get("skills", [])
+        skill_names = [s if isinstance(s, str) else s.get("name", "") for s in skills]
+        if skill not in skill_names:
+            skills.append(skill)
+        data["skills"] = skills
+        _execute(conn, "UPDATE users SET data=%s WHERE id=%s", (json.dumps(data), user_id))
+        conn.commit()
+    except Exception:
+        conn.rollback()
         conn.close()
-        return None
-    data = json.loads(row["data"])
-    skills = data.get("skills", [])
-    skill_names = [s if isinstance(s, str) else s.get("name", "") for s in skills]
-    if skill not in skill_names:
-        skills.append(skill)
-    data["skills"] = skills
-    _execute(conn, "UPDATE users SET data=%s WHERE id=%s", (json.dumps(data), user_id))
-    conn.commit()
+        raise
     conn.close()
     return data
 
@@ -654,7 +699,7 @@ def get_all_posts():
     return result
 
 
-def create_post(author_id: int, content: str, image_url: str = None):
+def create_post(author_id: int, content: str, image_url: str | None = None, video_url: str | None = None):
     user = get_user_by_id(author_id)
     author_blob = {
         "id":          user["id"],
@@ -679,6 +724,8 @@ def create_post(author_id: int, content: str, image_url: str = None):
     }
     if image_url:
         blob["image"] = image_url
+    if video_url:
+        blob["videoUrl"] = video_url
     conn   = _connect()
     new_id = _insert_id(conn,
         "INSERT INTO posts (author_id, content, created_at, data) VALUES (%s, %s, %s, %s)",
@@ -1063,12 +1110,13 @@ def get_all_events_with_attendance(user_id: int):
 
     conn    = _connect()
     attended = set()
-    rows    = _execute(conn,
-        "SELECT event_id, event_src FROM event_attendance WHERE user_id=%s",
-        (int(user_id),)
-    ).fetchall()
-    for r in rows:
-        attended.add((r["event_id"], r["event_src"]))
+    if user_id is not None:
+        rows = _execute(conn,
+            "SELECT event_id, event_src FROM event_attendance WHERE user_id=%s",
+            (int(user_id),)
+        ).fetchall()
+        for r in rows:
+            attended.add((r["event_id"], r["event_src"]))
 
     static_events = _get_static_events()
     result = []

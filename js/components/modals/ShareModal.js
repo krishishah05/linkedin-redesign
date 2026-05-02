@@ -2,7 +2,7 @@
    SHAREMODAL.JS — Repost / share options
    ============================================================ */
 function ShareModal() {
-  const { closeModal, showToast } = React.useContext(AppContext);
+  const { closeModal, showToast, openModal } = React.useContext(AppContext);
 
   return (
     <div className="li-modal-overlay" style={{ display: 'flex' }}
@@ -26,7 +26,7 @@ function ShareModal() {
               <div style={{ fontSize: 12, color: 'var(--text-2)' }}>Instantly share to feed</div>
             </div>
           </div>
-          <div className="li-dropdown__item" onClick={() => { closeModal(); showToast('Opening post editor…'); }}>
+          <div className="li-dropdown__item" onClick={() => { openModal('post'); }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
               <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
             </svg>
@@ -37,13 +37,10 @@ function ShareModal() {
           </div>
           <div className="li-dropdown__divider" />
           <div className="li-dropdown__item" onClick={() => {
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-              navigator.clipboard.writeText(window.location.href)
-                .then(() => { showToast('Link copied!'); closeModal(); })
-                .catch(() => showToast('Failed to copy link', 'error'));
-            } else {
-              showToast('Copy not supported in this browser', 'error');
-            }
+            copyLink(window.location.href, (msg, type) => {
+              showToast(msg, type);
+              if (msg === 'Link copied!') closeModal();
+            });
           }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
               <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>

@@ -49,6 +49,7 @@ function ProfilePage({ userId }) {
   );
 
   const [expandedSections, setExpandedSections] = React.useState(new Set());
+  const [moreMenuOpen, setMoreMenuOpen] = React.useState(false);
   const [aiTips, setAiTips] = React.useState(null);
   const [statusPickerOpen, setStatusPickerOpen] = React.useState(false);
   const [localCerts, setLocalCerts] = React.useState(() => {
@@ -139,7 +140,7 @@ function ProfilePage({ userId }) {
                       <button className="li-btn li-btn--outline li-btn--sm" onClick={() => openModal('edit-profile')}>Edit profile</button>
                       <button className="li-btn li-btn--ghost li-btn--sm" onClick={() => {
                         const url = window.location.href.split('#')[0] + '#profile?id=' + user.id;
-                        navigator.clipboard?.writeText(url).then(() => showToast('Profile link copied!', 'success')).catch(() => showToast('Failed to copy profile link', 'error'));
+                        copyLink(url, showToast);
                       }}>Share</button>
                       <button
                         className="li-btn li-btn--ghost li-btn--sm"
