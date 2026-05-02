@@ -221,7 +221,7 @@ function ProfilePage({ userId }) {
                         {isFollowing ? 'Following' : 'Follow'}
                       </button>
                       <div style={{ position: 'relative' }}>
-                        <button className="li-btn li-btn--ghost li-btn--sm" onClick={() => setMoreMenuOpen(v => !v)}>Â·Â·Â·</button>
+                        <button className="li-btn li-btn--ghost li-btn--sm" onClick={() => setMoreMenuOpen(v => !v)}>...</button>
                         {moreMenuOpen && (
                           <div style={{ position: 'absolute', right: 0, top: '100%', marginTop: 4, background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 8, boxShadow: '0 4px 16px rgba(0,0,0,0.12)', zIndex: 200, minWidth: 160, overflow: 'hidden' }}
                             onMouseLeave={() => setMoreMenuOpen(false)}>
@@ -261,7 +261,7 @@ function ProfilePage({ userId }) {
                               }
                             }}
                           >
-                            {inPipeline ? 'âœ“ Shortlisted' : '+ Shortlist'}
+                            {inPipeline ? 'Shortlisted' : '+ Shortlist'}
                           </button>
                         );
                       })()}
@@ -330,7 +330,7 @@ function ProfilePage({ userId }) {
                             <button key={o.key} onClick={() => {
                               setUserStatus(o.key);
                               setStatusPickerOpen(false);
-                              if (o.key === 'conferences') { showToast('Explore conferences near you â†’', 'success'); navigate('conferences'); }
+                              if (o.key === 'conferences') { showToast('Explore conferences near you', 'success'); navigate('conferences'); }
                               else if (o.key === 'recruiting') showToast('Recruiter Mode is now available in the Me menu', 'success');
                               else if (o.key !== 'not_looking') showToast(`Status set to "${o.label}"`, 'success');
                             }} style={{
@@ -447,8 +447,8 @@ function ProfilePage({ userId }) {
                         </div>
                         <div style={{ flex: 1 }}>
                           <div style={{ fontSize: 15, fontWeight: 700 }}>{exp.title}</div>
-                          <div style={{ fontSize: 14, color: 'var(--text-2)' }}>{exp.company}{exp.type && ` Â· ${exp.type}`}</div>
-                          <div style={{ fontSize: 13, color: 'var(--text-3)' }}>{exp.startDate} - {exp.endDate || 'Present'}{exp.duration && ` Â· ${exp.duration}`}</div>
+                          <div style={{ fontSize: 14, color: 'var(--text-2)' }}>{exp.company}{exp.type && ` | ${exp.type}`}</div>
+                          <div style={{ fontSize: 13, color: 'var(--text-3)' }}>{exp.startDate} - {exp.endDate || 'Present'}{exp.duration && ` | ${exp.duration}`}</div>
                           {exp.location && <div style={{ fontSize: 13, color: 'var(--text-3)' }}>{exp.location}</div>}
                           {exp.description && <p style={{ fontSize: 14, color: 'var(--text-2)', marginTop: 8, lineHeight: 1.5 }}>{exp.description}</p>}
                         </div>
@@ -490,7 +490,7 @@ function ProfilePage({ userId }) {
                       </div>
                       <div style={{ flex: 1 }}>
                         <div style={{ fontSize: 15, fontWeight: 700 }}>{edu.school}</div>
-                        <div style={{ fontSize: 14, color: 'var(--text-2)' }}>{edu.degree}{edu.field && ` Â· ${edu.field}`}</div>
+                        <div style={{ fontSize: 14, color: 'var(--text-2)' }}>{edu.degree}{edu.field && ` | ${edu.field}`}</div>
                         <div style={{ fontSize: 13, color: 'var(--text-3)' }}>{edu.startYear || edu.startDate} - {edu.endYear || edu.endDate || 'Present'}</div>
                         {edu.activities && <div style={{ fontSize: 13, color: 'var(--text-2)', marginTop: 4 }}>{edu.activities}</div>}
                       </div>
@@ -600,7 +600,7 @@ function ProfilePage({ userId }) {
                               aria-label={`Remove ${label} skill`}
                               style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-3)', padding: 0, lineHeight: 0, fontSize: 14, fontWeight: 700 }}
                               onMouseEnter={e => e.currentTarget.style.color = 'var(--red, #cc1016)'}
-                              onMouseLeave={e => e.currentTarget.style.color = 'var(--text-3)'}>Ã-</button>
+                              onMouseLeave={e => e.currentTarget.style.color = 'var(--text-3)'}>x</button>
                           )}
                         </span>
                       );
@@ -729,7 +729,7 @@ function ProfilePage({ userId }) {
                           setLocalCerts(updated);
                           try { localStorage.setItem(certStorageKey, JSON.stringify(updated)); } catch {}
                           showToast('Certification removed');
-                        }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-3)', fontSize: 18, lineHeight: 1, alignSelf: 'flex-start', padding: 0 }}>Ã-</button>
+                        }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-3)', fontSize: 18, lineHeight: 1, alignSelf: 'flex-start', padding: 0 }}>x</button>
                       )}
                     </div>
                   ))}
@@ -778,7 +778,7 @@ function ProfilePage({ userId }) {
                       <div style={{ height: '100%', width: `${score}%`, background: barColor, borderRadius: 3, transition: 'width 0.4s ease' }} />
                     </div>
                     <div style={{ fontSize: 13, color: 'var(--text-2)', marginBottom: 14 }}>
-                      {level ? `${level} Â· ` : ''}{score}% quality score
+                      {level ? `${level} | ` : ''}{score}% quality score
                     </div>
                   </>
                 )}

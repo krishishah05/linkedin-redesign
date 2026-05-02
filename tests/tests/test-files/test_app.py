@@ -448,6 +448,11 @@ class TestFeed:
         assert resp.status_code == 201
         assert _json(resp)["content"] == "Hello world"
 
+    def test_T28B_BB_create_media_only_post_returns_201(self, client):
+        resp = _post(client, "/api/feed", {"content": "", "imageUrl": "data:image/png;base64,abc"})
+        assert resp.status_code == 201
+        assert _json(resp)["image"] == "data:image/png;base64,abc"
+
     def test_T29_WB_create_post_empty_content_returns_400(self, client):
         resp = _post(client, "/api/feed", {"content": ""})
         assert resp.status_code == 400
@@ -1003,7 +1008,12 @@ class TestErrorPathCoverage:
             "companyLogoUrl": "https://example.com/logo.png",
             "authorId": 1,
         }
-        monkeypatch.setattr(flask_app.dbl, "create_conference_story", lambda *args: story)
+        def create_story(uid, conference_name, tagline, description, photo_url, company_logo_url):
+            assert photo_url == "https://example.com/photo.jpg"
+            assert company_logo_url == "https://example.com/logo.png"
+            return story
+
+        monkeypatch.setattr(flask_app.dbl, "create_conference_story", create_story)
 
         resp = client.post("/api/conference-stories", json={
             "conferenceName": "AI Summit",
@@ -1054,6 +1064,14 @@ class TestErrorPathCoverage:
     def test_conference_search_without_api_key_uses_fallback_and_cache(self, client, monkeypatch):
         flask_app._conference_search_cache.clear()
         monkeypatch.delenv("SERPAPI_API_KEY", raising=False)
+        calls = {"count": 0}
+        original_fallback = flask_app._fallback_conferences
+
+        def counted_fallback(location, field):
+            calls["count"] += 1
+            return original_fallback(location, field)
+
+        monkeypatch.setattr(flask_app, "_fallback_conferences", counted_fallback)
 
         resp = client.get("/api/conferences/search?location=Boston&field=healthcare")
         cached = client.get("/api/conferences/search?location=Boston&field=healthcare")
@@ -1063,7 +1081,10 @@ class TestErrorPathCoverage:
         assert len(data) == 3
         assert data[0]["source"] == "fallback"
         assert "Healthcare" in data[0]["name"]
+        assert 42.0 < data[0]["lat"] < 43.0
+        assert -72.0 < data[0]["lng"] < -70.0
         assert _json(cached) == data
+        assert calls["count"] == 1
 
     def test_conference_search_serpapi_success_maps_event_fields(self, client, monkeypatch):
         flask_app._conference_search_cache.clear()

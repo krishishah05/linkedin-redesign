@@ -50,7 +50,7 @@ function JobsPage({ selectedJobId }) {
       return;
     }
     if (!filtered.some(j => j.id === selectedId)) setSelectedId(filtered[0].id);
-  }, [viewMode, searchQ, jobs]);
+  }, [viewMode, searchQ, jobs, selectedId]);
 
   return (
     <div className="li-page-inner">
@@ -413,8 +413,8 @@ function splitLongParagraph(text) {
 }
 
 function htmlToText(html) {
-  const d = document.createElement('div');
-  d.innerHTML = html || '';
-  d.querySelectorAll('script,style').forEach(e => e.remove());
-  return d.textContent || d.innerText || '';
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(String(html || ''), 'text/html');
+  doc.querySelectorAll('script,style').forEach(e => e.remove());
+  return doc.body ? (doc.body.textContent || '') : '';
 }

@@ -25,6 +25,7 @@ function ConferencesPage() {
   const [storySubmitting, setStorySubmitting] = React.useState(false);
 
   const selectedConf = conferences.find(c => String(c.id) === String(selectedId));
+  const selectedConfUrl = getSafeHttpUrl(selectedConf && selectedConf.link);
 
   React.useEffect(() => {
     API.getConferenceStories()
@@ -126,9 +127,19 @@ function ConferencesPage() {
     if (bounds.length) {
       map.fitBounds(bounds, { padding: [50, 50], maxZoom: 13 });
     }
-  }
+}
 
-  function conferenceIcon(conf, active) {
+function getSafeHttpUrl(rawUrl) {
+  if (!rawUrl) return '';
+  try {
+    const url = new URL(String(rawUrl), window.location.origin);
+    return /^https?:$/i.test(url.protocol) ? url.href : '';
+  } catch (_) {
+    return '';
+  }
+}
+
+function conferenceIcon(conf, active) {
     const color = active ? '#0a66c2' : '#344054';
     return window.L.divIcon({
       className: '',
@@ -329,8 +340,8 @@ function ConferencesPage() {
                     Register
                   </button>
                 )}
-                {selectedConf.link && (
-                  <button className="li-btn li-btn--ghost" style={{ flex: 1, fontSize: 13, padding: '9px 16px' }} onClick={() => window.open(selectedConf.link, '_blank', 'noopener,noreferrer')}>
+                {selectedConfUrl && (
+                  <button className="li-btn li-btn--ghost" style={{ flex: 1, fontSize: 13, padding: '9px 16px' }} onClick={() => window.open(selectedConfUrl, '_blank', 'noopener,noreferrer')}>
                     View event
                   </button>
                 )}

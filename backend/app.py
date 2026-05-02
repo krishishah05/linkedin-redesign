@@ -46,6 +46,20 @@ _muse_detail_cache = {}   # museId -> full job dict
 _MUSE_TTL          = 4 * 3600  # refresh every 4 hours
 _conference_search_cache = {}
 _CONFERENCE_SEARCH_TTL = 2 * 3600
+_CONFERENCE_SEARCH_MAX = 128
+
+
+def _purge_conference_search_cache(now=None):
+    now = time.time() if now is None else now
+    expired = [
+        key for key, value in _conference_search_cache.items()
+        if now - value.get("fetched_at", 0) >= _CONFERENCE_SEARCH_TTL
+    ]
+    for key in expired:
+        _conference_search_cache.pop(key, None)
+    while len(_conference_search_cache) > _CONFERENCE_SEARCH_MAX:
+        oldest = min(_conference_search_cache, key=lambda k: _conference_search_cache[k].get("fetched_at", 0))
+        _conference_search_cache.pop(oldest, None)
 
 
 def _fetch_muse_jobs():
@@ -717,14 +731,13 @@ def get_feed():
 
 @app.route("/api/feed", methods=["POST"])
 def create_post():
-    """POST /api/feed - create a new post. Body: {content: str, imageUrl?: str}"""
+    """POST /api/feed - create a new post. Body: {content?: str, imageUrl?: str, videoUrl?: str}"""
     body = _get_body()
     content = (body.get("content") or "").strip()
-    if not content:
-        abort(400, description="content is required and must not be empty")
-
     image_url = (body.get("imageUrl") or "").strip() or None
     video_url = (body.get("videoUrl") or "").strip() or None
+    if not content and not image_url and not video_url:
+        abort(400, description="content, imageUrl, or videoUrl is required")
 
     current_user = _auth_user()
     if not current_user:
@@ -811,9 +824,37 @@ def create_conference_story():
 # Job Endpoints
 # â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
+def _coordinates_for_location(location: str):
+    text = (location or "").lower()
+    known = [
+        ("new york", 40.7128, -74.0060),
+        ("brooklyn", 40.6782, -73.9442),
+        ("boston", 42.3601, -71.0589),
+        ("san francisco", 37.7749, -122.4194),
+        ("los angeles", 34.0522, -118.2437),
+        ("chicago", 41.8781, -87.6298),
+        ("austin", 30.2672, -97.7431),
+        ("denver", 39.7392, -104.9903),
+        ("seattle", 47.6062, -122.3321),
+        ("washington", 38.9072, -77.0369),
+        ("atlanta", 33.7490, -84.3880),
+        ("miami", 25.7617, -80.1918),
+        ("toronto", 43.6532, -79.3832),
+        ("london", 51.5074, -0.1278),
+        ("paris", 48.8566, 2.3522),
+        ("tokyo", 35.6762, 139.6503),
+    ]
+    for needle, lat, lng in known:
+        if needle in text:
+            return lat, lng
+    return 39.8283, -98.5795
+
+
 def _fallback_conferences(location: str, field: str):
     base_location = location or "San Francisco, CA"
     base_field = field or "technology"
+    lat, lng = _coordinates_for_location(base_location)
+    offsets = [(0.010, 0.008), (-0.008, -0.012), (0.014, -0.006)]
     return [
         {
             "id": 1,
@@ -822,8 +863,8 @@ def _fallback_conferences(location: str, field: str):
             "date": "May 12 to May 13, 2026",
             "venue": "Downtown Conference Center",
             "address": base_location,
-            "lat": 37.7841,
-            "lng": -122.4001,
+            "lat": round(lat + offsets[0][0], 6),
+            "lng": round(lng + offsets[0][1], 6),
             "description": f"Professional sessions, networking, and practical workshops for people working in {base_field}.",
             "attendees": 4200,
             "price": "$499",
@@ -837,8 +878,8 @@ def _fallback_conferences(location: str, field: str):
             "date": "June 4 to June 5, 2026",
             "venue": "Innovation Hall",
             "address": base_location,
-            "lat": 37.7779,
-            "lng": -122.4171,
+            "lat": round(lat + offsets[1][0], 6),
+            "lng": round(lng + offsets[1][1], 6),
             "description": f"A focused event for hands-on learning, product demos, and peer conversations in {base_field}.",
             "attendees": 1800,
             "price": "$299",
@@ -852,8 +893,8 @@ def _fallback_conferences(location: str, field: str):
             "date": "July 8, 2026",
             "venue": "Community Events Center",
             "address": base_location,
-            "lat": 37.7951,
-            "lng": -122.3969,
+            "lat": round(lat + offsets[2][0], 6),
+            "lng": round(lng + offsets[2][1], 6),
             "description": f"Recruiters, speakers, and practitioners share current hiring trends and career paths in {base_field}.",
             "attendees": 950,
             "price": "Free",
@@ -877,6 +918,7 @@ def search_conferences():
     field = (request.args.get("field") or "technology").strip()[:80]
     cache_key = f"{location.lower()}::{field.lower()}"
     now = time.time()
+    _purge_conference_search_cache(now)
     cached = _conference_search_cache.get(cache_key)
     if cached and now - cached["fetched_at"] < _CONFERENCE_SEARCH_TTL:
         return jsonify(cached["items"])
@@ -885,6 +927,7 @@ def search_conferences():
     if not api_key:
         items = _fallback_conferences(location, field)
         _conference_search_cache[cache_key] = {"items": items, "fetched_at": now}
+        _purge_conference_search_cache(now)
         return jsonify(items)
 
     import requests as req_lib
@@ -933,6 +976,7 @@ def search_conferences():
         items = _fallback_conferences(location, field)
 
     _conference_search_cache[cache_key] = {"items": items, "fetched_at": now}
+    _purge_conference_search_cache(now)
     return jsonify(items)
 
 

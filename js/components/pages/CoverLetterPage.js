@@ -122,9 +122,9 @@ Best regards,
 I am writing to apply for the [Job Title] role at [Company]. With [X] years of experience as [Current Role/Headline], I have a proven ability to [core competency] and [core competency] - and I am looking for the right opportunity to bring that to a new challenge.
 
 My key qualifications for this role:
-â€¢ [Relevant experience or achievement]
-â€¢ [Relevant experience or achievement]
-â€¢ [Relevant experience or achievement]
+- [Relevant experience or achievement]
+- [Relevant experience or achievement]
+- [Relevant experience or achievement]
 
 I am confident in my fit for this position and would welcome a conversation to discuss next steps.
 
@@ -166,7 +166,8 @@ function CoverLetterPage() {
   const [savedDrafts, setSavedDrafts] = React.useState(() => {
     try {
       const raw = localStorage.getItem('li-cover-letter-drafts');
-      return raw ? JSON.parse(raw) : [];
+      const parsed = raw ? JSON.parse(raw) : [];
+      return Array.isArray(parsed) ? parsed.filter(d => d && typeof d === 'object') : [];
     } catch {
       return [];
     }
@@ -237,7 +238,7 @@ function CoverLetterPage() {
       lines.push('Work Experience:');
       exp.slice(0, 5).forEach(e => {
         const dates = `${e.startDate || ''}${e.endDate ? ` - ${e.endDate}` : ''}`;
-        lines.push(`  â€¢ ${e.title} at ${e.company}${e.type ? ` (${e.type})` : ''}${dates ? `, ${dates}` : ''}`);
+        lines.push(`  - ${e.title} at ${e.company}${e.type ? ` (${e.type})` : ''}${dates ? `, ${dates}` : ''}`);
         if (e.description) lines.push(`    ${e.description}`);
       });
     }
@@ -246,7 +247,7 @@ function CoverLetterPage() {
     if (edu.length > 0) {
       lines.push('Education:');
       edu.slice(0, 3).forEach(e => {
-        lines.push(`  â€¢ ${e.degree || ''}${e.field ? ` in ${e.field}` : ''} - ${e.school}${e.startDate || e.startYear ? ` (${e.startDate || e.startYear} - ${e.endDate || e.endYear || 'Present'})` : ''}`);
+        lines.push(`  - ${e.degree || ''}${e.field ? ` in ${e.field}` : ''} - ${e.school}${e.startDate || e.startYear ? ` (${e.startDate || e.startYear} - ${e.endDate || e.endYear || 'Present'})` : ''}`);
       });
     }
 
@@ -254,7 +255,7 @@ function CoverLetterPage() {
     if (proj.length > 0) {
       lines.push('Projects:');
       proj.slice(0, 4).forEach(p => {
-        lines.push(`  â€¢ ${p.name}${p.description ? `: ${p.description}` : ''}`);
+        lines.push(`  - ${p.name}${p.description ? `: ${p.description}` : ''}`);
       });
     }
 
@@ -267,7 +268,7 @@ function CoverLetterPage() {
     if (vol.length > 0) {
       lines.push('Volunteering:');
       vol.slice(0, 2).forEach(v => {
-        lines.push(`  â€¢ ${v.role} at ${v.organization}${v.cause ? ` (${v.cause})` : ''}`);
+        lines.push(`  - ${v.role} at ${v.organization}${v.cause ? ` (${v.cause})` : ''}`);
       });
     }
 
@@ -275,7 +276,7 @@ function CoverLetterPage() {
     if (honors.length > 0) {
       lines.push('Honors & Awards:');
       honors.slice(0, 3).forEach(h => {
-        lines.push(`  â€¢ ${h.title}${h.issuer ? ` - ${h.issuer}` : ''}`);
+        lines.push(`  - ${h.title}${h.issuer ? ` - ${h.issuer}` : ''}`);
       });
     }
 
@@ -424,7 +425,11 @@ function CoverLetterPage() {
     };
     const next = [draft, ...savedDrafts].slice(0, 12);
     setSavedDrafts(next);
-    localStorage.setItem('li-cover-letter-drafts', JSON.stringify(next));
+    try {
+      localStorage.setItem('li-cover-letter-drafts', JSON.stringify(next));
+    } catch (err) {
+      showToast(`Unable to persist drafts: ${err && err.message ? err.message : 'storage unavailable'}`, 'error');
+    }
     setSelectedDraftId(draft.id);
     showToast('Draft saved.', 'success');
   }
@@ -443,7 +448,11 @@ function CoverLetterPage() {
   function deleteDraft(id) {
     const next = savedDrafts.filter(d => d.id !== id);
     setSavedDrafts(next);
-    localStorage.setItem('li-cover-letter-drafts', JSON.stringify(next));
+    try {
+      localStorage.setItem('li-cover-letter-drafts', JSON.stringify(next));
+    } catch (err) {
+      showToast(`Unable to persist drafts: ${err && err.message ? err.message : 'storage unavailable'}`, 'error');
+    }
     if (selectedDraftId === id) setSelectedDraftId('');
     showToast('Draft deleted.', 'success');
   }
@@ -681,7 +690,7 @@ function CoverLetterPage() {
                     ? <span style={{ color: '#057642', fontWeight: 600 }}>{uploadedFileName}</span>
                     : <span>Click to upload your cover letter</span>
                   }
-                  {!uploadedText && <span style={{ fontSize: 11 }}>Max 5 MB Â· PDF, DOCX, TXT</span>}
+                  {!uploadedText && <span style={{ fontSize: 11 }}>Max 5 MB | PDF, DOCX, TXT</span>}
                 </label>
                 <input
                   id="cl-file-upload"

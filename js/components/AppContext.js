@@ -4,11 +4,11 @@
    ============================================================ */
 
 const TRANSLATIONS = {
-  en: { home:'Home', myNetwork:'My Network', jobs:'Jobs', messaging:'Messaging', conferences:'Conferences', me:'Me â-¾', meShort:'Me', search:'Search', startPost:'Start a post', photo:'Photo', video:'Video', writeArticle:'Write article', post:'Post', publish:'Publish', cancel:'Cancel', whatToTalk:'What do you want to talk about?', editTemplate:'Edit the template, then publish your articleâ€¦', like:'Like', comment:'Comment', repost:'Repost', send:'Send', network:'Network', signOut:'Sign out', settingsPrivacy:'Settings & Privacy', messages:'Messages', chooseTemplate:'Choose an article template', uploadVideoUrl:'Upload video URLâ€¦', pasteImageUrl:'Paste image URLâ€¦', article:'ARTICLE' },
-  es: { home:'Inicio', myNetwork:'Mi Red', jobs:'Empleos', messaging:'Mensajes', conferences:'Conferencias', me:'Yo â-¾', meShort:'Yo', search:'Buscar', startPost:'Iniciar publicaciÃ³n', photo:'Foto', video:'VÃ­deo', writeArticle:'Escribir artÃ­culo', post:'Publicar', publish:'Publicar', cancel:'Cancelar', whatToTalk:'Â¿De quÃ© quieres hablar?', editTemplate:'Edita la plantilla y publica tu artÃ­culoâ€¦', like:'Me gusta', comment:'Comentar', repost:'Compartir', send:'Enviar', network:'Red', signOut:'Cerrar sesiÃ³n', settingsPrivacy:'ConfiguraciÃ³n', messages:'Mensajes', chooseTemplate:'Elige una plantilla de artÃ­culo', uploadVideoUrl:'URL del vÃ­deoâ€¦', pasteImageUrl:'URL de la imagenâ€¦', article:'ARTÃCULO' },
-  fr: { home:'Accueil', myNetwork:'Mon RÃ©seau', jobs:'Emplois', messaging:'Messagerie', conferences:'ConfÃ©rences', me:'Moi â-¾', meShort:'Moi', search:'Rechercher', startPost:'Commencer une publication', photo:'Photo', video:'VidÃ©o', writeArticle:'Ã‰crire un article', post:'Publier', publish:'Publier', cancel:'Annuler', whatToTalk:'De quoi souhaitez-vous parlerÂ ?', editTemplate:'Modifiez le modÃ¨le, puis publiez votre articleâ€¦', like:'Aimer', comment:'Commenter', repost:'Repartager', send:'Envoyer', network:'RÃ©seau', signOut:'Se dÃ©connecter', settingsPrivacy:'ParamÃ¨tres', messages:'Messages', chooseTemplate:'Choisissez un modÃ¨le d\'article', uploadVideoUrl:'URL de la vidÃ©oâ€¦', pasteImageUrl:'URL de l\'imageâ€¦', article:'ARTICLE' },
-  de: { home:'Startseite', myNetwork:'Mein Netzwerk', jobs:'Jobs', messaging:'Nachrichten', conferences:'Konferenzen', me:'Ich â-¾', meShort:'Ich', search:'Suchen', startPost:'Beitrag starten', photo:'Foto', video:'Video', writeArticle:'Artikel schreiben', post:'Posten', publish:'VerÃ¶ffentlichen', cancel:'Abbrechen', whatToTalk:'WorÃ¼ber mÃ¶chtest du sprechen?', editTemplate:'Vorlage bearbeiten und Artikel verÃ¶ffentlichenâ€¦', like:'GefÃ¤llt mir', comment:'Kommentieren', repost:'Teilen', send:'Senden', network:'Netzwerk', signOut:'Abmelden', settingsPrivacy:'Einstellungen', messages:'Nachrichten', chooseTemplate:'Artikelvorlage wÃ¤hlen', uploadVideoUrl:'Video-URLâ€¦', pasteImageUrl:'Bild-URLâ€¦', article:'ARTIKEL' },
-  ja: { home:'ãƒ›ãƒ¼ãƒ ', myNetwork:'ãƒžã‚¤ãƒãƒƒãƒˆãƒ¯ãƒ¼ã‚¯', jobs:'æ±‚äºº', messaging:'ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸', conferences:'ã‚«ãƒ³ãƒ•ã‚¡ãƒ¬ãƒ³ã‚¹', me:'è‡ªåˆ† â-¾', meShort:'è‡ªåˆ†', search:'æ¤œç´¢', startPost:'æŠ•ç¨¿ã‚’é-‹å§‹', photo:'å†™çœŸ', video:'å‹•ç”»', writeArticle:'è¨˜äº‹ã‚’æ›¸ã', post:'æŠ•ç¨¿', publish:'å...¬é-‹', cancel:'ã‚­ãƒ£ãƒ³ã‚»ãƒ«', whatToTalk:'ä½•ã«ã¤ã„ã¦è©±ã-ãŸã„ã§ã™ã‹ï¼Ÿ', editTemplate:'ãƒ†ãƒ³ãƒ-ãƒ¬ãƒ¼ãƒˆã‚’ç·¨é›†ã-ã¦è¨˜äº‹ã‚’å...¬é-‹â€¦', like:'ã„ã„ã­', comment:'ã‚³ãƒ¡ãƒ³ãƒˆ', repost:'å...±æœ‰', send:'é€ä¿¡', network:'ãƒãƒƒãƒˆãƒ¯ãƒ¼ã‚¯', signOut:'ãƒ­ã‚°ã‚¢ã‚¦ãƒˆ', settingsPrivacy:'è¨­å®š', messages:'ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸', chooseTemplate:'è¨˜äº‹ãƒ†ãƒ³ãƒ-ãƒ¬ãƒ¼ãƒˆã‚’é¸æŠž', uploadVideoUrl:'å‹•ç”»URLã‚’å...¥åŠ›â€¦', pasteImageUrl:'ç”»åƒURLã‚’å...¥åŠ›â€¦', article:'è¨˜äº‹' },
+  en: { home:'Home', myNetwork:'My Network', jobs:'Jobs', messaging:'Messaging', conferences:'Conferences', me:'Me', meShort:'Me', search:'Search', startPost:'Start a post', photo:'Photo', video:'Video', writeArticle:'Write article', post:'Post', publish:'Publish', cancel:'Cancel', whatToTalk:'What do you want to talk about?', editTemplate:'Edit the template, then publish your article...', like:'Like', comment:'Comment', repost:'Repost', send:'Send', network:'Network', signOut:'Sign out', settingsPrivacy:'Settings & Privacy', messages:'Messages', chooseTemplate:'Choose an article template', uploadVideoUrl:'Upload video URL...', pasteImageUrl:'Paste image URL...', article:'ARTICLE' },
+  es: { home:'Inicio', myNetwork:'Mi red', jobs:'Empleos', messaging:'Mensajes', conferences:'Conferencias', me:'Yo', meShort:'Yo', search:'Buscar', startPost:'Iniciar publicación', photo:'Foto', video:'Video', writeArticle:'Escribir artículo', post:'Publicar', publish:'Publicar', cancel:'Cancelar', whatToTalk:'¿De qué quieres hablar?', editTemplate:'Edita la plantilla y publica tu artículo...', like:'Me gusta', comment:'Comentar', repost:'Compartir', send:'Enviar', network:'Red', signOut:'Cerrar sesión', settingsPrivacy:'Configuración y privacidad', messages:'Mensajes', chooseTemplate:'Elige una plantilla de artículo', uploadVideoUrl:'URL del video...', pasteImageUrl:'URL de la imagen...', article:'ARTÍCULO' },
+  fr: { home:'Accueil', myNetwork:'Mon réseau', jobs:'Emplois', messaging:'Messagerie', conferences:'Conférences', me:'Moi', meShort:'Moi', search:'Rechercher', startPost:'Commencer une publication', photo:'Photo', video:'Vidéo', writeArticle:'Écrire un article', post:'Publier', publish:'Publier', cancel:'Annuler', whatToTalk:'De quoi souhaitez-vous parler ?', editTemplate:'Modifiez le modèle, puis publiez votre article...', like:'Aimer', comment:'Commenter', repost:'Repartager', send:'Envoyer', network:'Réseau', signOut:'Se déconnecter', settingsPrivacy:'Paramètres et confidentialité', messages:'Messages', chooseTemplate:'Choisissez un modèle d\'article', uploadVideoUrl:'URL de la vidéo...', pasteImageUrl:'URL de l\'image...', article:'ARTICLE' },
+  de: { home:'Startseite', myNetwork:'Mein Netzwerk', jobs:'Jobs', messaging:'Nachrichten', conferences:'Konferenzen', me:'Ich', meShort:'Ich', search:'Suchen', startPost:'Beitrag starten', photo:'Foto', video:'Video', writeArticle:'Artikel schreiben', post:'Posten', publish:'Veröffentlichen', cancel:'Abbrechen', whatToTalk:'Worüber möchtest du sprechen?', editTemplate:'Vorlage bearbeiten und Artikel veröffentlichen...', like:'Gefällt mir', comment:'Kommentieren', repost:'Teilen', send:'Senden', network:'Netzwerk', signOut:'Abmelden', settingsPrivacy:'Einstellungen und Datenschutz', messages:'Nachrichten', chooseTemplate:'Artikelvorlage wählen', uploadVideoUrl:'Video-URL...', pasteImageUrl:'Bild-URL...', article:'ARTIKEL' },
+  ja: { home:'ホーム', myNetwork:'マイネットワーク', jobs:'求人', messaging:'メッセージ', conferences:'カンファレンス', me:'自分', meShort:'自分', search:'検索', startPost:'投稿を開始', photo:'写真', video:'動画', writeArticle:'記事を書く', post:'投稿', publish:'公開', cancel:'キャンセル', whatToTalk:'何について話したいですか？', editTemplate:'テンプレートを編集して記事を公開...', like:'いいね', comment:'コメント', repost:'共有', send:'送信', network:'ネットワーク', signOut:'ログアウト', settingsPrivacy:'設定とプライバシー', messages:'メッセージ', chooseTemplate:'記事テンプレートを選択', uploadVideoUrl:'動画URLを入力...', pasteImageUrl:'画像URLを入力...', article:'記事' },
 };
 
 const AppContext = React.createContext(null);
@@ -22,28 +22,14 @@ function AppProvider({ children }) {
   // â”€â”€ UI state (mirrors App.state) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // Loaded from user-scoped key once currentUser is known (see effect below)
   const [likedPosts, setLikedPosts] = React.useState(() => new Set());
-  const [savedJobs, setSavedJobs] = React.useState(() => {
-    try { const s = localStorage.getItem('li-saved-jobs'); return s ? new Set(JSON.parse(s)) : new Set(); } catch { return new Set(); }
-  });
-  const [connections, setConnections] = React.useState(() => {
-    try { const s = localStorage.getItem('li-connections'); return s ? new Set(JSON.parse(s)) : new Set(); } catch { return new Set(); }
-  });
-  const [following, setFollowing] = React.useState(() => {
-    try { const s = localStorage.getItem('li-following'); return s ? new Set(JSON.parse(s)) : new Set(); } catch { return new Set(); }
-  });
-  const [pendingConnections, setPendingConnections] = React.useState(() => {
-    try { const s = localStorage.getItem('li-pending-conn'); return s ? new Set(JSON.parse(s)) : new Set(); } catch { return new Set(); }
-  });
+  const [savedJobs, setSavedJobs] = React.useState(() => new Set());
+  const [connections, setConnections] = React.useState(() => new Set());
+  const [following, setFollowing] = React.useState(() => new Set());
+  const [pendingConnections, setPendingConnections] = React.useState(() => new Set());
 
-  const [dismissedInvitations, setDismissedInvitations] = React.useState(() => {
-    try { const s = localStorage.getItem('li-dismissed-inv'); return s ? new Set(JSON.parse(s)) : new Set(); } catch { return new Set(); }
-  });
-  const [appliedJobs, setAppliedJobs] = React.useState(() => {
-    try { const s = localStorage.getItem('li-applied-jobs'); return s ? new Set(JSON.parse(s)) : new Set(); } catch { return new Set(); }
-  });
-  const [joinedGroups, setJoinedGroups] = React.useState(() => {
-    try { const s = localStorage.getItem('li-joined-groups'); return s ? new Set(JSON.parse(s)) : new Set(['1', '2', '4']); } catch { return new Set(['1', '2', '4']); }
-  });
+  const [dismissedInvitations, setDismissedInvitations] = React.useState(() => new Set());
+  const [appliedJobs, setAppliedJobs] = React.useState(() => new Set());
+  const [joinedGroups, setJoinedGroups] = React.useState(() => new Set(['1', '2', '4']));
   const [unreadMessages, setUnreadMessages] = React.useState(0);
   const [unreadNotifications, setUnreadNotifications] = React.useState(0);
   const [pendingInvitations, setPendingInvitations] = React.useState([]);
@@ -206,6 +192,16 @@ function AppProvider({ children }) {
       setLikedPosts(l ? new Set(JSON.parse(l)) : new Set());
       const sl = localStorage.getItem(`li-shortlisted-${uid}`);
       setShortlisted(sl ? new Map(JSON.parse(sl)) : new Map());
+      const saved = localStorage.getItem(`li-saved-jobs-${uid}`);
+      setSavedJobs(saved ? new Set(JSON.parse(saved)) : new Set());
+      const applied = localStorage.getItem(`li-applied-jobs-${uid}`);
+      setAppliedJobs(applied ? new Set(JSON.parse(applied)) : new Set());
+      const pending = localStorage.getItem(`li-pending-conn-${uid}`);
+      setPendingConnections(pending ? new Set(JSON.parse(pending)) : new Set());
+      const groups = localStorage.getItem(`li-joined-groups-${uid}`);
+      setJoinedGroups(groups ? new Set(JSON.parse(groups)) : new Set(['1', '2', '4']));
+      const dismissed = localStorage.getItem(`li-dismissed-inv-${uid}`);
+      setDismissedInvitations(dismissed ? new Set(JSON.parse(dismissed)) : new Set());
     } catch (_) {}
   }, [currentUser?.id]);
 
@@ -233,7 +229,8 @@ function AppProvider({ children }) {
 
   // â”€â”€ Load social state from server (overrides localStorage) â”€
   React.useEffect(() => {
-    if (!appLoading && !appError) {
+    if (!appLoading && !appError && currentUser?.id) {
+      const uid = currentUser.id;
       API.getSocialState()
         .then(social => {
           const toSet = (arr) => new Set((arr || []).map(String));
@@ -253,18 +250,18 @@ function AppProvider({ children }) {
           setDismissedInvitations(dismissed);
           // Sync back to localStorage so offline fallback stays fresh
           try {
-            localStorage.setItem('li-saved-jobs',    JSON.stringify([...savedJ]));
-            localStorage.setItem('li-connections',   JSON.stringify([...conns]));
-            localStorage.setItem('li-following',     JSON.stringify([...foll]));
-            localStorage.setItem('li-pending-conn',  JSON.stringify([...pend]));
-            localStorage.setItem('li-applied-jobs',  JSON.stringify([...applied]));
-            localStorage.setItem('li-joined-groups', JSON.stringify([...groups]));
-            localStorage.setItem('li-dismissed-inv', JSON.stringify([...dismissed]));
+            localStorage.setItem(`li-saved-jobs-${uid}`,    JSON.stringify([...savedJ]));
+            localStorage.setItem(`li-connections-${uid}`,   JSON.stringify([...conns]));
+            localStorage.setItem(`li-following-${uid}`,     JSON.stringify([...foll]));
+            localStorage.setItem(`li-pending-conn-${uid}`,  JSON.stringify([...pend]));
+            localStorage.setItem(`li-applied-jobs-${uid}`,  JSON.stringify([...applied]));
+            localStorage.setItem(`li-joined-groups-${uid}`, JSON.stringify([...groups]));
+            localStorage.setItem(`li-dismissed-inv-${uid}`, JSON.stringify([...dismissed]));
           } catch {}
         })
         .catch(() => { /* silently keep localStorage values already in state */ });
     }
-  }, [appLoading, appError]);
+  }, [appLoading, appError, currentUser?.id]);
 
   // Fetch unread counts and invitations on mount
   React.useEffect(() => {
@@ -319,7 +316,7 @@ function AppProvider({ children }) {
       const next = new Set(prev);
       if (next.has(key)) next.delete(key);
       else next.add(key);
-      try { localStorage.setItem('li-saved-jobs', JSON.stringify([...next])); } catch {}
+      _save('li-saved-jobs', next);
       return next;
     });
     API.toggleSavedJob(jobId).catch(() => {});
@@ -328,7 +325,7 @@ function AppProvider({ children }) {
   function connect(userId) {
     setPendingConnections(prev => {
       const next = new Set([...prev, String(userId)]);
-      try { localStorage.setItem('li-pending-conn', JSON.stringify([...next])); } catch {}
+      _save('li-pending-conn', next);
       return next;
     });
     API.connectUser(userId).catch(() => {});
@@ -343,7 +340,7 @@ function AppProvider({ children }) {
     setPendingConnections(prev => {
       const next = new Set(prev);
       next.delete(String(userId));
-      try { localStorage.setItem('li-pending-conn', JSON.stringify([...next])); } catch {}
+      _save('li-pending-conn', next);
       return next;
     });
     setPendingInvitations(prev =>
@@ -359,7 +356,7 @@ function AppProvider({ children }) {
   function dismissInvitation(key) {
     setDismissedInvitations(prev => {
       const next = new Set([...prev, key]);
-      try { localStorage.setItem('li-dismissed-inv', JSON.stringify([...next])); } catch {}
+      _save('li-dismissed-inv', next);
       return next;
     });
     API.dismissInvitation(key).catch(() => {});
@@ -377,7 +374,7 @@ function AppProvider({ children }) {
   function applyJob(jobId) {
     setAppliedJobs(prev => {
       const next = new Set([...prev, String(jobId)]);
-      try { localStorage.setItem('li-applied-jobs', JSON.stringify([...next])); } catch {}
+      _save('li-applied-jobs', next);
       return next;
     });
     API.applyToJob(jobId).catch(() => {});
@@ -398,7 +395,7 @@ function AppProvider({ children }) {
   function joinGroup(groupId) {
     setJoinedGroups(prev => {
       const next = new Set([...prev, String(groupId)]);
-      try { localStorage.setItem('li-joined-groups', JSON.stringify([...next])); } catch {}
+      _save('li-joined-groups', next);
       return next;
     });
     API.toggleGroup(groupId).catch(() => {});
@@ -408,7 +405,7 @@ function AppProvider({ children }) {
     setJoinedGroups(prev => {
       const next = new Set(prev);
       next.delete(String(groupId));
-      try { localStorage.setItem('li-joined-groups', JSON.stringify([...next])); } catch {}
+      _save('li-joined-groups', next);
       return next;
     });
     API.toggleGroup(groupId).catch(() => {});

@@ -55,12 +55,15 @@ function escapeHtml(str) {
 }
 
 function getNexusProfileUrl(user) {
-  const slug = String(user?.name || '')
+  const stableId = user?.slug || user?.username || user?.id || user?.email || 'profile';
+  const display = user?.name ? `${user.name}-${stableId}` : String(stableId);
+  const slug = String(display)
     .toLowerCase()
     .trim()
     .replace(/[^a-z0-9\s-]/g, '')
-    .replace(/\s+/g, '')
-    .replace(/-+/g, '');
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '');
   return `nexus.io/in/${slug || 'profile'}`;
 }
 
