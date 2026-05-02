@@ -979,11 +979,156 @@ class TestGroupCreation:
         assert resp.get_json()["name"] == "AI Engineers"
 
 class TestErrorPathCoverage:
+    def test_get_conference_stories_returns_list(self, client, monkeypatch):
+        story = {
+            "id": 1,
+            "conferenceName": "Grace Hopper Celebration",
+            "tagline": "Great hallway track",
+            "description": "Met engineers and recruiters.",
+        }
+        monkeypatch.setattr(flask_app.dbl, "get_conference_stories", lambda: [story])
+
+        resp = client.get("/api/conference-stories")
+
+        assert resp.status_code == 200
+        assert _json(resp)[0]["conferenceName"] == "Grace Hopper Celebration"
+
+    def test_create_conference_story_success(self, client, auth_header, monkeypatch):
+        story = {
+            "id": 7,
+            "conferenceName": "AI Summit",
+            "tagline": "Useful hiring conversations",
+            "description": "I met several startup founders.",
+            "photoUrl": "https://example.com/photo.jpg",
+            "companyLogoUrl": "https://example.com/logo.png",
+            "authorId": 1,
+        }
+        monkeypatch.setattr(flask_app.dbl, "create_conference_story", lambda *args: story)
+
+        resp = client.post("/api/conference-stories", json={
+            "conferenceName": "AI Summit",
+            "tagline": "Useful hiring conversations",
+            "description": "I met several startup founders.",
+            "photoUrl": " https://example.com/photo.jpg ",
+            "companyLogoUrl": " https://example.com/logo.png ",
+        }, headers=auth_header)
+
+        assert resp.status_code == 201
+        assert _json(resp)["id"] == 7
+
     def test_create_conference_story_missing_fields(self, client, auth_header):
         # Hits line 305 and adjacent error aborts
         resp = client.post("/api/conference-stories", json={"tagline": "missing name"}, headers=auth_header)
         assert resp.status_code == 400
         assert "conferenceName is required" in resp.get_json()["error"]
+
+    def test_create_conference_story_requires_tagline(self, client, auth_header):
+        resp = client.post("/api/conference-stories", json={
+            "conferenceName": "AI Summit",
+            "description": "Met engineers.",
+        }, headers=auth_header)
+
+        assert resp.status_code == 400
+        assert "tagline is required" in resp.get_json()["error"]
+
+    def test_create_conference_story_requires_description(self, client, auth_header):
+        resp = client.post("/api/conference-stories", json={
+            "conferenceName": "AI Summit",
+            "tagline": "Great event",
+        }, headers=auth_header)
+
+        assert resp.status_code == 400
+        assert "description is required" in resp.get_json()["error"]
+
+    def test_create_conference_story_author_not_found(self, client, auth_header, monkeypatch):
+        monkeypatch.setattr(flask_app.dbl, "create_conference_story", lambda *args: None)
+
+        resp = client.post("/api/conference-stories", json={
+            "conferenceName": "AI Summit",
+            "tagline": "Great event",
+            "description": "Met engineers.",
+        }, headers=auth_header)
+
+        assert resp.status_code == 404
+
+    def test_conference_search_without_api_key_uses_fallback_and_cache(self, client, monkeypatch):
+        flask_app._conference_search_cache.clear()
+        monkeypatch.delenv("SERPAPI_API_KEY", raising=False)
+
+        resp = client.get("/api/conferences/search?location=Boston&field=healthcare")
+        cached = client.get("/api/conferences/search?location=Boston&field=healthcare")
+
+        assert resp.status_code == 200
+        data = _json(resp)
+        assert len(data) == 3
+        assert data[0]["source"] == "fallback"
+        assert "Healthcare" in data[0]["name"]
+        assert _json(cached) == data
+
+    def test_conference_search_serpapi_success_maps_event_fields(self, client, monkeypatch):
+        flask_app._conference_search_cache.clear()
+        monkeypatch.setenv("SERPAPI_API_KEY", "serp-key")
+
+        class MockResponse:
+            def raise_for_status(self):
+                return None
+
+            def json(self):
+                return {
+                    "events_results": [{
+                        "title": "Nursing Innovation Forum",
+                        "address": ["Boston Convention Center", "Boston, MA"],
+                        "venue": {"name": "BCEC"},
+                        "gps_coordinates": {"latitude": "42.345", "longitude": "-71.044"},
+                        "date": {"when": "May 20, 2026"},
+                        "description": "Healthcare technology sessions.",
+                        "link": "https://example.com/event",
+                    }]
+                }
+
+        import requests as _req
+        monkeypatch.setattr(_req, "get", lambda *args, **kwargs: MockResponse())
+
+        resp = client.get("/api/conferences/search?location=Boston&field=nursing")
+
+        assert resp.status_code == 200
+        item = _json(resp)[0]
+        assert item["source"] == "serpapi"
+        assert item["name"] == "Nursing Innovation Forum"
+        assert item["address"] == "Boston Convention Center, Boston, MA"
+        assert item["lat"] == 42.345
+        assert item["lng"] == -71.044
+
+    def test_conference_search_serpapi_empty_results_falls_back(self, client, monkeypatch):
+        flask_app._conference_search_cache.clear()
+        monkeypatch.setenv("SERPAPI_API_KEY", "serp-key")
+
+        class MockResponse:
+            def raise_for_status(self):
+                return None
+
+            def json(self):
+                return {"events_results": []}
+
+        import requests as _req
+        monkeypatch.setattr(_req, "get", lambda *args, **kwargs: MockResponse())
+
+        resp = client.get("/api/conferences/search?location=Denver&field=energy")
+
+        assert resp.status_code == 200
+        assert _json(resp)[0]["source"] == "fallback"
+
+    def test_conference_search_serpapi_error_falls_back(self, client, monkeypatch):
+        flask_app._conference_search_cache.clear()
+        monkeypatch.setenv("SERPAPI_API_KEY", "serp-key")
+
+        import requests as _req
+        monkeypatch.setattr(_req, "get", lambda *args, **kwargs: (_ for _ in ()).throw(RuntimeError("down")))
+
+        resp = client.get("/api/conferences/search?location=Austin&field=robotics")
+
+        assert resp.status_code == 200
+        assert _json(resp)[0]["source"] == "fallback"
 
     def test_post_message_missing_conv_id(self, client, auth_header, monkeypatch):
         # Hits line 440/449 (Conversation errors)
