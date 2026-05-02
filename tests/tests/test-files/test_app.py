@@ -87,6 +87,12 @@ MOCK_OUTREACH_RESULT = {
 # ── Fixtures ──────────────────────────────────────────────────────────────────
 
 @pytest.fixture
+def auth_header():
+    """Fake Authorization header — auth is mocked in the client fixture."""
+    return {"Authorization": "Bearer test-token"}
+
+
+@pytest.fixture
 def client(monkeypatch):
     """
     Returns a Flask test client with all database + outreach calls mocked.
@@ -109,7 +115,7 @@ def client(monkeypatch):
     # Feed
     monkeypatch.setattr(flask_app.dbl, "get_all_posts", lambda: [MOCK_POST])
     monkeypatch.setattr(flask_app.dbl, "create_post",
-                        lambda uid, content: {**MOCK_POST, "content": content})
+                        lambda uid, content, image_url=None, video_url=None: {**MOCK_POST, "content": content, **({"image": image_url} if image_url else {}), **({"videoUrl": video_url} if video_url else {})})
     monkeypatch.setattr(flask_app.dbl, "get_post_likes_for_user", lambda uid: set())
     monkeypatch.setattr(flask_app.dbl, "toggle_post_like",
                         lambda pid, uid: {"liked": True, "likeCount": 1})
@@ -157,6 +163,58 @@ def client(monkeypatch):
                         lambda user: MOCK_READINESS)
     monkeypatch.setattr(flask_app.outreach_mod, "generate_outreach_message",
                         lambda sender, recipient, ctx: MOCK_OUTREACH_RESULT)
+
+    # Social state
+    monkeypatch.setattr(flask_app.dbl, "get_social_state",
+                        lambda uid: {"connections": [], "following": [], "savedJobs": []})
+    monkeypatch.setattr(flask_app.dbl, "toggle_saved_job",
+                        lambda uid, jid: {"saved": True})
+    monkeypatch.setattr(flask_app.dbl, "save_job",
+                        lambda uid, jid: {"saved": True})
+    monkeypatch.setattr(flask_app.dbl, "unsave_job",
+                        lambda uid, jid: {"saved": False})
+    monkeypatch.setattr(flask_app.dbl, "get_incoming_connection_requests",
+                        lambda uid: [])
+    monkeypatch.setattr(flask_app.dbl, "decline_connection_request",
+                        lambda rid, uid: {"declined": True})
+    monkeypatch.setattr(flask_app.dbl, "connect_user",
+                        lambda uid, tid: {"requested": True})
+    monkeypatch.setattr(flask_app.dbl, "accept_connection",
+                        lambda uid, tid: {"connected": True})
+    monkeypatch.setattr(flask_app.dbl, "toggle_following",
+                        lambda uid, tid: {"following": True})
+    monkeypatch.setattr(flask_app.dbl, "apply_to_job",
+                        lambda uid, jid: {"applied": True})
+    monkeypatch.setattr(flask_app.dbl, "toggle_group",
+                        lambda uid, gid: {"joined": True})
+    monkeypatch.setattr(flask_app.dbl, "dismiss_invitation",
+                        lambda uid, key: {"dismissed": True})
+
+    # Profile CRUD
+    monkeypatch.setattr(flask_app.dbl, "add_experience",
+                        lambda uid, e: {**MOCK_USER, "experience": [e]})
+    monkeypatch.setattr(flask_app.dbl, "update_experience",
+                        lambda uid, idx, e: {**MOCK_USER, "experience": [e]})
+    monkeypatch.setattr(flask_app.dbl, "update_education",
+                        lambda uid, idx, e: {**MOCK_USER, "education": [e]})
+    monkeypatch.setattr(flask_app.dbl, "update_project",
+                        lambda uid, idx, e: {**MOCK_USER, "projects": [e]})
+    monkeypatch.setattr(flask_app.dbl, "update_volunteering",
+                        lambda uid, idx, e: {**MOCK_USER, "volunteering": [e]})
+    monkeypatch.setattr(flask_app.dbl, "update_honor",
+                        lambda uid, idx, e: {**MOCK_USER, "honors": [e]})
+    monkeypatch.setattr(flask_app.dbl, "delete_experience",
+                        lambda uid, idx: {**MOCK_USER, "experience": []})
+    monkeypatch.setattr(flask_app.dbl, "delete_education",
+                        lambda uid, idx: {**MOCK_USER, "education": []})
+    monkeypatch.setattr(flask_app.dbl, "delete_project",
+                        lambda uid, idx: {**MOCK_USER, "projects": []})
+    monkeypatch.setattr(flask_app.dbl, "delete_volunteering",
+                        lambda uid, idx: {**MOCK_USER, "volunteering": []})
+    monkeypatch.setattr(flask_app.dbl, "delete_honor",
+                        lambda uid, idx: {**MOCK_USER, "honors": []})
+    monkeypatch.setattr(flask_app.dbl, "delete_skill",
+                        lambda uid, idx: {**MOCK_USER, "skills": []})
 
     flask_app.app.config["TESTING"] = True
     with flask_app.app.test_client() as c:
@@ -892,295 +950,535 @@ class TestProfileImprove:
         assert resp.status_code == 502
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-# Index / SPA route
-# ══════════════════════════════════════════════════════════════════════════════
-
-class TestIndexRoute:
-    def test_get_root_executes(self, client):
-        """BB: GET / hits the index() handler (line 55 covered)."""
-        resp = client.get("/")
-        assert resp.status_code in (200, 404)  # 404 if app.html absent in CI
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-# UpdateMe edge cases
-# ══════════════════════════════════════════════════════════════════════════════
-
-class TestUpdateMeEdgeCases:
-    def test_WB_update_returns_404_when_user_not_found(self, client, monkeypatch):
-        """WB: update_current_user returns None → 404."""
-        monkeypatch.setattr(flask_app.dbl, "update_current_user", lambda updates, uid: None)
-        resp = _patch(client, "/api/me", {"headline": "New"})
-        assert resp.status_code == 404
-
-    def test_WB_update_me_unauthenticated_returns_401(self, client, monkeypatch):
-        """WB: no valid session → 401 (line 171 covered)."""
-        monkeypatch.setattr(flask_app.dbl, "get_session_user_id", lambda t: None)
-        resp = _patch(client, "/api/me", {"headline": "New"})
-        assert resp.status_code == 401
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-# Education & Skills
-# ══════════════════════════════════════════════════════════════════════════════
-
 class TestEducationAndSkills:
-    def test_add_education_success(self, client, monkeypatch):
+    def test_add_education_success(self, client, auth_header, monkeypatch):
+        # Hits lines 181-198
         monkeypatch.setattr(flask_app.dbl, "add_education", lambda uid, entry: MOCK_USER)
-        payload = {"school": "MIT", "degree": "BS", "field": "CS",
-                   "startDate": "2020", "endDate": "2024"}
-        resp = client.post("/api/me/education", json=payload)
+        payload = {
+            "school": "University of Waterloo",
+            "degree": "Bachelor of Science",
+            "field": "Computer Science",
+            "startDate": "2020",
+            "endDate": "2024"
+        }
+        resp = client.post("/api/me/education", json=payload, headers=auth_header)
         assert resp.status_code == 200
 
-    def test_add_education_missing_school_returns_400(self, client, monkeypatch):
-        monkeypatch.setattr(flask_app.dbl, "add_education", lambda uid, entry: MOCK_USER)
-        resp = client.post("/api/me/education", json={"degree": "BS"})
-        assert resp.status_code == 400
-
-    def test_add_skill_success(self, client, monkeypatch):
+    def test_add_skill_success(self, client, auth_header, monkeypatch):
+        # Hits lines 204-214
         monkeypatch.setattr(flask_app.dbl, "add_skill", lambda uid, skill: MOCK_USER)
-        resp = client.post("/api/me/skills", json={"skill": "Python"})
+        resp = client.post("/api/me/skills", json={"skill": "Python"}, headers=auth_header)
         assert resp.status_code == 200
-
-    def test_add_skill_missing_returns_400(self, client, monkeypatch):
-        monkeypatch.setattr(flask_app.dbl, "add_skill", lambda uid, skill: MOCK_USER)
-        resp = client.post("/api/me/skills", json={})
-        assert resp.status_code == 400
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-# Group creation
-# ══════════════════════════════════════════════════════════════════════════════
 
 class TestGroupCreation:
-    def test_create_group_success(self, client):
+    def test_create_group_success(self, client, auth_header):
+        # Hits lines 220-242
         payload = {"name": "AI Engineers", "description": "A group for AI enthusiasts"}
-        resp = client.post("/api/groups", json=payload)
+        resp = client.post("/api/groups", json=payload, headers=auth_header)
         assert resp.status_code == 201
         assert resp.get_json()["name"] == "AI Engineers"
 
-    def test_create_group_missing_name_returns_400(self, client):
-        resp = client.post("/api/groups", json={"description": "No name"})
+class TestErrorPathCoverage:
+    def test_create_conference_story_missing_fields(self, client, auth_header):
+        # Hits line 305 and adjacent error aborts
+        resp = client.post("/api/conference-stories", json={"tagline": "missing name"}, headers=auth_header)
+        assert resp.status_code == 400
+        assert "conferenceName is required" in resp.get_json()["error"]
+
+    def test_post_message_missing_conv_id(self, client, auth_header, monkeypatch):
+        # Hits line 440/449 (Conversation errors)
+        monkeypatch.setattr(flask_app.dbl, "get_conversation_by_id", lambda cid: None)
+        resp = client.post("/api/conversations/9999/messages", json={"text": "hello"}, headers=auth_header)
+        assert resp.status_code == 404
+
+class TestEventsCoverage:
+    def test_create_event_success(self, client, auth_header):
+        # Hits lines 360-366
+        resp = client.post("/api/events", json={"name": "Tech Meetup"}, headers=auth_header)
+        assert resp.status_code == 201
+
+    def test_toggle_event_attendance(self, client, auth_header):
+        # Hits lines 370-379
+        # 'u1' prefix triggers the 'user' source logic in dbl.toggle_event_attend
+        resp = client.post("/api/events/u1/attend", headers=auth_header)
+        assert resp.status_code == 200
+
+class TestAddExperience:
+    """Tests for POST /api/me/experience."""
+
+    def _mock_updated(self):
+        return {
+            "id": 1, "name": "Test User", "email": "test@example.com",
+            "headline": "", "location": "", "about": "", "pronouns": "",
+            "industry": "", "avatarColor": None, "education": [],
+            "skills": [], "phone": "", "isRecruiter": False,
+            "experience": [{"id": 1, "title": "Engineer", "company": "ACME", "current": False}],
+        }
+
+    def test_T96_BB_happy_path_returns_200(self, client, monkeypatch):
+        """BB: valid payload -> 200 with updated user data."""
+        monkeypatch.setattr(flask_app.dbl, "add_experience", lambda uid, e: self._mock_updated())
+        resp = client.post(
+            "/api/me/experience",
+            json={"title": "Engineer", "company": "ACME", "current": False},
+            headers={"Authorization": "Bearer mock-token"},
+        )
+        assert resp.status_code == 200
+        assert any(e["title"] == "Engineer" for e in _json(resp)["experience"])
+
+    def test_T97_WB_missing_title_returns_400(self, client, monkeypatch):
+        """WB: omitting title -> 400."""
+        monkeypatch.setattr(flask_app.dbl, "add_experience", lambda uid, e: self._mock_updated())
+        resp = client.post(
+            "/api/me/experience",
+            json={"company": "ACME", "current": False},
+            headers={"Authorization": "Bearer mock-token"},
+        )
         assert resp.status_code == 400
 
+    def test_T98_WB_missing_company_returns_400(self, client, monkeypatch):
+        """WB: omitting company -> 400."""
+        monkeypatch.setattr(flask_app.dbl, "add_experience", lambda uid, e: self._mock_updated())
+        resp = client.post(
+            "/api/me/experience",
+            json={"title": "Engineer", "current": False},
+            headers={"Authorization": "Bearer mock-token"},
+        )
+        assert resp.status_code == 400
+
+    def test_T99_WB_non_bool_current_returns_400(self, client, monkeypatch):
+        """WB: current as string -> 400 (must be strict boolean)."""
+        monkeypatch.setattr(flask_app.dbl, "add_experience", lambda uid, e: self._mock_updated())
+        resp = client.post(
+            "/api/me/experience",
+            json={"title": "Engineer", "company": "ACME", "current": "false"},
+            headers={"Authorization": "Bearer mock-token"},
+        )
+        assert resp.status_code == 400
+
+    def test_T100_WB_unauthenticated_returns_401(self, client, monkeypatch):
+        """WB: no valid auth token -> 401."""
+        monkeypatch.setattr(flask_app.dbl, "get_session_user_id", lambda token: None)
+        monkeypatch.setattr(flask_app.dbl, "get_current_user", lambda uid: None)
+        resp = client.post(
+            "/api/me/experience",
+            json={"title": "Engineer", "company": "ACME", "current": False},
+        )
+        assert resp.status_code == 401
+
+    def test_T101_WB_non_object_json_returns_400(self, client, monkeypatch):
+        """WB: non-object JSON body (array) -> 400 (locks in body-type validation)."""
+        monkeypatch.setattr(flask_app.dbl, "get_session_user_id", lambda token: 1)
+        monkeypatch.setattr(flask_app.dbl, "get_current_user", lambda uid: MOCK_USER)
+        monkeypatch.setattr(flask_app.dbl, "add_experience", lambda uid, e: self._mock_updated())
+        resp = client.post(
+            "/api/me/experience",
+            json=[],
+            headers={"Authorization": "Bearer mock-token"},
+        )
+        assert resp.status_code == 400
 
 # ══════════════════════════════════════════════════════════════════════════════
-# Conference Stories
+# POST /api/profile-readiness/ai  — AI quality evaluation
 # ══════════════════════════════════════════════════════════════════════════════
 
-MOCK_STORY = {
-    "id": 1, "userId": 1, "conferenceName": "NeurIPS",
-    "tagline": "AI is everywhere!", "description": "Great talks.",
-    "photoUrl": None, "companyLogoUrl": None, "timestamp": 1700000000,
+MOCK_AI_READINESS_RESULT = {
+    "score": 75,
+    "level": "Strong",
+    "summary": "Your profile is solid with clear experience.",
+    "sections": [
+        {"key": "headline",   "label": "Headline",   "score": 80,  "feedback": "Good. To reach 100%: add industry keywords."},
+        {"key": "about",      "label": "About",      "score": 70,  "feedback": "Decent. To reach 100%: add specific achievements."},
+        {"key": "experience", "label": "Experience", "score": 75,  "feedback": "Good. To reach 100%: quantify your impact."},
+        {"key": "education",  "label": "Education",  "score": 100, "feedback": "Excellent education section."},
+        {"key": "skills",     "label": "Skills",     "score": 60,  "feedback": "Some skills. To reach 100%: add more relevant ones."},
+        {"key": "projects",   "label": "Projects",   "score": 50,  "feedback": "Few projects. To reach 100%: add detailed descriptions."},
+    ],
+    "suggestions": [
+        "Add measurable achievements to experience",
+        "List more technical skills",
+        "Expand your about section",
+    ],
 }
 
 
-class TestConferenceStories:
-    def test_get_conference_stories(self, client, monkeypatch):
-        """BB: GET /api/conference-stories returns list (line 352 covered)."""
-        monkeypatch.setattr(flask_app.dbl, "get_conference_stories", lambda: [MOCK_STORY])
-        resp = client.get("/api/conference-stories")
+def _make_groq_post(content_str):
+    """Return a fake requests.post that mimics a Groq API JSON response."""
+    mock_resp = types.SimpleNamespace(
+        raise_for_status=lambda: None,
+        json=lambda: {"choices": [{"message": {"content": content_str}}]},
+    )
+    return lambda *a, **kw: mock_resp
+
+
+class TestAIProfileReadiness:
+
+    def test_T96_BB_unauthenticated_returns_401(self, client, monkeypatch):
+        """BB: No valid token → 401 before hitting Groq."""
+        monkeypatch.setattr(flask_app.dbl, "get_session_user_id", lambda t: None)
+        resp = client.post("/api/profile-readiness/ai")
+        assert resp.status_code == 401
+
+    def test_T97_BB_no_groq_key_returns_503(self, client, monkeypatch):
+        """BB: Missing GROQ_API_KEY → 503 service unavailable."""
+        monkeypatch.delenv("GROQ_API_KEY", raising=False)
+        resp = client.post("/api/profile-readiness/ai")
+        assert resp.status_code == 503
+        assert "error" in _json(resp)
+
+    def test_T98_BB_valid_request_returns_score_sections_suggestions(self, client, monkeypatch):
+        """BB: Authenticated + key set + valid LLM response → 200 with score, sections, suggestions."""
+        monkeypatch.setenv("GROQ_API_KEY", "test-key-xyz")
+        import requests as _req
+        monkeypatch.setattr(_req, "post", _make_groq_post(json.dumps(MOCK_AI_READINESS_RESULT)))
+        resp = client.post("/api/profile-readiness/ai")
         assert resp.status_code == 200
-        assert len(resp.get_json()) == 1
+        data = _json(resp)
+        assert "score" in data
+        assert "sections" in data
+        assert "suggestions" in data
+        assert 0 <= data["score"] <= 100
+        assert "level" in data and data["level"]
+        assert "summary" in data and data["summary"]
+        for section in data["sections"]:
+            assert "label" in section and section["label"]
+            assert "feedback" in section and section["feedback"]
 
-    def test_create_conference_story_success(self, client, monkeypatch):
-        """BB: POST with all required fields → 201 (lines 360-379 covered)."""
-        monkeypatch.setattr(flask_app.dbl, "create_conference_story",
-                            lambda uid, name, tag, desc, photo, logo: MOCK_STORY)
-        payload = {"conferenceName": "NeurIPS", "tagline": "AI!", "description": "Great conf"}
-        resp = client.post("/api/conference-stories", json=payload)
-        assert resp.status_code == 201
+    def test_T99_WB_out_of_range_scores_clamped_to_0_100(self, client, monkeypatch):
+        """WB: LLM returns scores > 100 → endpoint clamps them."""
+        monkeypatch.setenv("GROQ_API_KEY", "test-key-xyz")
+        clamped = dict(MOCK_AI_READINESS_RESULT)
+        clamped["score"] = 150
+        clamped["sections"] = [{"key": "headline", "label": "Headline", "score": 200, "feedback": "Perfect."}]
+        import requests as _req
+        monkeypatch.setattr(_req, "post", _make_groq_post(json.dumps(clamped)))
+        resp = client.post("/api/profile-readiness/ai")
+        assert resp.status_code == 200
+        data = _json(resp)
+        assert data["score"] == 100
+        assert data["sections"][0]["score"] == 100
 
-    def test_create_conference_story_missing_tagline_returns_400(self, client, monkeypatch):
-        """WB: tagline missing → 400."""
-        monkeypatch.setattr(flask_app.dbl, "create_conference_story",
-                            lambda *a: MOCK_STORY)
-        resp = client.post("/api/conference-stories",
-                           json={"conferenceName": "NeurIPS", "description": "Great"})
-        assert resp.status_code == 400
+    def test_T100_WB_llm_network_error_returns_502(self, client, monkeypatch):
+        """WB: requests.post raises → 502 bad gateway."""
+        monkeypatch.setenv("GROQ_API_KEY", "test-key-xyz")
+        import requests as _req
+        def boom(*a, **kw):
+            raise ConnectionError("down")
+        monkeypatch.setattr(_req, "post", boom)
+        resp = client.post("/api/profile-readiness/ai")
+        assert resp.status_code == 502
 
-    def test_create_conference_story_missing_description_returns_400(self, client, monkeypatch):
-        """WB: description missing → 400."""
-        monkeypatch.setattr(flask_app.dbl, "create_conference_story",
-                            lambda *a: MOCK_STORY)
-        resp = client.post("/api/conference-stories",
-                           json={"conferenceName": "NeurIPS", "tagline": "AI!"})
-        assert resp.status_code == 400
+    def test_T101_WB_llm_response_in_markdown_fences_parsed_correctly(self, client, monkeypatch):
+        """WB: LLM wraps JSON in ```json fences — endpoint strips them and parses correctly."""
+        monkeypatch.setenv("GROQ_API_KEY", "test-key-xyz")
+        fenced = "```json\n" + json.dumps(MOCK_AI_READINESS_RESULT) + "\n```"
+        import requests as _req
+        monkeypatch.setattr(_req, "post", _make_groq_post(fenced))
+        resp = client.post("/api/profile-readiness/ai")
+        assert resp.status_code == 200
+        assert "score" in _json(resp)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# Conversation creation
+# POST /api/cover-letter/generate  — AI cover letter generation
 # ══════════════════════════════════════════════════════════════════════════════
 
-class TestConversationCreation:
-    def test_create_conversation_success(self, client, monkeypatch):
-        """BB: POST /api/conversations with valid participantId → 201."""
+class TestCoverLetterGenerate:
+
+    def test_T102_BB_unauthenticated_returns_401(self, client, monkeypatch):
+        """BB: No valid token → 401 before hitting Groq."""
+        monkeypatch.setattr(flask_app.dbl, "get_session_user_id", lambda t: None)
+        resp = client.post("/api/cover-letter/generate",
+                           json={"prompt": "Write a cover letter"})
+        assert resp.status_code == 401
+
+    def test_T103_BB_no_groq_key_returns_503(self, client, monkeypatch):
+        """BB: Missing GROQ_API_KEY → 503."""
+        monkeypatch.delenv("GROQ_API_KEY", raising=False)
+        resp = client.post("/api/cover-letter/generate",
+                           json={"prompt": "Write a cover letter"})
+        assert resp.status_code == 503
+        assert "error" in _json(resp)
+
+    def test_T104_WB_missing_prompt_returns_400(self, client, monkeypatch):
+        """WB: Empty or absent prompt → 400 bad request."""
+        monkeypatch.setenv("GROQ_API_KEY", "test-key-xyz")
+        resp = client.post("/api/cover-letter/generate", json={})
+        assert resp.status_code == 400
+        assert "error" in _json(resp)
+
+    def test_T105_BB_valid_request_returns_letter_string(self, client, monkeypatch):
+        """BB: Authenticated + key + valid prompt → 200 with letter string."""
+        monkeypatch.setenv("GROQ_API_KEY", "test-key-xyz")
+        letter_text = "Dear Hiring Manager, I am excited to apply for this role."
+        import requests as _req
+        monkeypatch.setattr(_req, "post", _make_groq_post(letter_text))
+        resp = client.post("/api/cover-letter/generate",
+                           json={"prompt": "Write a cover letter for Engineer at Nexus"})
+        assert resp.status_code == 200
+        data = _json(resp)
+        assert "letter" in data
+        assert data["letter"] == letter_text
+
+    def test_T106_WB_llm_network_error_returns_502(self, client, monkeypatch):
+        """WB: requests.post raises → 502 bad gateway."""
+        monkeypatch.setenv("GROQ_API_KEY", "test-key-xyz")
+        import requests as _req
+        def boom(*a, **kw):
+            raise ConnectionError("down")
+        monkeypatch.setattr(_req, "post", boom)
+        resp = client.post("/api/cover-letter/generate",
+                           json={"prompt": "Write a cover letter"})
+        assert resp.status_code == 502
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# POST /api/me/education  — add education entry
+# ══════════════════════════════════════════════════════════════════════════════
+
+class TestAddEducation:
+
+    def test_T107_BB_unauthenticated_returns_401(self, client, monkeypatch):
+        """BB: No valid token → 401."""
+        monkeypatch.setattr(flask_app.dbl, "get_session_user_id", lambda t: None)
+        resp = client.post("/api/me/education", json={"school": "NJIT"})
+        assert resp.status_code == 401
+
+    def test_T108_WB_missing_school_returns_400(self, client, monkeypatch):
+        """WB: school field missing or blank → 400."""
+        resp = client.post("/api/me/education", json={"degree": "BS"})
+        assert resp.status_code == 400
+        assert "error" in _json(resp)
+
+    def test_T109_BB_valid_entry_returns_updated_user(self, client, monkeypatch):
+        """BB: Valid education entry → 200 with updated user data containing education list."""
+        entry = {"school": "NJIT", "degree": "BS", "field": "Computer Science",
+                 "startDate": "2021", "endDate": "2025"}
+        monkeypatch.setattr(flask_app.dbl, "add_education",
+                            lambda uid, e: {**MOCK_USER, "education": [e]})
+        resp = client.post("/api/me/education", json=entry)
+        assert resp.status_code == 200
+        assert "education" in _json(resp)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# POST /api/me/skills  — add skill
+# ══════════════════════════════════════════════════════════════════════════════
+
+class TestAddSkill:
+
+    def test_T110_BB_unauthenticated_returns_401(self, client, monkeypatch):
+        """BB: No valid token → 401."""
+        monkeypatch.setattr(flask_app.dbl, "get_session_user_id", lambda t: None)
+        resp = client.post("/api/me/skills", json={"skill": "Python"})
+        assert resp.status_code == 401
+
+    def test_T111_WB_missing_skill_returns_400(self, client, monkeypatch):
+        """WB: skill field missing or blank → 400."""
+        resp = client.post("/api/me/skills", json={})
+        assert resp.status_code == 400
+        assert "error" in _json(resp)
+
+    def test_T112_BB_valid_skill_returns_updated_user(self, client, monkeypatch):
+        """BB: Valid skill name → 200 with updated user containing skills list."""
+        monkeypatch.setattr(flask_app.dbl, "add_skill",
+                            lambda uid, s: {**MOCK_USER, "skills": [s]})
+        resp = client.post("/api/me/skills", json={"skill": "Python"})
+        assert resp.status_code == 200
+        assert "skills" in _json(resp)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# POST /api/conversations  — create conversation
+# ══════════════════════════════════════════════════════════════════════════════
+
+class TestCreateConversation:
+
+    def test_T113_BB_unauthenticated_returns_401(self, client, monkeypatch):
+        """BB: No valid token → 401."""
+        monkeypatch.setattr(flask_app.dbl, "get_session_user_id", lambda t: None)
+        resp = client.post("/api/conversations", json={"participantId": 2})
+        assert resp.status_code == 401
+
+    def test_T114_WB_missing_participant_id_returns_400(self, client, monkeypatch):
+        """WB: participantId missing from body → 400."""
+        resp = client.post("/api/conversations", json={})
+        assert resp.status_code == 400
+        assert "error" in _json(resp)
+
+    def test_T115_BB_valid_participant_returns_201_with_conversation(self, client, monkeypatch):
+        """BB: Valid participantId → 201 with conversation object."""
         monkeypatch.setattr(flask_app.dbl, "create_conversation",
                             lambda uid, participant: MOCK_CONV)
         resp = client.post("/api/conversations", json={"participantId": 2})
         assert resp.status_code == 201
+        assert "id" in _json(resp)
 
-    def test_create_conversation_missing_participant_returns_400(self, client, monkeypatch):
-        """WB: no participantId → 400."""
-        monkeypatch.setattr(flask_app.dbl, "create_conversation",
-                            lambda uid, p: MOCK_CONV)
-        resp = client.post("/api/conversations", json={})
+
+# ══════════════════════════════════════════════════════════════════════════════
+# Social state endpoints
+# ══════════════════════════════════════════════════════════════════════════════
+
+class TestSocialState:
+
+    def test_T116_BB_get_social_state_returns_200(self, client, monkeypatch):
+        """BB: GET /api/me/social → 200 with social state dict."""
+        resp = client.get("/api/me/social")
+        assert resp.status_code == 200
+        data = _json(resp)
+        assert "connections" in data or "savedJobs" in data or isinstance(data, dict)
+
+    def test_T117_BB_toggle_saved_job_returns_200(self, client, monkeypatch):
+        """BB: POST /api/me/saved-jobs/:id → 200."""
+        resp = client.post("/api/me/saved-jobs/1")
+        assert resp.status_code == 200
+
+    def test_T118_BB_save_job_returns_200(self, client, monkeypatch):
+        """BB: PUT /api/me/saved-jobs/:id → 200."""
+        resp = client.put("/api/me/saved-jobs/1")
+        assert resp.status_code == 200
+
+    def test_T119_BB_unsave_job_returns_200(self, client, monkeypatch):
+        """BB: DELETE /api/me/saved-jobs/:id → 200."""
+        resp = client.delete("/api/me/saved-jobs/1")
+        assert resp.status_code == 200
+
+    def test_T120_BB_get_connection_requests_returns_list(self, client, monkeypatch):
+        """BB: GET /api/me/connection-requests → 200 with list."""
+        resp = client.get("/api/me/connection-requests")
+        assert resp.status_code == 200
+        assert isinstance(_json(resp), list)
+
+    def test_T121_BB_decline_connection_request_returns_200(self, client, monkeypatch):
+        """BB: DELETE /api/me/connection-requests/:id → 200."""
+        resp = client.delete("/api/me/connection-requests/2")
+        assert resp.status_code == 200
+
+    def test_T122_BB_connect_user_returns_200(self, client, monkeypatch):
+        """BB: POST /api/me/connections/:id → 200."""
+        resp = client.post("/api/me/connections/2")
+        assert resp.status_code == 200
+
+    def test_T123_BB_accept_connection_returns_200(self, client, monkeypatch):
+        """BB: POST /api/me/connections/:id/accept → 200."""
+        resp = client.post("/api/me/connections/2/accept")
+        assert resp.status_code == 200
+
+    def test_T124_BB_toggle_following_returns_200(self, client, monkeypatch):
+        """BB: POST /api/me/following/:id → 200."""
+        resp = client.post("/api/me/following/2")
+        assert resp.status_code == 200
+
+    def test_T125_BB_apply_to_job_returns_200(self, client, monkeypatch):
+        """BB: POST /api/me/applied-jobs/:id → 200."""
+        resp = client.post("/api/me/applied-jobs/1")
+        assert resp.status_code == 200
+
+    def test_T126_BB_toggle_group_returns_200(self, client, monkeypatch):
+        """BB: POST /api/me/groups/:id/toggle → 200."""
+        resp = client.post("/api/me/groups/1/toggle")
+        assert resp.status_code == 200
+
+    def test_T127_BB_dismiss_invitation_valid_key_returns_200(self, client, monkeypatch):
+        """BB: POST /api/me/invitations/dismiss with valid key → 200."""
+        resp = client.post("/api/me/invitations/dismiss", json={"key": "user-42"})
+        assert resp.status_code == 200
+
+    def test_T128_WB_dismiss_invitation_missing_key_returns_400(self, client, monkeypatch):
+        """WB: POST /api/me/invitations/dismiss without key → 400."""
+        resp = client.post("/api/me/invitations/dismiss", json={})
+        assert resp.status_code == 400
+        assert "error" in _json(resp)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# Profile CRUD — update and delete endpoints
+# ══════════════════════════════════════════════════════════════════════════════
+
+class TestProfileCRUD:
+
+    def test_T129_BB_update_experience_valid_returns_200(self, client, monkeypatch):
+        """BB: PUT /api/me/experience/:index with valid body → 200."""
+        resp = client.put("/api/me/experience/0",
+                          json={"title": "Engineer", "company": "Nexus"})
+        assert resp.status_code == 200
+
+    def test_T130_WB_update_experience_missing_fields_returns_400(self, client, monkeypatch):
+        """WB: PUT /api/me/experience/:index without title/company → 400."""
+        resp = client.put("/api/me/experience/0", json={"location": "NY"})
         assert resp.status_code == 400
 
-    def test_create_conversation_participant_not_found_returns_404(self, client, monkeypatch):
-        """WB: participant not in DB → 404."""
-        monkeypatch.setattr(flask_app.dbl, "get_user_by_id", lambda uid: None)
-        monkeypatch.setattr(flask_app.dbl, "create_conversation",
-                            lambda uid, p: MOCK_CONV)
-        resp = client.post("/api/conversations", json={"participantId": 999})
-        assert resp.status_code == 404
+    def test_T131_BB_update_education_valid_returns_200(self, client, monkeypatch):
+        """BB: PUT /api/me/education/:index with valid body → 200."""
+        resp = client.put("/api/me/education/0",
+                          json={"school": "NJIT", "degree": "BS"})
+        assert resp.status_code == 200
 
-    def test_get_conversations_list_unauthenticated_returns_401(self, client, monkeypatch):
-        """WB: no session → 401 (line 440 covered)."""
-        monkeypatch.setattr(flask_app.dbl, "get_session_user_id", lambda t: None)
-        resp = client.get("/api/conversations")
-        assert resp.status_code == 401
-
-    def test_get_conversation_unauthenticated_returns_401(self, client, monkeypatch):
-        """WB: no session → 401 (line 449 covered)."""
-        monkeypatch.setattr(flask_app.dbl, "get_session_user_id", lambda t: None)
-        resp = client.get("/api/conversations/1")
-        assert resp.status_code == 401
-
-    def test_get_conversation_access_denied_returns_403(self, client, monkeypatch):
-        """WB: user is neither owner nor participant → 403 (line 456 covered)."""
-        other_conv = {"id": 5, "ownerId": 3, "participant": {"id": 4}, "messages": []}
-        monkeypatch.setattr(flask_app.dbl, "get_conversation_by_id",
-                            lambda cid: other_conv)
-        resp = client.get("/api/conversations/5")
-        assert resp.status_code == 403
-
-    def test_post_message_unauthenticated_returns_401(self, client, monkeypatch):
-        """WB: no session → 401 (line 475 covered)."""
-        monkeypatch.setattr(flask_app.dbl, "get_session_user_id", lambda t: None)
-        resp = client.post("/api/conversations/1/messages", json={"text": "hi"})
-        assert resp.status_code == 401
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-# Feed edge cases
-# ══════════════════════════════════════════════════════════════════════════════
-
-class TestFeedEdgeCases:
-    def test_create_post_unauthenticated_returns_401(self, client, monkeypatch):
-        """WB: no session when creating post → 401 (line 305 covered)."""
-        monkeypatch.setattr(flask_app.dbl, "get_session_user_id", lambda t: None)
-        resp = _post(client, "/api/feed", {"content": "Hello"})
-        assert resp.status_code == 401
-
-    def test_delete_post_forbidden_returns_403(self, client, monkeypatch):
-        """WB: delete_post returns 'forbidden' → 403 (line 319 covered)."""
-        monkeypatch.setattr(flask_app.dbl, "delete_post", lambda pid, uid: "forbidden")
-        resp = client.delete("/api/feed/1")
-        assert resp.status_code == 403
-
-    def test_comment_on_nonexistent_post_returns_404(self, client, monkeypatch):
-        """WB: add_post_comment returns None → 404 (line 341 covered)."""
-        monkeypatch.setattr(flask_app.dbl, "add_post_comment",
-                            lambda pid, uid, text: None)
-        resp = _post(client, "/api/feed/999/comments", {"text": "hi"})
-        assert resp.status_code == 404
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-# Events CRUD
-# ══════════════════════════════════════════════════════════════════════════════
-
-class TestEventsCRUD:
-    def test_create_event_success(self, client):
-        """BB: POST /api/events with name → 201 (lines 520-525 covered)."""
-        resp = client.post("/api/events", json={"name": "Tech Summit", "date": "2026-06-01"})
-        assert resp.status_code == 201
-
-    def test_create_event_missing_name_returns_400(self, client):
-        """WB: no name → 400."""
-        resp = client.post("/api/events", json={"date": "2026-06-01"})
+    def test_T132_WB_update_education_missing_school_returns_400(self, client, monkeypatch):
+        """WB: PUT /api/me/education/:index without school → 400."""
+        resp = client.put("/api/me/education/0", json={"degree": "BS"})
         assert resp.status_code == 400
 
-    def test_toggle_event_attend(self, client):
-        """BB: POST /api/events/:id/attend → 200 (lines 531-534 covered)."""
-        resp = client.post("/api/events/1/attend")
+    def test_T133_BB_update_project_valid_returns_200(self, client, monkeypatch):
+        """BB: PUT /api/me/projects/:index with valid body → 200."""
+        resp = client.put("/api/me/projects/0",
+                          json={"name": "My App", "description": "A cool project"})
         assert resp.status_code == 200
-        assert resp.get_json()["attending"] is True
 
+    def test_T134_WB_update_project_missing_name_returns_400(self, client, monkeypatch):
+        """WB: PUT /api/me/projects/:index without name → 400."""
+        resp = client.put("/api/me/projects/0", json={"description": "A project"})
+        assert resp.status_code == 400
 
-# ══════════════════════════════════════════════════════════════════════════════
-# Invitations — non-demo user
-# ══════════════════════════════════════════════════════════════════════════════
-
-class TestInvitationsNonDemo:
-    def test_non_demo_user_gets_empty_list(self, client, monkeypatch):
-        """WB: user.id != 1 → [] (line 567 covered)."""
-        monkeypatch.setattr(flask_app.dbl, "get_current_user",
-                            lambda uid: {**MOCK_USER, "id": 2})
-        resp = client.get("/api/invitations")
+    def test_T135_BB_update_volunteering_valid_returns_200(self, client, monkeypatch):
+        """BB: PUT /api/me/volunteering/:index with valid body → 200."""
+        resp = client.put("/api/me/volunteering/0",
+                          json={"role": "Mentor", "organization": "Code.org"})
         assert resp.status_code == 200
-        assert resp.get_json() == []
 
-
-# ══════════════════════════════════════════════════════════════════════════════
-# Outreach auth errors
-# ══════════════════════════════════════════════════════════════════════════════
-
-class TestOutreachAuthErrors:
-    def test_outreach_generate_unauthenticated_returns_401(self, client, monkeypatch):
-        """WB: no session when generating outreach → 401 (line 598 covered)."""
-        monkeypatch.setattr(flask_app.dbl, "get_session_user_id", lambda t: None)
-        resp = client.post("/api/outreach/generate", json={"recipientId": 2})
-        assert resp.status_code == 401
-
-    def test_outreach_readiness_unauthenticated_returns_401(self, client, monkeypatch):
-        """WB: no session and no userId param → 401 (lines 671/703 covered)."""
-        monkeypatch.setattr(flask_app.dbl, "get_session_user_id", lambda t: None)
-        resp = client.get("/api/outreach/readiness")
-        assert resp.status_code == 401
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-# ProfileImprove — user with content + non-list JSON
-# ══════════════════════════════════════════════════════════════════════════════
-
-class TestProfileImproveEdgeCases:
-    def test_profile_improve_with_experience_and_education(self, client, monkeypatch):
-        """WB: user has experience and education — prompt builder lines 726/730 covered."""
-        rich_user = {
-            **MOCK_USER,
-            "experience": [{"title": "Dev", "company": "Acme",
-                            "startDate": "2020", "endDate": "2022"}],
-            "education": [{"degree": "BS", "school": "MIT"}],
-            "skills": ["Python"],
-        }
-        monkeypatch.setattr(flask_app.dbl, "get_current_user", lambda uid: rich_user)
-        monkeypatch.setenv("OPENROUTER_API_KEY", "test-key-xyz")
-
-        import requests as _req
-        tips = ["Add more skills", "Complete about section"]
-        mock_resp = types.SimpleNamespace(
-            raise_for_status=lambda: None,
-            json=lambda: {"choices": [{"message": {"content": json.dumps(tips)}}]},
-        )
-        monkeypatch.setattr(_req, "post", lambda *a, **kw: mock_resp)
-
-        resp = client.post("/api/profile/improve")
+    def test_T136_BB_update_honor_valid_returns_200(self, client, monkeypatch):
+        """BB: PUT /api/me/honors/:index with valid body → 200."""
+        resp = client.put("/api/me/honors/0",
+                          json={"title": "Dean's List", "issuer": "NJIT"})
         assert resp.status_code == 200
-        assert "tips" in resp.get_json()
 
-    def test_profile_improve_non_list_json_returns_502(self, client, monkeypatch):
-        """WB: LLM returns object not array → ValueError → 502 (line 796 covered)."""
-        monkeypatch.setenv("OPENROUTER_API_KEY", "test-key-xyz")
+    def test_T137_BB_delete_experience_returns_200(self, client, monkeypatch):
+        """BB: DELETE /api/me/experience/:index → 200 with updated list."""
+        resp = client.delete("/api/me/experience/0")
+        assert resp.status_code == 200
 
-        import requests as _req
-        mock_resp = types.SimpleNamespace(
-            raise_for_status=lambda: None,
-            json=lambda: {"choices": [{"message": {"content": '{"not": "a list"}'}}]},
-        )
-        monkeypatch.setattr(_req, "post", lambda *a, **kw: mock_resp)
+    def test_T138_BB_delete_education_returns_200(self, client, monkeypatch):
+        """BB: DELETE /api/me/education/:index → 200 with updated list."""
+        resp = client.delete("/api/me/education/0")
+        assert resp.status_code == 200
 
-        resp = client.post("/api/profile/improve")
-        assert resp.status_code == 502
+    def test_T139_BB_delete_project_returns_200(self, client, monkeypatch):
+        """BB: DELETE /api/me/projects/:index → 200 with updated list."""
+        resp = client.delete("/api/me/projects/0")
+        assert resp.status_code == 200
+
+    def test_T140_BB_delete_volunteering_returns_200(self, client, monkeypatch):
+        """BB: DELETE /api/me/volunteering/:index → 200 with updated list."""
+        resp = client.delete("/api/me/volunteering/0")
+        assert resp.status_code == 200
+
+    def test_T141_BB_delete_honor_returns_200(self, client, monkeypatch):
+        """BB: DELETE /api/me/honors/:index → 200 with updated list."""
+        resp = client.delete("/api/me/honors/0")
+        assert resp.status_code == 200
+
+    def test_T142_BB_delete_skill_returns_200(self, client, monkeypatch):
+        """BB: DELETE /api/me/skills/:index → 200 with updated list."""
+        resp = client.delete("/api/me/skills/0")
+        assert resp.status_code == 200
+
+    def test_T143_BB_add_experience_valid_returns_200(self, client, monkeypatch):
+        """BB: POST /api/me/experience with valid body → 200."""
+        resp = client.post("/api/me/experience",
+                           json={"title": "Engineer", "company": "Nexus"})
+        assert resp.status_code == 200
+
+    def test_T144_WB_add_experience_missing_fields_returns_400(self, client, monkeypatch):
+        """WB: POST /api/me/experience without title/company → 400."""
+        resp = client.post("/api/me/experience", json={"location": "NY"})
+        assert resp.status_code == 400

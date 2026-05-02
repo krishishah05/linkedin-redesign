@@ -116,7 +116,17 @@ function ApplyModal() {
               </div>
               <div style={{ textAlign: 'center', color: 'var(--text-2)', fontSize: 14, marginBottom: 16 }}>— or use your Nexus profile —</div>
               <div style={{ border: '1px solid var(--border)', borderRadius: 8, padding: 16, display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer', background: 'var(--blue-light, #EAF4FF)' }}
-                onClick={() => showToast('Nexus profile imported as resume')}>
+                onClick={() => {
+                  if (!currentUser) { showToast('Sign in to use your Nexus profile', 'error'); return; }
+                  const parts = (currentUser.name || '').trim().split(/\s+/).filter(Boolean);
+                  if (parts[0]) update('firstName', parts[0]);
+                  const lastName = parts.slice(1).join(' ');
+                  if (lastName) update('lastName', lastName);
+                  update('email', currentUser.email || form.email);
+                  update('phone', currentUser.phone || form.phone);
+                  update('location', currentUser.location || form.location);
+                  showToast('Profile info applied!', 'success');
+                }}>
                 <div style={{ width: 40, height: 40, borderRadius: 6, background: '#0F5DBD', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 18, fontWeight: 800, fontFamily: '-apple-system,BlinkMacSystemFont,sans-serif' }}>N</div>
                 <div>
                   <div style={{ fontSize: 14, fontWeight: 700 }}>{currentUser ? currentUser.name : 'You'}</div>

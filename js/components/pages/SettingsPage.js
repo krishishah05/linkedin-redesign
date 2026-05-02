@@ -2,8 +2,9 @@
    SETTINGSPAGE.JS — Account settings
    ============================================================ */
 function SettingsPage() {
-  const { settings, setSettings, darkMode, setDarkMode, showToast, currentUser, setCurrentUser, language, setLanguage, t, userStatus, setUserStatus } = React.useContext(AppContext);
-  const [tab, setTab] = React.useState('notifications');
+  const { settings, setSettings, darkMode, setDarkMode, showToast, currentUser, setCurrentUser,
+          language, setLanguage, recruiterMode, toggleRecruiterMode, userStatus, setUserStatus } = React.useContext(AppContext);
+  const [tab, setTab] = React.useState('account');
   const [savingAccount, setSavingAccount] = React.useState(false);
   const [updatingPw, setUpdatingPw] = React.useState(false);
   const [passwordData, setPasswordData] = React.useState({ current: '', newPw: '', confirm: '' });
@@ -15,15 +16,14 @@ function SettingsPage() {
   }));
 
   const tabs = [
-    { key: 'notifications', label: 'Notifications' },
-    { key: 'privacy', label: 'Privacy' },
-    { key: 'account', label: 'Account' },
-    { key: 'display', label: 'Display' },
-    { key: 'security', label: 'Security' },
-    { key: 'data', label: 'Data Privacy' },
+    { key: 'account',   label: 'Account' },
+    { key: 'privacy',   label: 'Privacy' },
+    { key: 'display',   label: 'Display' },
+    { key: 'security',  label: 'Security' },
+    { key: 'recruiter', label: 'Recruiter Mode' },
   ];
 
-  function Toggle({ label, desc, settingKey, value, onChange }) {
+  function Toggle({ label, desc, value, onChange }) {
     return (
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, padding: '14px 0', borderBottom: '1px solid var(--border)' }}>
         <div>
@@ -50,27 +50,44 @@ function SettingsPage() {
     );
   }
 
+  const langOptions = [
+    { value: 'en', label: 'English' },
+    { value: 'es', label: 'Spanish — Español' },
+    { value: 'fr', label: 'French — Français' },
+    { value: 'de', label: 'German — Deutsch' },
+    { value: 'ja', label: 'Japanese — 日本語' },
+  ];
+
+  const recruiterFeatures = [
+    '📋 Candidate Shortlist panel in navigation',
+    '📨 AI-powered outreach message templates',
+    '🎯 Candidate pipeline management',
+    '🔍 Advanced candidate filtering in search',
+    '📊 Profile readiness insights',
+  ];
+
   return (
     <div className="li-page-inner" style={{ maxWidth: 860 }}>
-      <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 16 }}>{t('settings')}</h1>
+      <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 16 }}>Settings</h1>
 
       <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start' }}>
         {/* Sidebar tabs */}
         <div style={{ width: 200, flexShrink: 0 }}>
           <div className="li-card" style={{ padding: '8px 0' }}>
-            {tabs.map(t => (
+            {tabs.map(tabItem => (
               <button
-                key={t.key}
-                onClick={() => setTab(t.key)}
+                key={tabItem.key}
+                onClick={() => setTab(tabItem.key)}
                 style={{
                   width: '100%', textAlign: 'left', padding: '10px 16px',
-                  fontSize: 14, fontWeight: tab === t.key ? 700 : 400,
-                  background: tab === t.key ? 'var(--bg-2)' : 'none',
-                  border: 'none', cursor: 'pointer', borderLeft: tab === t.key ? '3px solid var(--blue)' : '3px solid transparent',
+                  fontSize: 14, fontWeight: tab === tabItem.key ? 700 : 400,
+                  background: tab === tabItem.key ? 'var(--bg-2)' : 'none',
+                  border: 'none', cursor: 'pointer',
+                  borderLeft: tab === tabItem.key ? '3px solid var(--blue)' : '3px solid transparent',
                   color: 'var(--text)',
                 }}
               >
-                {t.label}
+                {tabItem.label}
               </button>
             ))}
           </div>
@@ -80,70 +97,7 @@ function SettingsPage() {
         <div style={{ flex: 1, minWidth: 0 }}>
           <div className="li-card" style={{ padding: 24 }}>
 
-            {tab === 'notifications' && (
-              <div>
-                <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 16 }}>Notification preferences</h2>
-                <Toggle
-                  label="Email notifications"
-                  desc="Receive activity and updates via email"
-                  value={settings.emailNotifications}
-                  onChange={v => { setSettings(s => ({ ...s, emailNotifications: v })); showToast('Email notifications ' + (v ? 'enabled' : 'disabled')); }}
-                />
-                <Toggle
-                  label="Push notifications"
-                  desc="Receive push notifications in your browser"
-                  value={settings.pushNotifications}
-                  onChange={v => { setSettings(s => ({ ...s, pushNotifications: v })); showToast('Push notifications ' + (v ? 'enabled' : 'disabled')); }}
-                />
-                <Toggle
-                  label="Job alerts"
-                  desc="Get notified about new job matches"
-                  value={settings.jobAlerts !== false}
-                  onChange={v => { setSettings(s => ({ ...s, jobAlerts: v })); showToast('Job alerts ' + (v ? 'enabled' : 'disabled')); }}
-                />
-                <Toggle
-                  label="Network updates"
-                  desc="New connections and birthday reminders"
-                  value={settings.networkUpdates !== false}
-                  onChange={v => { setSettings(s => ({ ...s, networkUpdates: v })); showToast('Network updates ' + (v ? 'enabled' : 'disabled')); }}
-                />
-              </div>
-            )}
-
-            {tab === 'privacy' && (
-              <div>
-                <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 16 }}>Privacy settings</h2>
-                <Toggle
-                  label="Public profile"
-                  desc="Make your profile visible to everyone"
-                  value={settings.publicProfile}
-                  onChange={v => { setSettings(s => ({ ...s, publicProfile: v })); showToast('Profile visibility updated'); }}
-                />
-                <Toggle
-                  label="Show connections"
-                  desc="Let others see your connections list"
-                  value={settings.showConnections}
-                  onChange={v => { setSettings(s => ({ ...s, showConnections: v })); showToast('Connection visibility updated'); }}
-                />
-                <Toggle
-                  label={t('openToWork')}
-                  desc="Let recruiters know you're looking for work"
-                  value={userStatus === 'open_to_work'}
-                  onChange={v => {
-                    setSettings(s => ({ ...s, openToWork: v }));
-                    setUserStatus(v ? 'open_to_work' : null);
-                    showToast('Open to Work ' + (v ? 'enabled' : 'disabled'));
-                  }}
-                />
-                <Toggle
-                  label="Profile views"
-                  desc="Show when you've viewed someone's profile"
-                  value={settings.profileViews !== false}
-                  onChange={v => { setSettings(s => ({ ...s, profileViews: v })); showToast('Profile view setting updated'); }}
-                />
-              </div>
-            )}
-
+            {/* ── Account ── */}
             {tab === 'account' && (
               <div>
                 <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 16 }}>Account preferences</h2>
@@ -152,15 +106,21 @@ function SettingsPage() {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                     <div>
                       <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 4 }}>First name</label>
-                      <input className="li-settings-input" value={accountForm.firstName} onChange={e => setAccountForm(f => ({ ...f, firstName: e.target.value }))} style={{ width: '100%', boxSizing: 'border-box' }} />
+                      <input className="li-settings-input" value={accountForm.firstName}
+                        onChange={e => setAccountForm(f => ({ ...f, firstName: e.target.value }))}
+                        style={{ width: '100%', boxSizing: 'border-box' }} />
                     </div>
                     <div>
                       <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 4 }}>Last name</label>
-                      <input className="li-settings-input" value={accountForm.lastName} onChange={e => setAccountForm(f => ({ ...f, lastName: e.target.value }))} style={{ width: '100%', boxSizing: 'border-box' }} />
+                      <input className="li-settings-input" value={accountForm.lastName}
+                        onChange={e => setAccountForm(f => ({ ...f, lastName: e.target.value }))}
+                        style={{ width: '100%', boxSizing: 'border-box' }} />
                     </div>
                     <div>
                       <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 4 }}>Nexus URL</label>
-                      <input className="li-settings-input" readOnly value={`nexus.io/in/${currentUser?.name?.toLowerCase().replace(/\s+/g, '') || ''}`} style={{ width: '100%', boxSizing: 'border-box', color: 'var(--text-2)' }} />
+                      <input className="li-settings-input" readOnly
+                        value={`nexus.io/in/${(currentUser?.name || '').toLowerCase().replace(/\s+/g, '')}`}
+                        style={{ width: '100%', boxSizing: 'border-box', color: 'var(--text-2)' }} />
                     </div>
                   </div>
                 </div>
@@ -168,66 +128,89 @@ function SettingsPage() {
                   <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 12 }}>Contact info</h3>
                   <div style={{ marginBottom: 12 }}>
                     <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 4 }}>Email</label>
-                    <input className="li-settings-input" value={accountForm.email} onChange={e => setAccountForm(f => ({ ...f, email: e.target.value }))} style={{ width: '100%', boxSizing: 'border-box' }} />
+                    <input className="li-settings-input" value={accountForm.email}
+                      onChange={e => setAccountForm(f => ({ ...f, email: e.target.value }))}
+                      style={{ width: '100%', boxSizing: 'border-box' }} />
                   </div>
                   <div style={{ marginBottom: 12 }}>
                     <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 4 }}>Phone</label>
-                    <input className="li-settings-input" value={accountForm.phone} onChange={e => setAccountForm(f => ({ ...f, phone: e.target.value }))} style={{ width: '100%', boxSizing: 'border-box' }} />
+                    <input className="li-settings-input" value={accountForm.phone}
+                      onChange={e => setAccountForm(f => ({ ...f, phone: e.target.value }))}
+                      style={{ width: '100%', boxSizing: 'border-box' }} />
                   </div>
                 </div>
-                <button className="li-btn li-btn--primary li-btn--sm" style={{ marginTop: 8 }} disabled={savingAccount} onClick={() => {
-                  if (!accountForm.firstName.trim()) { showToast('First name is required', 'error'); return; }
-                  if (savingAccount) return;
-                  setSavingAccount(true);
-                  const name = (accountForm.firstName + ' ' + accountForm.lastName).trim();
-                  API.updateMe({ name, email: accountForm.email, phone: accountForm.phone })
-                    .then(updated => { setCurrentUser(updated); showToast('Account settings saved!'); setSavingAccount(false); })
-                    .catch(() => { showToast('Failed to save account settings', 'error'); setSavingAccount(false); });
-                }}>
+                <button className="li-btn li-btn--primary li-btn--sm" style={{ marginTop: 8 }}
+                  disabled={savingAccount}
+                  onClick={() => {
+                    if (!accountForm.firstName.trim()) { showToast('First name is required', 'error'); return; }
+                    if (savingAccount) return;
+                    setSavingAccount(true);
+                    const name = (accountForm.firstName + ' ' + accountForm.lastName).trim();
+                    API.updateMe({ name, email: accountForm.email, phone: accountForm.phone })
+                      .then(updated => { setCurrentUser(updated); showToast('Account settings saved!'); setSavingAccount(false); })
+                      .catch(() => { showToast('Failed to save account settings', 'error'); setSavingAccount(false); });
+                  }}>
                   {savingAccount ? 'Saving…' : 'Save changes'}
                 </button>
               </div>
             )}
 
+            {/* ── Privacy ── */}
+            {tab === 'privacy' && (
+              <div>
+                <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 16 }}>Privacy settings</h2>
+                <Toggle label="Public profile" desc="Make your profile visible to everyone"
+                  value={settings.publicProfile}
+                  onChange={v => { setSettings(s => ({ ...s, publicProfile: v })); showToast('Profile visibility updated'); }} />
+                <Toggle label="Show connections" desc="Let others see your connections list"
+                  value={settings.showConnections}
+                  onChange={v => { setSettings(s => ({ ...s, showConnections: v })); showToast('Connection visibility updated'); }} />
+                <Toggle label="Open to Work" desc="Let recruiters know you're looking for work"
+                  value={userStatus === 'open_to_work'}
+                  onChange={v => {
+                    setSettings(s => ({ ...s, openToWork: v }));
+                    setUserStatus(v ? 'open_to_work' : null);
+                    showToast('Open to Work ' + (v ? 'enabled' : 'disabled'));
+                  }} />
+                <Toggle label="Profile views" desc="Show when you've viewed someone's profile"
+                  value={settings.profileViews !== false}
+                  onChange={v => { setSettings(s => ({ ...s, profileViews: v })); showToast('Profile view setting updated'); }} />
+              </div>
+            )}
+
+            {/* ── Display ── */}
             {tab === 'display' && (
               <div>
-                <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 16 }}>{t('displayPreferences')}</h2>
-                <Toggle
-                  label={t('darkMode')}
-                  desc="Use a darker color scheme"
+                <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 16 }}>Display preferences</h2>
+                <Toggle label="Dark mode" desc="Use a darker color scheme"
                   value={darkMode}
-                  onChange={v => { setDarkMode(v); showToast('Dark mode ' + (v ? 'enabled' : 'disabled')); }}
-                />
-                <div style={{ paddingTop: 16 }}>
-                  <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 10 }}>{t('language')}</h3>
+                  onChange={v => { setDarkMode(v); showToast('Dark mode ' + (v ? 'enabled' : 'disabled')); }} />
+                <div style={{ paddingTop: 20 }}>
+                  <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 4 }}>Language</h3>
+                  <p style={{ fontSize: 13, color: 'var(--text-2)', marginBottom: 10 }}>
+                    Changing language updates navigation and interface text across the entire app.
+                  </p>
                   <select
                     className="li-settings-input"
-                    style={{ width: 200 }}
+                    style={{ width: 240 }}
                     value={language}
-                    onChange={e => {
-                      setLanguage(e.target.value);
-                      showToast('Language updated');
-                    }}
+                    onChange={e => { setLanguage(e.target.value); showToast('Language updated — UI text will reflect your choice'); }}
                   >
-                    <option value="en">English</option>
-                    <option value="es">Spanish</option>
-                    <option value="fr">French</option>
-                    <option value="de">German</option>
-                    <option value="ja">Japanese</option>
+                    {langOptions.map(o => (
+                      <option key={o.value} value={o.value}>{o.label}</option>
+                    ))}
                   </select>
                 </div>
               </div>
             )}
 
+            {/* ── Security ── */}
             {tab === 'security' && (
               <div>
                 <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 16 }}>Sign in & security</h2>
-                <Toggle
-                  label="Two-factor authentication"
-                  desc="Add an extra layer of security to your account"
+                <Toggle label="Two-factor authentication" desc="Add an extra layer of security to your account"
                   value={settings.twoFactor}
-                  onChange={v => { setSettings(s => ({ ...s, twoFactor: v })); showToast('Two-factor authentication ' + (v ? 'enabled' : 'disabled')); }}
-                />
+                  onChange={v => { setSettings(s => ({ ...s, twoFactor: v })); showToast('Two-factor authentication ' + (v ? 'enabled' : 'disabled')); }} />
                 <div style={{ paddingTop: 16 }}>
                   <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 12 }}>Change password</h3>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 400 }}>
@@ -266,29 +249,45 @@ function SettingsPage() {
               </div>
             )}
 
-            {tab === 'data' && (
+            {/* ── Recruiter Mode ── */}
+            {tab === 'recruiter' && (
               <div>
-                <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 16 }}>Data privacy</h2>
+                <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 8 }}>Recruiter Mode</h2>
+                <p style={{ fontSize: 13, color: 'var(--text-2)', marginBottom: 20, lineHeight: 1.5 }}>
+                  Recruiter Mode unlocks advanced hiring features including candidate shortlisting,
+                  AI outreach templates, and pipeline management.
+                </p>
+
+                {userStatus !== 'recruiting' && (
+                  <div style={{ padding: 14, background: 'rgba(231,165,0,0.12)', borderRadius: 8, marginBottom: 20, border: '1px solid rgba(231,165,0,0.4)' }}>
+                    <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 4 }}>⚠️ Recruiting status required</div>
+                    <div style={{ fontSize: 13, color: 'var(--text-2)' }}>
+                      Set your status to "Recruiting" on your profile to unlock Recruiter Mode.
+                    </div>
+                  </div>
+                )}
+
                 <Toggle
-                  label="Allow personalized ads"
-                  desc="Nexus uses your data to show relevant content"
-                  value={settings.personalizedAds === true}
-                  onChange={v => { setSettings(s => ({ ...s, personalizedAds: v })); showToast('Ad preference updated'); }}
+                  label="Enable Recruiter Mode"
+                  desc={userStatus === 'recruiting'
+                    ? 'Access hiring tools, candidate pipeline, and outreach templates'
+                    : 'Requires "Recruiting" status on your profile'}
+                  value={!!(recruiterMode && userStatus === 'recruiting')}
+                  onChange={() => {
+                    if (userStatus !== 'recruiting') { showToast('Set your status to Recruiting on your profile first', 'error'); return; }
+                    toggleRecruiterMode();
+                    showToast('Recruiter Mode ' + (recruiterMode ? 'disabled' : 'enabled'));
+                  }}
                 />
-                <Toggle
-                  label="Share data with third parties"
-                  desc="Allow Nexus partners to use your data"
-                  value={settings.shareData === true}
-                  onChange={v => { setSettings(s => ({ ...s, shareData: v })); showToast('Data sharing preference updated'); }}
-                />
-                <div style={{ marginTop: 24, padding: 16, background: 'var(--bg-2)', borderRadius: 8 }}>
-                  <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 8 }}>Download your data</h3>
-                  <p style={{ fontSize: 13, color: 'var(--text-2)', marginBottom: 12 }}>
-                    Get a copy of your Nexus data including your connections, messages, and posts.
-                  </p>
-                  <button className="li-btn li-btn--outline li-btn--sm" onClick={() => showToast('Data export requested — check your email')}>
-                    Request data export
-                  </button>
+
+                <div style={{ marginTop: 28 }}>
+                  <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 12 }}>Features included</h3>
+                  {recruiterFeatures.map(f => (
+                    <div key={f} style={{
+                      fontSize: 13, padding: '10px 0', borderBottom: '1px solid var(--border)',
+                      color: recruiterMode && userStatus === 'recruiting' ? 'var(--text)' : 'var(--text-3)',
+                    }}>{f}</div>
+                  ))}
                 </div>
               </div>
             )}

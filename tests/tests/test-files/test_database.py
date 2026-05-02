@@ -1114,3 +1114,244 @@ class TestAddSkill:
         database.add_skill(1, "Rust")
         user = database.get_user_by_id(1)
         assert "Rust" in user["skills"]
+
+
+# ===========================================================================
+# add_experience
+# ===========================================================================
+
+class TestAddExperience:
+    def test_T116_BB_adds_experience_entry(self, isolated_db):
+        """BB: add_experience prepends entry and returns updated user dict."""
+        seed_user(isolated_db, uid=1, email="a@a.com")
+        result = database.add_experience(1, {"title": "Engineer", "company": "Acme"})
+        assert result is not None
+        assert len(result["experience"]) == 1
+        assert result["experience"][0]["title"] == "Engineer"
+
+    def test_T117_WB_experience_gets_auto_id(self, isolated_db):
+        """WB: Each added entry receives an auto-incremented id."""
+        seed_user(isolated_db, uid=1, email="a@a.com")
+        database.add_experience(1, {"title": "Job A", "company": "X"})
+        result = database.add_experience(1, {"title": "Job B", "company": "Y"})
+        ids = [e["id"] for e in result["experience"]]
+        assert ids == [2, 1]
+
+    def test_T118_EC_add_experience_unknown_user_returns_none(self, isolated_db):
+        """EC: Returns None for a user_id that does not exist."""
+        assert database.add_experience(9999, {"title": "X", "company": "Y"}) is None
+
+    def test_T119_BB_experience_persisted_to_db(self, isolated_db):
+        """BB: Experience entry is persisted so a fresh read confirms it."""
+        seed_user(isolated_db, uid=1, email="a@a.com")
+        database.add_experience(1, {"title": "SWE", "company": "TechCo"})
+        user = database.get_user_by_id(1)
+        assert any(e["title"] == "SWE" for e in user["experience"])
+
+
+# ===========================================================================
+# add_project
+# ===========================================================================
+
+class TestAddProject:
+    def test_T120_BB_adds_project_entry(self, isolated_db):
+        """BB: add_project prepends entry and returns updated user dict."""
+        seed_user(isolated_db, uid=1, email="a@a.com")
+        result = database.add_project(1, {"name": "Cool App", "description": "desc"})
+        assert result is not None
+        assert len(result.get("projects", [])) == 1
+        assert result["projects"][0]["name"] == "Cool App"
+
+    def test_T121_WB_project_gets_auto_id(self, isolated_db):
+        """WB: Each project gets an auto-incremented id."""
+        seed_user(isolated_db, uid=1, email="a@a.com")
+        database.add_project(1, {"name": "Project A"})
+        result = database.add_project(1, {"name": "Project B"})
+        ids = [e["id"] for e in result["projects"]]
+        assert ids == [2, 1]
+
+    def test_T122_EC_add_project_unknown_user_returns_none(self, isolated_db):
+        """EC: Returns None for a non-existent user."""
+        assert database.add_project(9999, {"title": "X"}) is None
+
+    def test_T123_BB_project_persisted_to_db(self, isolated_db):
+        """BB: Project is persisted so a fresh read confirms it."""
+        seed_user(isolated_db, uid=1, email="a@a.com")
+        database.add_project(1, {"name": "My Project"})
+        user = database.get_user_by_id(1)
+        assert any(p["name"] == "My Project" for p in user.get("projects", []))
+
+
+# ===========================================================================
+# add_volunteering
+# ===========================================================================
+
+class TestAddVolunteering:
+    def test_T124_BB_adds_volunteering_entry(self, isolated_db):
+        """BB: add_volunteering prepends entry and returns updated user dict."""
+        seed_user(isolated_db, uid=1, email="a@a.com")
+        result = database.add_volunteering(1, {"role": "Mentor", "organization": "CodePath"})
+        assert result is not None
+        assert len(result.get("volunteering", [])) == 1
+
+    def test_T125_WB_volunteering_gets_auto_id(self, isolated_db):
+        """WB: Each volunteering entry gets an auto-incremented id."""
+        seed_user(isolated_db, uid=1, email="a@a.com")
+        database.add_volunteering(1, {"role": "Vol A"})
+        result = database.add_volunteering(1, {"role": "Vol B"})
+        ids = [e["id"] for e in result["volunteering"]]
+        assert ids == [2, 1]
+
+    def test_T126_EC_add_volunteering_unknown_user_returns_none(self, isolated_db):
+        """EC: Returns None for a non-existent user."""
+        assert database.add_volunteering(9999, {"role": "X"}) is None
+
+    def test_T127_BB_volunteering_persisted_to_db(self, isolated_db):
+        """BB: Volunteering entry is persisted so a fresh read confirms it."""
+        seed_user(isolated_db, uid=1, email="a@a.com")
+        database.add_volunteering(1, {"role": "Coach", "organization": "NJIT"})
+        user = database.get_user_by_id(1)
+        assert any(v["role"] == "Coach" for v in user.get("volunteering", []))
+
+
+# ===========================================================================
+# add_honor
+# ===========================================================================
+
+class TestAddHonor:
+    def test_T128_BB_adds_honor_entry(self, isolated_db):
+        """BB: add_honor prepends entry and returns updated user dict."""
+        seed_user(isolated_db, uid=1, email="a@a.com")
+        result = database.add_honor(1, {"title": "Dean's List", "issuer": "NJIT"})
+        assert result is not None
+        assert len(result.get("honors", [])) == 1
+
+    def test_T129_WB_honor_gets_auto_id(self, isolated_db):
+        """WB: Each honor gets an auto-incremented id."""
+        seed_user(isolated_db, uid=1, email="a@a.com")
+        database.add_honor(1, {"title": "Honor A"})
+        result = database.add_honor(1, {"title": "Honor B"})
+        ids = [e["id"] for e in result["honors"]]
+        assert ids == [2, 1]
+
+    def test_T130_EC_add_honor_unknown_user_returns_none(self, isolated_db):
+        """EC: Returns None for a non-existent user."""
+        assert database.add_honor(9999, {"title": "X"}) is None
+
+    def test_T131_BB_honor_persisted_to_db(self, isolated_db):
+        """BB: Honor entry is persisted so a fresh read confirms it."""
+        seed_user(isolated_db, uid=1, email="a@a.com")
+        database.add_honor(1, {"title": "Summa Cum Laude", "issuer": "NJIT"})
+        user = database.get_user_by_id(1)
+        assert any(h["title"] == "Summa Cum Laude" for h in user.get("honors", []))
+
+
+# ===========================================================================
+# update_experience / update_education / update_project / update_volunteering / update_honor
+# (_update_list_item)
+# ===========================================================================
+
+class TestUpdateListItem:
+    def test_T132_BB_update_experience_merges_fields(self, isolated_db):
+        """BB: update_experience merges new fields into existing entry."""
+        seed_user(isolated_db, uid=1, email="a@a.com",
+                  extra={"experience": [{"id": 1, "title": "Old Title", "company": "Acme"}]})
+        result = database.update_experience(1, 0, {"title": "New Title"})
+        assert result is not None
+        assert result["experience"][0]["title"] == "New Title"
+
+    def test_T133_WB_update_preserves_existing_id(self, isolated_db):
+        """WB: _update_list_item preserves the id field from the original entry."""
+        seed_user(isolated_db, uid=1, email="a@a.com",
+                  extra={"experience": [{"id": 42, "title": "Eng"}]})
+        result = database.update_experience(1, 0, {"title": "Updated"})
+        assert result["experience"][0]["id"] == 42
+
+    def test_T134_EC_update_unknown_user_returns_none(self, isolated_db):
+        """EC: Returns None when user_id does not exist (update_education path)."""
+        assert database.update_education(9999, 0, {"school": "X"}) is None
+
+    def test_T135_GB_update_out_of_range_returns_false(self, isolated_db):
+        """GB: Returns False when index is out of range (update_project path)."""
+        seed_user(isolated_db, uid=1, email="a@a.com")
+        assert database.update_project(1, 5, {"title": "X"}) is False
+
+    def test_T136_BB_update_volunteering_works(self, isolated_db):
+        """BB: update_volunteering updates a volunteering entry."""
+        seed_user(isolated_db, uid=1, email="a@a.com",
+                  extra={"volunteering": [{"id": 1, "role": "Old"}]})
+        result = database.update_volunteering(1, 0, {"role": "New"})
+        assert result["volunteering"][0]["role"] == "New"
+
+    def test_T137_BB_update_honor_works(self, isolated_db):
+        """BB: update_honor updates an honor entry."""
+        seed_user(isolated_db, uid=1, email="a@a.com",
+                  extra={"honors": [{"id": 1, "title": "Old"}]})
+        result = database.update_honor(1, 0, {"title": "New"})
+        assert result["honors"][0]["title"] == "New"
+
+
+# ===========================================================================
+# delete_experience / delete_education / delete_project / delete_volunteering /
+# delete_honor / delete_skill  (_delete_list_item)
+# ===========================================================================
+
+class TestDeleteListItem:
+    def test_T138_BB_delete_experience_removes_entry(self, isolated_db):
+        """BB: delete_experience removes entry at index and returns updated user."""
+        seed_user(isolated_db, uid=1, email="a@a.com",
+                  extra={"experience": [{"id": 1, "title": "Eng"}]})
+        result = database.delete_experience(1, 0)
+        assert result is not None
+        assert result["experience"] == []
+
+    def test_T139_WB_delete_persisted_to_db(self, isolated_db):
+        """WB: Deletion is persisted so a fresh read confirms removal."""
+        seed_user(isolated_db, uid=1, email="a@a.com",
+                  extra={"experience": [{"id": 1, "title": "Eng"}]})
+        database.delete_experience(1, 0)
+        user = database.get_user_by_id(1)
+        assert user["experience"] == []
+
+    def test_T140_EC_delete_unknown_user_returns_none(self, isolated_db):
+        """EC: Returns None when user_id does not exist (delete_education path)."""
+        assert database.delete_education(9999, 0) is None
+
+    def test_T141_GB_delete_out_of_range_returns_false(self, isolated_db):
+        """GB: Returns False when index is out of range (delete_project path)."""
+        seed_user(isolated_db, uid=1, email="a@a.com")
+        assert database.delete_project(1, 5) is False
+
+    def test_T142_BB_delete_volunteering_works(self, isolated_db):
+        """BB: delete_volunteering removes a volunteering entry."""
+        seed_user(isolated_db, uid=1, email="a@a.com",
+                  extra={"volunteering": [{"id": 1, "role": "Mentor"}]})
+        result = database.delete_volunteering(1, 0)
+        assert result["volunteering"] == []
+
+    def test_T143_BB_delete_honor_works(self, isolated_db):
+        """BB: delete_honor removes an honor entry."""
+        seed_user(isolated_db, uid=1, email="a@a.com",
+                  extra={"honors": [{"id": 1, "title": "Award"}]})
+        result = database.delete_honor(1, 0)
+        assert result["honors"] == []
+
+    def test_T144_BB_delete_skill_works(self, isolated_db):
+        """BB: delete_skill removes a skill at the given index."""
+        seed_user(isolated_db, uid=1, email="a@a.com",
+                  extra={"skills": ["Python", "Go"]})
+        result = database.delete_skill(1, 0)
+        assert "Python" not in result["skills"]
+        assert "Go" in result["skills"]
+
+
+# ===========================================================================
+# create_post — image_url branch
+# ===========================================================================
+
+class TestCreatePostImage:
+    def test_T145_WB_create_post_with_image_sets_image_key(self, isolated_db):
+        """WB: create_post with image_url includes image key in stored blob (line 827)."""
+        seed_user(isolated_db, uid=1, email="a@a.com")
+        result = database.create_post(1, "Check this out", image_url="https://example.com/img.png")
+        assert result.get("image") == "https://example.com/img.png"

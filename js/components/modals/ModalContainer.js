@@ -9,6 +9,7 @@ function ModalContainer() {
   const modalMap = {
     'post':          <PostModal />,
     'image-viewer':  <ImageViewerModal />,
+    'imageViewer':   <ImageViewerModal />,
     'connect':       <ConnectModal />,
     'share':         <ShareModal />,
     'apply':         <ApplyModal />,
@@ -16,9 +17,11 @@ function ModalContainer() {
     'add-exp':       <AddExpModal />,
     'add-education': <AddEducationModal />,
     'add-skill':     <AddSkillModal />,
-    'create-group':  <CreateGroupModal />,
     'report':        <ReportModal />,
     'create-event':  <CreateEventModal />,
+    'add-project':   <AddProjectModal />,
+    'add-volunteer': <AddVolunteerModal />,
+    'add-honor':     <AddHonorModal />,
   };
 
   const modal = modalMap[activeModal];

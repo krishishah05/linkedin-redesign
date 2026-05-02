@@ -100,11 +100,12 @@ function NavBar() {
   }
 
   const navItems = [
-    { id: 'feed',          label: t('home'),          badge: 0,                         icon: <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/> },
-    { id: 'network',       label: t('myNetwork'),     badge: pendingInvitations.length,  icon: <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/> },
-    { id: 'jobs',          label: t('jobs'),          badge: 0,                         icon: <path d="M20 6h-2.18c.07-.44.18-.88.18-1.36C18 2.51 15.49 0 12.36 0c-1.4 0-2.72.56-3.71 1.56L12 4.91l3.35-3.35C15.69 2.65 16 3.32 16 4.07c0 .9-.66 1.65-1.5 1.8L14.18 6H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2z"/> },
-    { id: 'messaging',     label: t('messaging'),     badge: unreadMessages,            icon: <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/> },
-    { id: 'conferences',   label: t('conferences'),   badge: 0,                          icon: <path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/> },
+    { id: 'feed',        label: t('home'),         badge: 0,                         icon: <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/> },
+    { id: 'network',     label: t('myNetwork'),    badge: pendingInvitations.length,  icon: <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/> },
+    { id: 'jobs',        label: t('jobs'),         badge: 0,                         icon: <path d="M20 6h-2.18c.07-.44.18-.88.18-1.36C18 2.51 15.49 0 12.36 0c-1.4 0-2.72.56-3.71 1.56L12 4.91l3.35-3.35C15.69 2.65 16 3.32 16 4.07c0 .9-.66 1.65-1.5 1.8L14.18 6H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2z"/> },
+    { id: 'messaging',   label: t('messaging'),    badge: unreadMessages,            icon: <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/> },
+    { id: 'conferences', label: t('conferences'),  badge: 0,                         icon: <path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/> },
+    { id: 'cover-letter', label: 'Cover Letter',  badge: 0,                         icon: <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/> },
   ];
 
   return (
@@ -137,14 +138,14 @@ function NavBar() {
             type="text"
             className="li-nav__search-input"
             id="nav-search"
-            placeholder={t('search')}
+            placeholder="Search"
             autoComplete="off"
             value={searchVal}
             onChange={e => handleSearchInput(e.target.value)}
             onKeyDown={handleSearchKeyDown}
             onFocus={() => { if (searchVal.trim() && suggestions.length) setShowSuggestions(true); }}
             onBlur={() => setTimeout(() => { setShowSuggestions(false); setActiveIndex(-1); }, 150)}
-            aria-label={t('search')}
+            aria-label="Search"
             role="combobox"
             aria-autocomplete="list"
             aria-expanded={showSuggestions && suggestions.length > 0}
@@ -157,7 +158,7 @@ function NavBar() {
               className="search-suggestions"
               id={searchListId}
               role="listbox"
-              aria-label={t('search')}
+              aria-label="Search suggestions"
               style={{ display: 'block', position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 9999 }}
             >
               {suggestions.map((s, i) => {
@@ -224,15 +225,15 @@ function NavBar() {
             <button
               type="button"
               className="li-nav__item"
-              title={t('candidateShortlist')}
-              aria-label={`${t('candidateShortlist')}, ${shortlisted.size} ${t('shortlisted')}`}
+              title="Candidate Shortlist"
+              aria-label={`Candidate Shortlist, ${shortlisted.size} shortlisted`}
               onClick={() => setRecruiterPanelOpen(v => !v)}
               style={{ position: 'relative' }}
             >
               <svg className="nav-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                 <path d="M20 6h-2.18c.07-.44.18-.86.18-1a3 3 0 0 0-6 0c0 .14.11.56.18 1H10C8.9 6 8 6.9 8 8v12c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-7-1a1 1 0 0 1 2 0c0 .14-.05.27-.08.41a.75.75 0 0 1 0 .18c-.03.14-.08.27-.13.41H13.21c-.05-.14-.1-.27-.13-.41a.75.75 0 0 1 0-.18C13.05 5.27 13 5.14 13 5zm7 15H10V8h2v1h6V8h2v12z"/>
               </svg>
-              <span className="li-nav__item-label">{t('shortlist')}</span>
+              <span className="li-nav__item-label">Shortlist</span>
               {shortlisted.size > 0 && (
                 <span className="li-nav__item-badge" aria-hidden="true"
                   style={{ background: '#057642' }}
@@ -354,10 +355,12 @@ function NavBar() {
                   className="li-dropdown__item"
                   role="menuitem"
                   onClick={() => {
+                    const statusKey = currentUser?.id ? `li-user-status-${currentUser.id}` : null;
                     localStorage.removeItem('nx-token'); localStorage.removeItem('nx-uid');
                     ['li-liked-posts','li-saved-jobs','li-connections','li-following','li-pending-conn',
                      'li-dismissed-inv','li-applied-jobs','li-joined-groups','li-settings',
-                     'li-attending-events','li-interested-events'].forEach(k => localStorage.removeItem(k));
+                     'li-language','li-user-status','li-recruiter-mode'].forEach(k => localStorage.removeItem(k));
+                    if (statusKey) localStorage.removeItem(statusKey);
                     window.location.href = 'index.html';
                   }}
                 >
@@ -373,7 +376,7 @@ function NavBar() {
     </nav>
 
     {/* Recruiter: slide-in candidate pipeline panel */}
-    <ShortlistPanel />
+    {currentUser?.isRecruiter && recruiterMode && <ShortlistPanel />}
     </>
   );
 }
