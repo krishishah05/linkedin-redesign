@@ -2841,7 +2841,7 @@ body.dark-mode .li-section__edit:hover,
 body.dark-mode .li-modal__close:hover,
 body.dark-mode .li-post-tool-btn:hover,
 body.dark-mode .li-manage-item:hover,
-body.dark-mode .li-msg-conv:hover,
+body.dark-mode .li-msg-conv:not(.unread):hover,
 body.dark-mode .li-settings-nav__item:hover,
 body.dark-mode .li-app-item:hover,
 body.dark-mode .li-job-card__save:hover { background: rgba(255,255,255,0.07) !important; }

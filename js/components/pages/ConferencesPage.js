@@ -4,8 +4,6 @@
    ============================================================ */
 
 function ConferencesPage() {
-  const { showToast } = React.useContext(AppContext);
-
   const [locationQ, setLocationQ] = React.useState('');
   const [fieldQ, setFieldQ] = React.useState('technology');
   const [searchCenter, setSearchCenter] = React.useState(null); // geocoded center for searched location
@@ -72,7 +70,7 @@ function ConferencesPage() {
     try {
       // 1. Get center of searched location
       const geo = await geocodePlace(location);
-      if (geo) setSearchCenter(geo);
+      setSearchCenter(geo || null);
 
       // 2. Call the backend; it calls SerpAPI, normalizes results, and falls back if needed.
       const data = await API.searchConferences(location, field);
@@ -114,7 +112,7 @@ function ConferencesPage() {
 
     } catch (err) {
       console.error(err);
-      showToast("Failed to fetch conferences", "error");
+      createToast("Failed to fetch conferences", "error");
     } finally {
       setSearching(false);
     }
@@ -171,7 +169,7 @@ function ConferencesPage() {
   function handleStorySubmit(e) {
     e.preventDefault();
     if (!storyForm.conferenceName.trim() || !storyForm.tagline.trim() || !storyForm.description.trim()) {
-      showToast('Conference name, headline, and takeaways are required.', 'error');
+      createToast('Conference name, headline, and takeaways are required.', 'error');
       return;
     }
     setStorySubmitting(true);
@@ -186,9 +184,9 @@ function ConferencesPage() {
         setStories(prev => [story, ...prev]);
         setShowStoryForm(false);
         setStoryForm({ conferenceName: '', tagline: '', description: '', photoUrl: '', companyLogoUrl: '' });
-        showToast('Conference experience shared!', 'success');
+        createToast('Conference experience shared!', 'success');
       })
-      .catch(() => showToast('Failed to share story.', 'error'))
+      .catch(() => createToast('Failed to share story.', 'error'))
       .finally(() => setStorySubmitting(false));
   }
 
@@ -339,7 +337,7 @@ function ConferencesPage() {
                 ) : (
                   <button className="li-btn li-btn--primary" style={{ flex: 1, fontSize: 13 }} onClick={() => {
                     setRegisteredIds(prev => new Set([...prev, String(selectedConf.id)]));
-                    showToast(`Registered for ${selectedConf.name}!`, 'success');
+                    createToast(`Registered for ${selectedConf.name}!`, 'success');
                   }}>
                     Register
                   </button>
