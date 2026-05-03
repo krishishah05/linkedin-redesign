@@ -606,7 +606,7 @@ def add_experience(user_id: int, entry: dict):
         data = json.loads(row["data"])
         exp_list = data.get("experience", [])
         entry["id"] = max((e.get("id", 0) for e in exp_list), default=0) + 1
-        exp_list.append(entry)
+        exp_list.insert(0, entry)
         data["experience"] = exp_list
         _execute(conn, "UPDATE users SET data=%s WHERE id=%s", (json.dumps(data), user_id))
         conn.commit()
