@@ -50,7 +50,7 @@ function ConferencesPage() {
     try {
       const res = await fetch(
         `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(place)}`,
-        { headers: { 'Accept-Language': 'en-US' } }
+        { headers: { 'Accept-Language': 'en-US', 'User-Agent': 'LinkedInRedesign/1.0 (https://github.com/krishishah05/linkedin-redesign)' } }
       );
       const data = await res.json();
       if (data && data[0]) return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
