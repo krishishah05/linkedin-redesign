@@ -95,7 +95,7 @@ function FeedPage() {
         <div className="li-card li-profile-card">
           {u.name && (
             <>
-              <div className="li-profile-card__banner" style={{ background: u.coverGradient || 'linear-gradient(135deg,#0a66c2,#004182)' }}>
+              <div className="li-profile-card__banner" style={{ background: u.coverGradient || 'linear-gradient(135deg,#2E87F0 0%,#0F5DBD 60%,#764ba2 100%)' }}>
                 <div className="li-profile-card__photo" style={{ cursor: 'pointer' }} onClick={() => navigate(`profile?id=${u.id}`)}>
                   {getInitials(u.name)}
                 </div>

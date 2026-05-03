@@ -27,9 +27,8 @@ function JobsPage({ selectedJobId }) {
     return () => { cancelled = true; };
   }, [selectedId, detailCache]);
 
-  if (loading) return <LoadingSpinner text="Loading jobs..." />;
-  if (error) return <ErrorMessage message={error} />;
-
+  // Derived state computed before the third useEffect so the effect closure can
+  // reference `filtered` — all hooks must run unconditionally before any early return.
   const allJobs = jobs || [];
   const savedOnly = allJobs.filter(j => savedJobs.has(String(j.id)));
   const visibleSource = viewMode === 'saved' ? savedOnly : allJobs;
@@ -40,17 +39,24 @@ function JobsPage({ selectedJobId }) {
       .filter(Boolean)
       .some(v => String(v).toLowerCase().includes(q));
   });
-  const isApplied = (jobId) => appliedJobs.has(String(jobId));
-  const baseJob = allJobs.find(j => j.id === selectedId) || filtered[0];
-  const selectedJob = baseJob ? (detailCache[baseJob.id] || baseJob) : null;
 
+  // Must be declared BEFORE the early returns below — Rules of Hooks.
   React.useEffect(() => {
+    if (!jobs) return;
     if (!filtered.length) {
       setSelectedId(null);
       return;
     }
     if (!filtered.some(j => j.id === selectedId)) setSelectedId(filtered[0].id);
-  }, [viewMode, searchQ, jobs, selectedId]);
+  }, [viewMode, searchQ, jobs, selectedId, savedJobs]);
+
+  // Early returns are safe here: all hooks have already been called above.
+  if (loading) return <LoadingSpinner text="Loading jobs..." />;
+  if (error) return <ErrorMessage message={error} />;
+
+  const isApplied = (jobId) => appliedJobs.has(String(jobId));
+  const baseJob = allJobs.find(j => j.id === selectedId) || filtered[0];
+  const selectedJob = baseJob ? (detailCache[baseJob.id] || baseJob) : null;
 
   return (
     <div className="li-page-inner">

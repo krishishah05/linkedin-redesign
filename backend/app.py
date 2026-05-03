@@ -19,6 +19,7 @@ import sys
 import os
 import re
 import time
+import hashlib
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -176,6 +177,128 @@ def index():
 
 
 # â”€â”€ Error handlers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+import requests
+
+
+def _conference_cache_key(location, field):
+    return (location or "").strip().lower(), (field or "").strip().lower()
+
+
+
+def _stringify_address(value):
+    if isinstance(value, list):
+        return ", ".join(str(part).strip() for part in value if str(part).strip())
+    if isinstance(value, dict):
+        return ", ".join(str(part).strip() for part in value.values() if str(part).strip())
+    return str(value or "").strip()
+
+
+def _extract_event_date(event):
+    date_value = event.get("date") or {}
+    if isinstance(date_value, dict):
+        return date_value.get("when") or date_value.get("start_date") or "TBD"
+    return str(date_value or "TBD")
+
+
+def _stable_conference_id(event, index):
+    seed = "|".join(str(event.get(key, "")) for key in ("title", "link", "address"))
+    if not seed.strip("|"):
+        seed = str(index)
+    return int(hashlib.sha1(seed.encode("utf-8")).hexdigest()[:8], 16)
+
+
+def _normalize_serpapi_conferences(data, location, field):
+    events = data.get("events_results") if isinstance(data, dict) else []
+    if not isinstance(events, list):
+        return []
+
+    fallback_lat, fallback_lng = _coordinates_for_location(location)
+    offsets = [(0.010, 0.008), (-0.008, -0.012), (0.014, -0.006), (-0.012, 0.014), (0.006, -0.016)]
+    normalized = []
+
+    for index, event in enumerate(events):
+        if not isinstance(event, dict):
+            continue
+        title = str(event.get("title") or "").strip()
+        if not title:
+            continue
+
+        venue = event.get("venue")
+        venue_name = venue.get("name") if isinstance(venue, dict) else ""
+        address = _stringify_address(event.get("address")) or _stringify_address(venue) or location
+        gps = event.get("gps_coordinates") if isinstance(event.get("gps_coordinates"), dict) else {}
+        lat = _coerce_float(event.get("latitude") or event.get("lat") or gps.get("latitude") or gps.get("lat"), None)
+        lng = _coerce_float(event.get("longitude") or event.get("lng") or gps.get("longitude") or gps.get("lng"), None)
+        if lat is None or lng is None:
+            dlat, dlng = offsets[index % len(offsets)]
+            lat = fallback_lat + dlat
+            lng = fallback_lng + dlng
+
+        tags = [field.title()] if field else ["Conference"]
+        if event.get("type"):
+            tags.append(str(event["type"]).title())
+
+        map_data = event.get("event_location_map") if isinstance(event.get("event_location_map"), dict) else {}
+
+        normalized.append({
+            "id": _stable_conference_id(event, index),
+            "name": title,
+            "title": title,
+            "category": field.title() if field else "Conference",
+            "date": _extract_event_date(event),
+            "venue": venue_name or address,
+            "address": address,
+            "lat": round(float(lat), 6),
+            "lng": round(float(lng), 6),
+            "description": str(event.get("description") or "").strip(),
+            "link": event.get("link") or map_data.get("link") or "",
+            "thumbnail": event.get("thumbnail") or "",
+            "price": event.get("price") or "See event",
+            "attendees": int(_coerce_float(event.get("attendees"), 0) or 0),
+            "tags": tags[:3],
+            "source": "serpapi",
+        })
+
+    return normalized
+
+
+@app.route('/api/conferences/search', methods=['GET'])
+def search_conferences():
+    location = (request.args.get('location') or 'United States').strip()
+    field = (request.args.get('field') or 'technology').strip()
+    cache_key = _conference_cache_key(location, field)
+    now = time.time()
+    _purge_conference_search_cache(now)
+
+    cached = _conference_search_cache.get(cache_key)
+    if cached and now - cached.get("fetched_at", 0) < _CONFERENCE_SEARCH_TTL:
+        return jsonify(cached["payload"])
+
+    api_key = os.getenv("SERPAPI_API_KEY", "").strip()
+    if not api_key:
+        conferences = _fallback_conferences(location, field)
+        _conference_search_cache[cache_key] = {"fetched_at": now, "payload": conferences}
+        return jsonify(conferences), 200
+
+    try:
+        query = f"{field} conference in {location}"
+        response = requests.get(
+            "https://serpapi.com/search.json",
+            params={"engine": "google_events", "q": query, "api_key": api_key},
+            timeout=10,
+        )
+        response.raise_for_status()
+        data = response.json()
+        conferences = _normalize_serpapi_conferences(data, location, field)
+        if not conferences:
+            conferences = _fallback_conferences(location, field)
+    except Exception:
+        app.logger.warning("SerpAPI conference search failed; using fallback conference results")
+        conferences = _fallback_conferences(location, field)
+
+    _conference_search_cache[cache_key] = {"fetched_at": now, "payload": conferences}
+    return jsonify(conferences), 200
 
 @app.errorhandler(404)
 def not_found(e):
@@ -909,75 +1032,6 @@ def _coerce_float(value, fallback):
         return float(value)
     except (TypeError, ValueError):
         return fallback
-
-
-@app.route("/api/conferences/search")
-def search_conferences():
-    """GET /api/conferences/search?location=&field= uses SerpAPI when configured."""
-    location = (request.args.get("location") or "San Francisco, CA").strip()[:120]
-    field = (request.args.get("field") or "technology").strip()[:80]
-    cache_key = f"{location.lower()}::{field.lower()}"
-    now = time.time()
-    _purge_conference_search_cache(now)
-    cached = _conference_search_cache.get(cache_key)
-    if cached and now - cached["fetched_at"] < _CONFERENCE_SEARCH_TTL:
-        return jsonify(cached["items"])
-
-    api_key = os.environ.get("SERPAPI_API_KEY", "").strip()
-    if not api_key:
-        items = _fallback_conferences(location, field)
-        _conference_search_cache[cache_key] = {"items": items, "fetched_at": now}
-        _purge_conference_search_cache(now)
-        return jsonify(items)
-
-    import requests as req_lib
-
-    query = f"{field} conferences in {location}"
-    try:
-        resp = req_lib.get(
-            "https://serpapi.com/search.json",
-            params={"engine": "google_events", "q": query, "api_key": api_key},
-            timeout=8,
-        )
-        resp.raise_for_status()
-        payload = resp.json()
-        events = payload.get("events_results") or []
-        items = []
-        fallback_coords = _fallback_conferences(location, field)
-        for idx, event in enumerate(events[:20], start=1):
-            address = event.get("address")
-            if isinstance(address, list):
-                address = ", ".join(str(part) for part in address if part)
-            fallback = fallback_coords[(idx - 1) % len(fallback_coords)]
-            venue = event.get("venue") or {}
-            venue_name = venue.get("name") if isinstance(venue, dict) else ""
-            gps = event.get("gps_coordinates") or {}
-            date_info = event.get("date") or {}
-            date_text = date_info.get("when") if isinstance(date_info, dict) else event.get("date")
-            items.append({
-                "id": idx,
-                "name": event.get("title") or f"{field.title()} Conference",
-                "category": field.title(),
-                "date": date_text or "Date to be announced",
-                "venue": venue_name or "Venue to be announced",
-                "address": address or location,
-                "lat": _coerce_float(gps.get("latitude"), fallback["lat"]),
-                "lng": _coerce_float(gps.get("longitude"), fallback["lng"]),
-                "description": event.get("description") or event.get("snippet") or "Conference details are available from the event organizer.",
-                "attendees": 0,
-                "price": "See event",
-                "tags": [field.title(), location],
-                "link": event.get("link") or "",
-                "source": "serpapi",
-            })
-        if not items:
-            items = _fallback_conferences(location, field)
-    except Exception:
-        items = _fallback_conferences(location, field)
-
-    _conference_search_cache[cache_key] = {"items": items, "fetched_at": now}
-    _purge_conference_search_cache(now)
-    return jsonify(items)
 
 
 @app.route("/api/jobs")

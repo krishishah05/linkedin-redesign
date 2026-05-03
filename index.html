@@ -1003,10 +1003,8 @@
           <label class="radio-option" for="goal-3"><input type="radio" name="network-goal" id="goal-3"
               value="clients">Find clients or business partners</label>
           <label class="radio-option" for="goal-4"><input type="radio" name="network-goal" id="goal-4"
-              value="skills">Build skills &amp; knowledge</label>
-          <label class="radio-option" for="goal-5"><input type="radio" name="network-goal" id="goal-5" value="hire">Hire
-            talent</label>
-          <label class="radio-option" for="goal-6"><input type="radio" name="network-goal" id="goal-6"
+              value="conferences">Find nearby conferences</label>
+          <label class="radio-option" for="goal-5"><input type="radio" name="network-goal" id="goal-5"
               value="other">Something else</label>
           <span class="error-msg" id="s-goal-err" style="margin-top:4px;">Please select an option.</span>
           <div class="step-actions">
@@ -1096,7 +1094,13 @@
     const configuredApiBase = typeof window !== 'undefined' && typeof window.__API_BASE__ === 'string'
       ? window.__API_BASE__.replace(/\/+$/, '')
       : '';
-    const API_BASE = configuredApiBase || `${window.location.origin}/api`;
+    // On localhost the frontend runs on :8080 but the backend is on :5000 — match
+    // the same logic used in js/api.js so login/register calls reach the right port.
+    const _localApi = `${window.location.protocol}//${window.location.hostname}:5000/api`;
+    const _defaultApi = ['localhost', '127.0.0.1'].includes(window.location.hostname)
+      ? _localApi
+      : `${window.location.origin}/api`;
+    const API_BASE = configuredApiBase || _defaultApi;
     const TOTAL_STEPS = 10;
     let currentStep = 1;
     let _registered = false;
