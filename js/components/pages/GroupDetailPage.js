@@ -12,7 +12,7 @@ function GroupDetailPage({ groupId }) {
   if (!group) return <ErrorMessage message="Group not found" />;
 
   return (
-    <div className="li-page-inner" style={{ maxWidth: 900 }}>
+    <div className="li-page-inner" style={{ maxWidth: 900, flexDirection: 'column' }}>
       {/* Back */}
       <button className="li-btn li-btn--ghost li-btn--sm" style={{ marginBottom: 12 }} onClick={() => navigate('groups')}>
         ← Back to Groups

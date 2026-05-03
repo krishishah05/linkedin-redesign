@@ -17,7 +17,7 @@ function GroupsPage() {
     : allGroups.filter(g => !joined.has(String(g.id)));
 
   return (
-    <div className="li-page-inner" style={{ maxWidth: 900 }}>
+    <div className="li-page-inner" style={{ maxWidth: 900, flexDirection: 'column' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
         <h1 style={{ fontSize: 22, fontWeight: 700 }}>Groups</h1>
         <button className="li-btn li-btn--outline li-btn--sm" onClick={() => openModal('create-group')}>
