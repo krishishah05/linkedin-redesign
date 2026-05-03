@@ -14,8 +14,12 @@ function NetworkPage() {
   const [searchResults, setSearchResults] = React.useState(null);
   const [searching, setSearching] = React.useState(false);
   const searchTimeoutRef = React.useRef(null);
+  const searchRequestRef = React.useRef(0);
 
-  React.useEffect(() => { refreshInvitations && refreshInvitations(); }, []);
+  React.useEffect(() => {
+    refreshInvitations && refreshInvitations();
+    return () => clearTimeout(searchTimeoutRef.current);
+  }, []);
 
   const [incomingRequests, setIncomingRequests] = React.useState([]);
   React.useEffect(() => {
@@ -46,12 +50,20 @@ function NetworkPage() {
   function handleSearchChange(val) {
     setSearchQuery(val);
     clearTimeout(searchTimeoutRef.current);
-    if (!val.trim()) { setSearchResults(null); setSearching(false); return; }
+    const query = val.trim();
+    const requestId = ++searchRequestRef.current;
+    if (!query) { setSearchResults(null); setSearching(false); return; }
     setSearching(true);
     searchTimeoutRef.current = setTimeout(() => {
-      API.search(val)
-        .then(res => { setSearchResults(res.users || []); setSearching(false); })
-        .catch(() => setSearching(false));
+      API.search(query)
+        .then(res => {
+          if (requestId !== searchRequestRef.current) return;
+          setSearchResults(res.users || []);
+          setSearching(false);
+        })
+        .catch(() => {
+          if (requestId === searchRequestRef.current) setSearching(false);
+        });
     }, 300);
   }
 

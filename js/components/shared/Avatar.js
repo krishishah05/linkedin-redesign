@@ -2,11 +2,16 @@
    AVATAR.JS — Inline SVG avatar component
    ============================================================ */
 function Avatar({ name, size = 40, colorOverride, className = '', photo }) {
+  const [photoFailed, setPhotoFailed] = React.useState(false);
   const initials = getInitials(name);
   const color = colorOverride || getAvatarColor(name);
   const fontSize = Math.round(size * 0.38);
 
-  if (photo) {
+  React.useEffect(() => {
+    setPhotoFailed(false);
+  }, [photo]);
+
+  if (photo && !photoFailed) {
     return (
       <img
         src={photo}
@@ -20,7 +25,7 @@ function Avatar({ name, size = 40, colorOverride, className = '', photo }) {
           flexShrink: 0,
           display: 'block',
         }}
-        onError={e => { e.target.style.display = 'none'; }}
+        onError={() => setPhotoFailed(true)}
       />
     );
   }

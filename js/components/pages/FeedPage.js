@@ -259,8 +259,9 @@ function PostCreator({ user, onPost, openModal, showToast }) {
   React.useEffect(() => {
     return () => {
       if (photoPreviewUrl) URL.revokeObjectURL(photoPreviewUrl);
+      if (videoPreviewUrl) URL.revokeObjectURL(videoPreviewUrl);
     };
-  }, [photoPreviewUrl]);
+  }, [photoPreviewUrl, videoPreviewUrl]);
 
   const ARTICLE_TEMPLATES = [
     { id: 'insight', title: 'Industry Insight', emoji: '📊', preview: 'Trends & observations from your field',
@@ -295,6 +296,9 @@ function PostCreator({ user, onPost, openModal, showToast }) {
     if (file) {
       const nextPreview = URL.createObjectURL(file);
       if (photoPreviewUrl) URL.revokeObjectURL(photoPreviewUrl);
+      if (videoPreviewUrl) URL.revokeObjectURL(videoPreviewUrl);
+      setVideoUrl('');
+      setVideoPreviewUrl('');
       setPhotoPreviewUrl(nextPreview);
       setExpanded(true);
       const reader = new FileReader();
@@ -310,12 +314,18 @@ function PostCreator({ user, onPost, openModal, showToast }) {
   function activatePhoto() {
     setMediaInputType('photo');
     setShowMediaInput(true);
+    if (videoPreviewUrl) URL.revokeObjectURL(videoPreviewUrl);
+    setVideoUrl('');
+    setVideoPreviewUrl('');
     photoInputRef.current && photoInputRef.current.click();
     setExpanded(true);
   }
   function activateVideo() {
     setMediaInputType('video');
     setShowMediaInput(true);
+    if (photoPreviewUrl) URL.revokeObjectURL(photoPreviewUrl);
+    setImageUrl('');
+    setPhotoPreviewUrl('');
     videoInputRef.current && videoInputRef.current.click();
     setExpanded(true);
   }
@@ -324,9 +334,16 @@ function PostCreator({ user, onPost, openModal, showToast }) {
   function handleVideoUpload(e) {
     const file = e.target.files && e.target.files[0];
     if (!file) return;
-    const url = URL.createObjectURL(file);
-    setVideoPreviewUrl(url);
-    setVideoUrl(url);
+    const previewUrl = URL.createObjectURL(file);
+    setVideoPreviewUrl(previewUrl);
+    setImageUrl('');
+    setPhotoPreviewUrl('');
+    const reader = new FileReader();
+    reader.onload = () => {
+      setVideoUrl(typeof reader.result === 'string' ? reader.result : '');
+    };
+    reader.onerror = () => showToast('Could not read this video.', 'error');
+    reader.readAsDataURL(file);
     e.target.value = '';
   }
   function cancelAll() {
@@ -405,9 +422,9 @@ function PostCreator({ user, onPost, openModal, showToast }) {
           </div>
         )}
       </div>
-      {expanded && videoUrl && (
+      {expanded && (videoPreviewUrl || videoUrl) && (
         <div style={{ position: 'relative', marginTop: 8 }}>
-          <video src={videoUrl} controls style={{ maxHeight: 180, borderRadius: 8, width: '100%', background: '#000' }} />
+          <video src={videoPreviewUrl || videoUrl} controls style={{ maxHeight: 180, borderRadius: 8, width: '100%', background: '#000' }} />
           <button
             onClick={() => { if (videoPreviewUrl) URL.revokeObjectURL(videoPreviewUrl); setVideoUrl(''); setVideoPreviewUrl(''); }}
             style={{ position: 'absolute', top: 6, right: 6, background: 'rgba(0,0,0,0.6)', border: 'none', borderRadius: '50%', width: 24, height: 24, cursor: 'pointer', color: '#fff', fontSize: 14, lineHeight: '24px', textAlign: 'center' }}

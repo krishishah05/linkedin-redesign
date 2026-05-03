@@ -5,6 +5,7 @@ function EditProfileModal() {
   const { closeModal, currentUser, setCurrentUser, showToast } = React.useContext(AppContext);
   const [saving, setSaving] = React.useState(false);
   const [photoPreview, setPhotoPreview] = React.useState(currentUser?.photo || null);
+  const [photoChanged, setPhotoChanged] = React.useState(false);
   const photoInputRef = React.useRef(null);
   const [form, setForm] = React.useState({
     firstName: currentUser ? (currentUser.name || '').split(' ')[0] : '',
@@ -20,7 +21,12 @@ function EditProfileModal() {
     const file = e.target.files && e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = () => { if (typeof reader.result === 'string') setPhotoPreview(reader.result); };
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        setPhotoPreview(reader.result);
+        setPhotoChanged(true);
+      }
+    };
     reader.readAsDataURL(file);
     e.target.value = '';
   }
@@ -39,7 +45,7 @@ function EditProfileModal() {
     const name = (form.firstName + ' ' + form.lastName).trim();
     const updates = { headline: form.headline, location: form.location, pronouns: form.pronouns, industry: form.industry, about: form.about };
     if (name) updates.name = name;
-    if (photoPreview) updates.photo = photoPreview;
+    if (photoChanged) updates.photo = photoPreview || '';
     API.updateMe(updates)
       .then(updated => {
         setCurrentUser(updated);
@@ -84,7 +90,7 @@ function EditProfileModal() {
                 {photoPreview ? 'Change photo' : 'Upload photo'}
               </button>
               {photoPreview && (
-                <button type="button" style={{ background: 'none', border: 'none', color: 'var(--text-3)', fontSize: 12, cursor: 'pointer', marginLeft: 8 }} onClick={() => setPhotoPreview(null)}>Remove</button>
+                <button type="button" style={{ background: 'none', border: 'none', color: 'var(--text-3)', fontSize: 12, cursor: 'pointer', marginLeft: 8 }} onClick={() => { setPhotoPreview(null); setPhotoChanged(true); }}>Remove</button>
               )}
             </div>
           </div>

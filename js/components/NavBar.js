@@ -164,7 +164,7 @@ function NavBar() {
                 <div className="li-dropdown__header">
                   <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 12 }}>
                     <div style={{ borderRadius: '50%', flexShrink: 0, lineHeight: 0 }}>
-                      {currentUser && <Avatar name={currentUser.name} size={48} />}
+                      {currentUser && <Avatar name={currentUser.name} size={48} photo={currentUser.photo} colorOverride={currentUser.avatarColor} />}
                     </div>
                     <div>
                       <div className="li-dropdown__header-name">{currentUser ? currentUser.name : ''}</div>

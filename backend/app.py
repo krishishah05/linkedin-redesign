@@ -416,7 +416,7 @@ def get_me():
 def update_me():
     """PUT /api/me - update current user profile fields."""
     body = _get_body()
-    allowed = {"name", "headline", "location", "about", "pronouns", "industry"}
+    allowed = {"name", "headline", "location", "about", "pronouns", "industry", "photo"}
     updates = {k: v for k, v in body.items() if k in allowed and isinstance(v, str)}
     if not updates:
         abort(400, description="No valid fields to update")

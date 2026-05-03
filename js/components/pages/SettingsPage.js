@@ -239,7 +239,11 @@ function SettingsPage() {
                   desc="Access hiring tools, candidate pipeline, and outreach templates"
                   value={!!recruiterMode}
                   onChange={() => {
-                    if (!recruiterMode) setUserStatus('recruiting');
+                    if (!currentUser?.isRecruiter) {
+                      showToast('Recruiter Mode is only available for recruiter accounts', 'error');
+                      return;
+                    }
+                    if (!recruiterMode && userStatus !== 'recruiting') setUserStatus('recruiting');
                     toggleRecruiterMode();
                     showToast('Recruiter Mode ' + (recruiterMode ? 'disabled' : 'enabled'));
                   }}
@@ -281,11 +285,18 @@ function SettingsPage() {
                   onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#b91c1c'; }}
                   onClick={() => {
                     if (!window.confirm('Are you sure you want to permanently delete your account? This cannot be undone.')) return;
-                    ['nx-token','nx-uid','li-liked-posts','li-saved-jobs','li-connections','li-following',
-                     'li-pending-conn','li-dismissed-inv','li-applied-jobs','li-joined-groups',
-                     'li-settings','li-language','li-user-status','li-recruiter-mode'].forEach(k => localStorage.removeItem(k));
-                    showToast('Account deleted. Redirecting…', 'error');
-                    setTimeout(() => { window.location.href = 'index.html'; }, 1500);
+                    API.deleteUser(currentUser.id)
+                      .then(() => {
+                        const userId = currentUser.id;
+                        ['nx-token','nx-uid','li-liked-posts','li-saved-jobs','li-connections','li-following',
+                         'li-pending-conn','li-dismissed-inv','li-applied-jobs','li-joined-groups',
+                         'li-settings','li-language','li-user-status','li-recruiter-mode',
+                         `li-user-status-${userId}`, `li-shortlisted-${userId}`].forEach(k => localStorage.removeItem(k));
+                        setCurrentUser(null);
+                        showToast('Account deleted. Redirecting…', 'error');
+                        setTimeout(() => { window.location.href = 'index.html'; }, 1500);
+                      })
+                      .catch(() => showToast('Failed to delete account', 'error'));
                   }}
                 >
                   Delete Account

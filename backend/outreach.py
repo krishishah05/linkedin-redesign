@@ -74,7 +74,7 @@ _OUTREACH_CHECKS = [
     {
         "key": "photo", "label": "Profile photo present", "weight": 10,
         "tip": "Add a profile photo — profiles with photos get 14× more views.",
-        "eval": lambda u: bool(u.get("photo")),
+        "eval": lambda u: bool(u.get("photo") or u.get("avatarColor")),
     },
     {
         "key": "about", "label": "About section filled in", "weight": 10,

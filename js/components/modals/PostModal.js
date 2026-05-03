@@ -14,6 +14,12 @@ function PostModal() {
   const photoInputRef = React.useRef(null);
   const videoInputRef = React.useRef(null);
 
+  React.useEffect(() => {
+    return () => {
+      if (videoBlobUrl) URL.revokeObjectURL(videoBlobUrl);
+    };
+  }, [videoBlobUrl]);
+
   function handlePhotoUpload(e) {
     const file = e.target.files && e.target.files[0];
     if (file) {
@@ -36,7 +42,12 @@ function PostModal() {
     if (videoBlobUrl) URL.revokeObjectURL(videoBlobUrl);
     const url = URL.createObjectURL(file);
     setVideoBlobUrl(url);
-    setVideoUrl(url);
+    const reader = new FileReader();
+    reader.onload = () => {
+      setVideoUrl(typeof reader.result === 'string' ? reader.result : '');
+    };
+    reader.onerror = () => showToast('Could not read this video.', 'error');
+    reader.readAsDataURL(file);
     setImageUrl('');
     e.target.value = '';
   }
@@ -101,9 +112,9 @@ function PostModal() {
             onChange={e => setText(e.target.value)}
             autoFocus
           />
-          {videoUrl && (
+          {(videoBlobUrl || videoUrl) && (
             <div style={{ position: 'relative', marginTop: 8 }}>
-              <video src={videoUrl} controls style={{ maxHeight: 220, borderRadius: 8, width: '100%', background: '#000' }} />
+              <video src={videoBlobUrl || videoUrl} controls style={{ maxHeight: 220, borderRadius: 8, width: '100%', background: '#000' }} />
               <button
                 onClick={() => { if (videoBlobUrl) URL.revokeObjectURL(videoBlobUrl); setVideoUrl(''); setVideoBlobUrl(''); }}
                 style={{ position: 'absolute', top: 6, right: 6, background: 'rgba(0,0,0,0.6)', border: 'none', borderRadius: '50%', width: 24, height: 24, cursor: 'pointer', color: '#fff', fontSize: 14, lineHeight: '24px', textAlign: 'center' }}
