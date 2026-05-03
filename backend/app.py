@@ -399,6 +399,24 @@ def register():
     return jsonify({"user": user, "token": token}), 201
 
 
+@app.route("/api/auth/change-password", methods=["POST"])
+def change_password():
+    """POST /api/auth/change-password - update password for the authenticated user."""
+    user = _require_auth_user()
+    body = _get_body()
+    current = body.get("current") or ""
+    new_pw = body.get("newPassword") or ""
+    if not current or not new_pw:
+        abort(400, description="current and newPassword are required")
+    if len(new_pw) < 8:
+        abort(400, description="password must be at least 8 characters")
+    success = dbl.change_password(user["id"], current, new_pw)
+    if not success:
+        abort(401, description="Current password is incorrect")
+    return jsonify({"message": "Password updated successfully"}), 200
+
+
+
 # â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # User Endpoints
 # â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•

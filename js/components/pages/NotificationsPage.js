@@ -14,7 +14,7 @@ function NotificationsPage() {
   }, []);
 
   const typeNavMap = {
-    reaction: 'feed', comment: 'feed', mention: 'feed', repost: 'feed',
+    like: 'feed', reaction: 'feed', comment: 'feed', mention: 'feed', repost: 'feed',
     connect: 'network', connection: 'network',
     job: 'jobs',
     message: 'messaging',

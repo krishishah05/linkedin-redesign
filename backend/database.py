@@ -460,6 +460,19 @@ def verify_credentials(email: str, password: str):
     return data
 
 
+def change_password(user_id: int, current_password: str, new_password: str):
+    """Verify current password then update to new_password. Returns True on success, False if current wrong."""
+    conn = _connect()
+    row = _execute(conn, "SELECT pw_hash FROM users WHERE id=%s", (user_id,)).fetchone()
+    if not row or row["pw_hash"] != _hash_pw(current_password):
+        conn.close()
+        return False
+    _execute(conn, "UPDATE users SET pw_hash=%s WHERE id=%s", (_hash_pw(new_password), user_id))
+    conn.commit()
+    conn.close()
+    return True
+
+
 def create_session(user_id: int) -> str:
     """Generate a session token for the user and persist it."""
     token = secrets.token_hex(32)
@@ -705,24 +718,6 @@ def delete_honor(user_id: int, index: int):
 
 def delete_skill(user_id: int, index: int):
     return _delete_list_item(user_id, "skills", index)
-
-
-def add_experience(user_id: int, entry: dict):
-    """Append a work experience entry to a user's data. Returns updated user dict."""
-    conn = _connect()
-    row = _execute(conn, "SELECT data FROM users WHERE id=%s", (user_id,)).fetchone()
-    if not row:
-        conn.close()
-        return None
-    data = json.loads(row["data"])
-    exp_list = data.get("experience", [])
-    entry["id"] = max((e.get("id", 0) for e in exp_list), default=0) + 1
-    exp_list.insert(0, entry)
-    data["experience"] = exp_list
-    _execute(conn, "UPDATE users SET data=%s WHERE id=%s", (json.dumps(data), user_id))
-    conn.commit()
-    conn.close()
-    return data
 
 
 def add_project(user_id: int, entry: dict):
@@ -1386,11 +1381,10 @@ def toggle_event_attend(event_id, event_src: str, user_id: int):
 def _ensure_event_interest_table(conn):
     _execute(conn, """
         CREATE TABLE IF NOT EXISTS event_interest (
-            id        INTEGER PRIMARY KEY AUTOINCREMENT,
             event_id  INTEGER NOT NULL,
             event_src TEXT    NOT NULL DEFAULT 'static',
             user_id   INTEGER NOT NULL,
-            UNIQUE(event_id, event_src, user_id)
+            PRIMARY KEY (event_id, event_src, user_id)
         )
     """)
 

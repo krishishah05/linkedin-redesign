@@ -92,7 +92,6 @@
     addEducation: (entry) => request('POST', '/me/education', entry),
     addExperience: (entry) => request('POST', '/me/experience', entry),
     addSkill: (skill) => request('POST', '/me/skills', { skill }),
-    addExperience: (entry) => request('POST', '/me/experience', entry),
     addProject: (entry) => request('POST', '/me/projects', entry),
     addVolunteering: (entry) => request('POST', '/me/volunteering', entry),
     addHonor: (entry) => request('POST', '/me/honors', entry),

@@ -237,10 +237,13 @@ function JobDetailPanel({ job, descLoading, savedJobs, toggleSaveJob, openModal,
         <div style={{ flex: 1, minWidth: 0 }}>
           <h2 style={{ fontSize: 21, fontWeight: 750, margin: '0 0 4px', lineHeight: 1.25 }}>{job.title}</h2>
           <div style={{ fontSize: 14, color: 'var(--text-2)', marginBottom: 3 }}>
-            <span
-              style={{ color: 'var(--blue)', fontWeight: 650, cursor: job.companyId ? 'pointer' : 'default' }}
-              onClick={() => job.companyId && navigate(`company?id=${job.companyId}`)}
-            >{job.company}</span>
+            <button
+              type="button"
+              disabled={!job.companyId}
+              aria-label={`Open company ${job.company}`}
+              style={{ color: 'var(--blue)', fontWeight: 650, background: 'none', border: 'none', padding: 0, font: 'inherit', cursor: job.companyId ? 'pointer' : 'default' }}
+              onClick={() => navigate(`company?id=${job.companyId}`)}
+            >{job.company}</button>
           </div>
           <div style={{ fontSize: 13, color: 'var(--text-2)' }}>
             {[job.location, job.type, job.posted].filter(Boolean).join(' | ')}

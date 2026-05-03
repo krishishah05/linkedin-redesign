@@ -123,7 +123,9 @@ function EventsPage() {
                     className={attending.has(String(event.id)) ? 'li-btn li-btn--primary li-btn--sm' : 'li-btn li-btn--outline li-btn--sm'}
                     onClick={() => {
                       const key = String(event.id);
+                      let prevAtt, prevInt;
                       setAttending(prev => {
+                        prevAtt = new Set(prev);
                         const next = new Set(prev);
                         if (next.has(key)) { next.delete(key); showToast('Removed from attending'); }
                         else { next.add(key); showToast('Marked as attending!'); }
@@ -132,13 +134,18 @@ function EventsPage() {
                       });
                       // Attending and Interested are mutually exclusive
                       setInterested(prev => {
+                        prevInt = new Set(prev);
                         if (!prev.has(key)) return prev;
                         const next = new Set(prev);
                         next.delete(key);
                         try { localStorage.setItem('li-interested-events', JSON.stringify([...next])); } catch (_) {}
                         return next;
                       });
-                      API.attendEvent(event.id).catch(() => showToast('Failed to update attendance', 'error'));
+                      API.attendEvent(event.id).catch(() => {
+                        setAttending(() => { try { localStorage.setItem('li-attending-events', JSON.stringify([...prevAtt])); } catch (_) {} return prevAtt; });
+                        setInterested(() => { try { localStorage.setItem('li-interested-events', JSON.stringify([...prevInt])); } catch (_) {} return prevInt; });
+                        showToast('Failed to update attendance', 'error');
+                      });
                     }}
                   >
                     {attending.has(String(event.id)) ? '✓ Attending' : 'Attend'}
@@ -147,7 +154,9 @@ function EventsPage() {
                     className="li-btn li-btn--ghost li-btn--sm"
                     onClick={() => {
                       const key = String(event.id);
+                      let prevInt2, prevAtt2;
                       setInterested(prev => {
+                        prevInt2 = new Set(prev);
                         const next = new Set(prev);
                         if (next.has(key)) { next.delete(key); showToast('Removed from interested'); }
                         else { next.add(key); showToast('Marked as interested!'); }
@@ -156,6 +165,7 @@ function EventsPage() {
                       });
                       // Attending and Interested are mutually exclusive
                       setAttending(prev => {
+                        prevAtt2 = new Set(prev);
                         if (!prev.has(key)) return prev;
                         const next = new Set(prev);
                         next.delete(key);
@@ -163,12 +173,8 @@ function EventsPage() {
                         return next;
                       });
                       API.interestEvent(event.id).catch(() => {
-                        setInterested(prev => {
-                          const next = new Set(prev);
-                          if (next.has(key)) { next.delete(key); } else { next.add(key); }
-                          try { localStorage.setItem('li-interested-events', JSON.stringify([...next])); } catch (_) {}
-                          return next;
-                        });
+                        setInterested(() => { try { localStorage.setItem('li-interested-events', JSON.stringify([...prevInt2])); } catch (_) {} return prevInt2; });
+                        setAttending(() => { try { localStorage.setItem('li-attending-events', JSON.stringify([...prevAtt2])); } catch (_) {} return prevAtt2; });
                         showToast('Failed to update interest', 'error');
                       });
                     }}
