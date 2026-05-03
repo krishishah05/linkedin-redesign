@@ -307,8 +307,18 @@ function PostCreator({ user, onPost, openModal, showToast }) {
     e.target.value = '';
   }
 
-  function activatePhoto() { photoInputRef.current && photoInputRef.current.click(); setExpanded(true); }
-  function activateVideo() { videoInputRef.current && videoInputRef.current.click(); setExpanded(true); }
+  function activatePhoto() {
+    setMediaInputType('photo');
+    setShowMediaInput(true);
+    photoInputRef.current && photoInputRef.current.click();
+    setExpanded(true);
+  }
+  function activateVideo() {
+    setMediaInputType('video');
+    setShowMediaInput(true);
+    videoInputRef.current && videoInputRef.current.click();
+    setExpanded(true);
+  }
   function activateArticle() { setShowArticleTemplates(true); }
   function selectTemplate(tmpl) { setDraft(tmpl.body); setIsArticle(true); setShowArticleTemplates(false); setExpanded(true); }
   function handleVideoUpload(e) {
@@ -407,6 +417,25 @@ function PostCreator({ user, onPost, openModal, showToast }) {
       {expanded && !videoUrl.trim() && (imageUrl || photoPreviewUrl) && (
         <img src={photoPreviewUrl || imageUrl} alt="preview" style={{ maxHeight: 180, borderRadius: 8, objectFit: 'cover', width: '100%', marginTop: 4 }}
           onError={e => { e.target.style.display = 'none'; }} />
+      )}
+      {expanded && showMediaInput && (
+        <input
+          value={mediaInputType === 'video' ? videoUrl : imageUrl}
+          onChange={e => mediaInputType === 'video' ? setVideoUrl(e.target.value) : setImageUrl(e.target.value)}
+          placeholder={mediaInputType === 'video' ? t('uploadVideoUrl') : t('pasteImageUrl')}
+          style={{
+            width: '100%',
+            marginTop: 8,
+            border: '1px solid var(--border)',
+            borderRadius: 8,
+            padding: '9px 12px',
+            fontSize: 14,
+            outline: 'none',
+            background: 'var(--white)',
+            color: 'var(--text)',
+            boxSizing: 'border-box',
+          }}
+        />
       )}
       {expanded && (
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--border)' }}>
