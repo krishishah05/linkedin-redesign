@@ -54,10 +54,11 @@ function NetworkPage() {
     if (!query) { setSearchResults(null); setSearching(false); return; }
     setSearching(true);
     searchTimeoutRef.current = setTimeout(() => {
-      const allUsers = users || [];
-      const results = allUsers.filter(u =>
-        connections.has(String(u.id)) &&
-        (u.name.toLowerCase().includes(query) || (u.headline || '').toLowerCase().includes(query))
+      const pool = (users || []).filter(u =>
+        activeTab === 'connections' ? connections.has(String(u.id)) : true
+      );
+      const results = pool.filter(u =>
+        u.name.toLowerCase().includes(query) || (u.headline || '').toLowerCase().includes(query)
       );
       setSearchResults(results);
       setSearching(false);
