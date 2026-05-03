@@ -377,7 +377,7 @@ describe('MessagingPage Component Tests', () => {
             fireEvent.click(screen.getByText('Send'));
         });
 
-        expect(screen.getByText('Hello')).toBeInTheDocument();
+        expect(screen.getAllByText('Hello').length).toBeGreaterThanOrEqual(1);
         expect(global.API.sendMessage).toHaveBeenCalledTimes(1);
     });
 

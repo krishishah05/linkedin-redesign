@@ -129,6 +129,11 @@ function MessagingPage() {
       timestamp: Date.now(),
     };
     setMessages(prev => [...prev, newMsg]);
+    setLocalConversations(prev =>
+      (prev || []).map(c =>
+        c.id === selectedId ? { ...c, lastMessage: text } : c
+      )
+    );
 
     API.sendMessage(selectedId, text)
       .catch(() => {
