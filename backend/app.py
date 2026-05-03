@@ -399,6 +399,16 @@ def register():
     return jsonify({"user": user, "token": token}), 201
 
 
+@app.route("/api/auth/logout", methods=["POST"])
+def logout():
+    """POST /api/auth/logout - invalidate the current session token."""
+    auth = request.headers.get("Authorization", "")
+    token = auth.removeprefix("Bearer ").strip() if auth.startswith("Bearer ") else ""
+    if token:
+        dbl.invalidate_session(token)
+    return jsonify({"message": "Logged out"}), 200
+
+
 @app.route("/api/auth/change-password", methods=["POST"])
 def change_password():
     """POST /api/auth/change-password - update password for the authenticated user."""

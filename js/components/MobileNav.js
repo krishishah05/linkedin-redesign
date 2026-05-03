@@ -20,9 +20,19 @@ function MobileNav() {
           key={item.id}
           className={`li-mobile-nav-item${currentHash === item.id ? ' active' : ''}`}
           onClick={() => navigate(item.id)}
+          style={{ position: 'relative' }}
         >
           <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">{item.icon}</svg>
           <span>{item.label}</span>
+          {item.badge > 0 && (
+            <span style={{
+              position: 'absolute', top: 4, right: '50%', transform: 'translateX(12px)',
+              background: '#CC1016', color: '#fff', borderRadius: 10,
+              padding: '1px 5px', fontSize: 10, fontWeight: 700,
+            }}>
+              {item.badge}
+            </span>
+          )}
         </div>
       ))}
 

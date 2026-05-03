@@ -468,9 +468,22 @@ def change_password(user_id: int, current_password: str, new_password: str):
         conn.close()
         return False
     _execute(conn, "UPDATE users SET pw_hash=%s WHERE id=%s", (_hash_pw(new_password), user_id))
+    _execute(conn, "DELETE FROM sessions WHERE user_id=%s", (int(user_id),))
     conn.commit()
     conn.close()
+    stale = [t for t, uid in _sessions.items() if uid == int(user_id)]
+    for t in stale:
+        _sessions.pop(t, None)
     return True
+
+
+def invalidate_session(token: str) -> None:
+    """Remove a session token from both the in-memory cache and the DB."""
+    _sessions.pop(token, None)
+    conn = _connect()
+    _execute(conn, "DELETE FROM sessions WHERE token=%s", (token,))
+    conn.commit()
+    conn.close()
 
 
 def create_session(user_id: int) -> str:
@@ -1390,22 +1403,27 @@ def _ensure_event_interest_table(conn):
 
 
 def toggle_event_interest(event_id, event_src: str, user_id: int):
-    raw_id   = int(str(event_id).lstrip("u"))
-    conn     = _connect()
+    raw_id = int(str(event_id).lstrip("u"))
+    uid    = int(user_id)
+    conn   = _connect()
     _ensure_event_interest_table(conn)
+    # Remove conflicting attendance row first (mutually exclusive states)
+    _execute(conn,
+        "DELETE FROM event_attendance WHERE event_id=%s AND event_src=%s AND user_id=%s",
+        (raw_id, event_src, uid))
     existing = _execute(conn,
         "SELECT 1 FROM event_interest WHERE event_id=%s AND event_src=%s AND user_id=%s",
-        (raw_id, event_src, int(user_id))
+        (raw_id, event_src, uid)
     ).fetchone()
     if existing:
         _execute(conn,
             "DELETE FROM event_interest WHERE event_id=%s AND event_src=%s AND user_id=%s",
-            (raw_id, event_src, int(user_id)))
+            (raw_id, event_src, uid))
         interested = False
     else:
         _execute(conn,
             "INSERT INTO event_interest (event_id, event_src, user_id) VALUES (%s, %s, %s)",
-            (raw_id, event_src, int(user_id)))
+            (raw_id, event_src, uid))
         interested = True
     conn.commit()
     conn.close()

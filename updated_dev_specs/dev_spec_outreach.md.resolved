@@ -33,8 +33,8 @@ The Nexus app is a LinkedIn-redesign SPA built with **vanilla HTML/JS/CSS** on t
 | 1 | Outreach Message Guidance | Dhyani Soni |
 | 7 | Outreach Readiness Check | Victor Jimenez |
 
-**Story #1 GitHub Issue:** https://github.com/dhy-ani/linkedin-clone/issues/2  
-**Story #7 GitHub Issue:** https://github.com/dhy-ani/linkedin-clone/issues/3  
+**Story #1 GitHub Issue:** https://github.com/dhy-ani/linkedin-clone/issues/2 *(GitHub issue #2 — not Story #2)*
+**Story #7 GitHub Issue:** https://github.com/dhy-ani/linkedin-clone/issues/3 *(GitHub issue #3 — not Story #3)*
 
 ---
 
@@ -51,6 +51,56 @@ Both stories live inside the **same Flask process** and share:
 | Transport | JSON over HTTP | Consistent with existing API shape |
 | Auth | Simulated (user ID = 1 hardcoded as CURRENT_USER) | Matches P4 convention |
 | Max simultaneous users | 10 | Flask dev server adequate; production → Gunicorn 4 workers |
+
+### 2.1 Unified Backend Architecture
+
+The diagram below shows the complete backend module layout. The outreach routes (Stories #1 & #7) integrate into the same Flask process alongside all other API route groups, all sharing a single `database.py` data access layer.
+
+```mermaid
+flowchart TD
+    subgraph Client["Client — Browser"]
+        FE["Frontend SPA\napp.html + api.js"]
+    end
+
+    subgraph Flask["Flask Backend — backend/app.py"]
+        AUTH["Auth Routes\nPOST /api/auth/login\nPOST /api/auth/register\nPOST /api/auth/change-password"]
+        PROFILE["Profile Routes\nGET /api/me · PUT /api/me\nGET /api/profile-readiness\nPOST /api/me/experience · /education · /skills"]
+        SOCIAL["Social Routes\nGET /api/feed · POST /api/feed\nGET /api/users · /api/invitations\nPOST /api/me/connections · /following"]
+        JOBS["Jobs & Companies\nGET /api/jobs · /api/jobs/:id\nGET /api/companies/:id\nPOST /api/me/applied-jobs/:id"]
+        MESSAGING["Messaging\nGET /api/conversations\nGET /api/conversations/:id\nPOST /api/conversations/:id/messages"]
+        EVENTS["Events\nGET /api/events · POST /api/events\nPOST /api/events/:id/attend\nPOST /api/events/:id/interest"]
+        MISC["Misc\nGET /api/search · /api/notifications\nGET /api/groups · /api/courses\nGET /api/news · /api/hashtags"]
+        OUTREACH["Outreach — Stories #1 & #7\nPOST /api/outreach/generate\nGET /api/outreach/readiness"]
+    end
+
+    subgraph Logic["Business Logic"]
+        OM["outreach.py\ngenerate_outreach_message()\ncompute_outreach_readiness()\n_call_ai()"]
+    end
+
+    subgraph DB["Data Layer — backend/database.py"]
+        DBL["database.py\nAll CRUD functions"]
+        STORE["SQLite nexus.db\nor PostgreSQL on Render\n(toggled by DATABASE_URL)"]
+    end
+
+    FE --> AUTH
+    FE --> PROFILE
+    FE --> SOCIAL
+    FE --> JOBS
+    FE --> MESSAGING
+    FE --> EVENTS
+    FE --> MISC
+    FE --> OUTREACH
+    OUTREACH --> OM
+    OM --> DBL
+    AUTH --> DBL
+    PROFILE --> DBL
+    SOCIAL --> DBL
+    JOBS --> DBL
+    MESSAGING --> DBL
+    EVENTS --> DBL
+    MISC --> DBL
+    DBL --> STORE
+```
 
 ### New Files
 
@@ -361,13 +411,51 @@ flowchart TD
 
 ## 7. Component Architecture
 
+### 7.1 Full Module Class Diagram
+
+The class diagram below covers the complete `app.py` surface area, highlighting the outreach-specific methods and the `get_profile_readiness()` method (which Story #7 depends on for scoring context).
+
 ```mermaid
 classDiagram
     class app_py {
-        +GET /api/outreach/readiness
-        +POST /api/outreach/generate
-        -db : data module
-        -outreach_module : outreach.py
+        +login() POST /api/auth/login
+        +register() POST /api/auth/register
+        +change_password() POST /api/auth/change-password
+        +get_me() GET /api/me
+        +update_me() PUT /api/me
+        +get_profile_readiness() GET /api/profile-readiness
+        +add_experience() POST /api/me/experience
+        +add_education() POST /api/me/education
+        +add_skill() POST /api/me/skills
+        +get_users() GET /api/users
+        +get_feed() GET /api/feed
+        +create_post() POST /api/feed
+        +get_jobs() GET /api/jobs
+        +get_conversations() GET /api/conversations
+        +send_message() POST /api/conversations/:id/messages
+        +get_events() GET /api/events
+        +create_event() POST /api/events
+        +search() GET /api/search
+        +get_notifications() GET /api/notifications
+        +generate_outreach() POST /api/outreach/generate
+        +get_outreach_readiness() GET /api/outreach/readiness
+        -_auth_user() dict
+        -_require_auth_user() dict
+        -_get_body() dict
+        -db database_py
+        -outreach_module outreach_py
+    }
+
+    class get_profile_readiness_fields {
+        +score int
+        +sections list
+        +fixes list
+        ~headline_len int
+        ~about_len int
+        ~skill_count int
+        ~exp_count int
+        ~edu_count int
+        ~_status(section_score) str
     }
 
     class outreach_py {
@@ -380,20 +468,146 @@ classDiagram
         -_OUTREACH_CHECKS list
     }
 
-    class data_users_py {
-        +CURRENT_USER dict
-        +USERS list
+    class database_py {
+        +verify_credentials(email, password) dict
+        +create_session(user_id) str
+        +get_session_user_id(token) int
+        +change_password(user_id, current_password, new_password) bool
+        +get_current_user(user_id) dict
         +get_user_by_id(user_id) dict
+        +get_all_users(exclude_id) list
+        +update_current_user(updates, user_id) dict
+        +create_user(name, email, password, is_recruiter) dict
+        +add_experience(user_id, entry) dict
+        +add_education(user_id, entry) dict
+        +add_skill(user_id, skill) dict
+        +get_all_posts() list
+        +create_post(author_id, content, image_url, video_url) dict
+        +toggle_post_like(post_id, user_id) dict
+        +get_all_jobs() list
+        +get_conversations_for_user(user_id) list
+        +send_message(conv_id, sender_id, text) dict
+        +get_all_events_with_attendance(user_id) list
+        +create_event(creator_id, data) dict
+        +toggle_event_attend(event_id, event_src, user_id) dict
+        +toggle_event_interest(event_id, event_src, user_id) dict
+        +search(q, exclude_user_id) dict
+        +mark_notification_read(notif_id) void
+        +mark_all_notifications_read() void
+        -_connect() Connection
+        -_execute(conn, sql, params) Cursor
+        -_hash_pw(pw) str
+        -_USE_PG bool
+        -_DB_PATH str
     }
 
     class api_js {
         +generateOutreachMessage(recipientId, tone, goal, customNote) Promise
         +getOutreachReadiness(userId) Promise
+        +getProfileReadiness() Promise
+        +login(email, password) Promise
+        +register(name, email, password) Promise
+        +getFeed() Promise
+        +createPost(content, imageUrl) Promise
+        +getJobs() Promise
+        +getConversations() Promise
+        +sendMessage(convId, text) Promise
+        +getEvents() Promise
+        +search(q) Promise
     }
 
     app_py --> outreach_py : calls
-    app_py --> data_users_py : reads
+    app_py --> database_py : reads/writes
+    app_py ..> get_profile_readiness_fields : returns shape
     api_js --> app_py : HTTP JSON
+```
+
+### 7.2 Database Layer Internal Architecture
+
+`database.py` is the sole data-access layer. It abstracts both SQLite (local dev) and PostgreSQL (Render production) behind the same function signatures. The `_USE_PG` flag, set at module load time from `DATABASE_URL`, routes every `_execute()` call to the appropriate driver.
+
+```mermaid
+flowchart TD
+    subgraph database_py["backend/database.py"]
+        direction TB
+        CONN["_connect()\nReturns sqlite3 or psycopg2 connection\nbased on _USE_PG flag"]
+        EXEC["_execute(conn, sql, params)\n_insert_id(conn, sql, params)\nUnified query helpers"]
+
+        subgraph AuthFns["Auth & Session"]
+            AF1["verify_credentials(email, password)"]
+            AF2["create_session(user_id) → token"]
+            AF3["get_session_user_id(token) → int"]
+            AF4["change_password(user_id, ...) → bool"]
+        end
+
+        subgraph UserFns["User Management"]
+            UF1["get_user_by_id(user_id) → dict"]
+            UF2["get_all_users(exclude_id) → list"]
+            UF3["update_current_user(updates, user_id) → dict"]
+            UF4["create_user(name, email, password, ...) → dict"]
+            UF5["delete_user(user_id)"]
+        end
+
+        subgraph ProfileFns["Profile Sections"]
+            PF1["add_experience / update_experience / delete_experience"]
+            PF2["add_education / update_education / delete_education"]
+            PF3["add_skill / delete_skill"]
+            PF4["add_project / add_volunteering / add_honor"]
+        end
+
+        subgraph FeedFns["Feed & Posts"]
+            FF1["get_all_posts() → list"]
+            FF2["create_post(author_id, content, ...) → dict"]
+            FF3["toggle_post_like(post_id, user_id) → dict"]
+            FF4["add_post_comment(post_id, author_id, text) → dict"]
+            FF5["delete_post(post_id, user_id)"]
+        end
+
+        subgraph SocialFns["Social & Jobs"]
+            SF1["connect_user / accept_connection / toggle_following"]
+            SF2["get_incoming_connection_requests"]
+            SF3["toggle_saved_job / apply_to_job"]
+            SF4["get_all_jobs() / get_job_by_id() / get_company_by_id()"]
+        end
+
+        subgraph CommFns["Messaging & Notifications"]
+            CF1["get_conversations_for_user(user_id)"]
+            CF2["send_message(conv_id, sender_id, text)"]
+            CF3["get_all_notifications()"]
+            CF4["mark_notification_read / mark_all_notifications_read"]
+        end
+
+        subgraph EventFns["Events"]
+            EF1["get_all_events_with_attendance(user_id)"]
+            EF2["create_event(creator_id, data)"]
+            EF3["toggle_event_attend(event_id, event_src, user_id)"]
+            EF4["toggle_event_interest(event_id, event_src, user_id)"]
+        end
+
+        subgraph MiscFns["Search & Misc"]
+            MF1["search(q, exclude_user_id) → dict"]
+            MF2["get_social_state(user_id)"]
+            MF3["toggle_group(user_id, group_id)"]
+        end
+
+        CONN --> EXEC
+        EXEC --> AuthFns
+        EXEC --> UserFns
+        EXEC --> ProfileFns
+        EXEC --> FeedFns
+        EXEC --> SocialFns
+        EXEC --> CommFns
+        EXEC --> EventFns
+        EXEC --> MiscFns
+    end
+
+    subgraph Storage["Storage"]
+        SQLITE["SQLite\nnexus.db (local dev)"]
+        PG["PostgreSQL\n(Render production\nDATABASE_URL env var)"]
+    end
+
+    CONN -->|"_USE_PG = False"| SQLITE
+    CONN -->|"_USE_PG = True"| PG
 ```
 
 ---
@@ -552,10 +766,22 @@ If you need to regenerate the diagrams in another tool (e.g., ChatGPT, Claude.ai
 
 ### Prompt D — Component/Class Diagram
 
-> Generate a Mermaid `classDiagram` with four classes and their members:
-> - `app_py` with operations `+GET /api/outreach/readiness`, `+POST /api/outreach/generate`, and attributes `-db`, `-outreach_module`
-> - `outreach_py` with operations `+generate_outreach_message(sender, recipient, context) dict`, `+compute_outreach_readiness(user) dict`, `-_call_ai(prompt) str`, `-_first_name(full_name) str` and attributes `-_TONE_OPENERS dict`, `-_TONE_CLOSERS dict`, `-_OUTREACH_CHECKS list`
-> - `data_users_py` with attributes `+CURRENT_USER dict`, `+USERS list` and operation `+get_user_by_id(user_id) dict`
-> - `api_js` with operations `+generateOutreachMessage(recipientId, tone, goal, customNote) Promise`, `+getOutreachReadiness(userId) Promise`
+> Generate a Mermaid `classDiagram` with five classes and their members:
 >
-> Relationships: `app_py --> outreach_py : calls`, `app_py --> data_users_py : reads`, `api_js --> app_py : HTTP JSON`
+> **`app_py`** — all route handlers including:
+> - Auth: `+login()`, `+register()`, `+change_password()`
+> - Profile: `+get_me()`, `+update_me()`, `+get_profile_readiness()`, `+add_experience()`, `+add_education()`, `+add_skill()`
+> - Outreach (Stories #1 & #7): `+generate_outreach()`, `+get_outreach_readiness()`
+> - Other: `+get_users()`, `+get_feed()`, `+create_post()`, `+get_jobs()`, `+get_events()`, `+search()`
+> - Helpers: `-_auth_user() dict`, `-_require_auth_user() dict`, `-_get_body() dict`, `-db database_py`, `-outreach_module outreach_py`
+>
+> **`get_profile_readiness_fields`** — response shape for `get_profile_readiness()`:
+> `+score int`, `+sections list`, `+fixes list`, `~headline_len int`, `~about_len int`, `~skill_count int`, `~exp_count int`, `~edu_count int`, `~_status(section_score) str`
+>
+> **`outreach_py`** — `+generate_outreach_message(sender, recipient, context) dict`, `+compute_outreach_readiness(user) dict`, `-_call_ai(prompt) str`, `-_first_name(full_name) str`, `-_TONE_OPENERS dict`, `-_TONE_CLOSERS dict`, `-_OUTREACH_CHECKS list`
+>
+> **`database_py`** — all public data-access functions: `+verify_credentials(email, password) dict`, `+create_session(user_id) str`, `+get_session_user_id(token) int`, `+change_password(user_id, current_password, new_password) bool`, `+get_user_by_id(user_id) dict`, `+get_all_users(exclude_id) list`, `+update_current_user(updates, user_id) dict`, `+create_user(...) dict`, `+add_experience(user_id, entry) dict`, `+get_all_posts() list`, `+create_post(author_id, content, ...) dict`, `+toggle_post_like(post_id, user_id) dict`, `+get_conversations_for_user(user_id) list`, `+send_message(conv_id, sender_id, text) dict`, `+get_all_events_with_attendance(user_id) list`, `+toggle_event_attend(...)`, `+toggle_event_interest(...)`, `+search(q, exclude_user_id) dict`, `-_connect() Connection`, `-_execute(conn, sql, params) Cursor`, `-_hash_pw(pw) str`, `-_USE_PG bool`
+>
+> **`api_js`** — `+generateOutreachMessage(recipientId, tone, goal, customNote) Promise`, `+getOutreachReadiness(userId) Promise`, `+getProfileReadiness() Promise`, `+login(email, password) Promise`, `+getFeed() Promise`, `+getJobs() Promise`, `+getEvents() Promise`, `+search(q) Promise`
+>
+> Relationships: `app_py --> outreach_py : calls`, `app_py --> database_py : reads/writes`, `app_py ..> get_profile_readiness_fields : returns shape`, `api_js --> app_py : HTTP JSON`

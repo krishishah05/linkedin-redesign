@@ -236,6 +236,7 @@ function NavBar() {
                   role="menuitem"
                   onClick={() => {
                     const statusKey = currentUser?.id ? `li-user-status-${currentUser.id}` : null;
+                    API.logout().catch(() => {});
                     localStorage.removeItem('nx-token'); localStorage.removeItem('nx-uid');
                     ['li-liked-posts','li-saved-jobs','li-connections','li-following','li-pending-conn',
                      'li-dismissed-inv','li-applied-jobs','li-joined-groups','li-settings',
