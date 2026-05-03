@@ -2,14 +2,23 @@
    POSTMODAL.JS - Create a post
    ============================================================ */
 function PostModal() {
-  const { currentUser, closeModal, showToast } = React.useContext(AppContext);
+  const { currentUser, closeModal, showToast, modalData } = React.useContext(AppContext);
+  const repostOf = modalData?.repostOf;
+  const onRepost = modalData?.onRepost;
   const [text, setText] = React.useState('');
   const [imageUrl, setImageUrl] = React.useState('');
   const [videoUrl, setVideoUrl] = React.useState('');
-  const [showMediaInput, setShowMediaInput] = React.useState(false);
+  const [videoBlobUrl, setVideoBlobUrl] = React.useState('');
   const [posting, setPosting] = React.useState(false);
   const MAX = 3000;
   const photoInputRef = React.useRef(null);
+  const videoInputRef = React.useRef(null);
+
+  React.useEffect(() => {
+    return () => {
+      if (videoBlobUrl) URL.revokeObjectURL(videoBlobUrl);
+    };
+  }, [videoBlobUrl]);
 
   function handlePhotoUpload(e) {
     const file = e.target.files && e.target.files[0];
@@ -17,8 +26,9 @@ function PostModal() {
       const reader = new FileReader();
       reader.onload = () => {
         setImageUrl(typeof reader.result === 'string' ? reader.result : '');
+        if (videoBlobUrl) URL.revokeObjectURL(videoBlobUrl);
         setVideoUrl('');
-        setShowMediaInput(false);
+        setVideoBlobUrl('');
       };
       reader.onerror = () => showToast('Could not read this photo.', 'error');
       reader.readAsDataURL(file);
@@ -26,12 +36,35 @@ function PostModal() {
     e.target.value = '';
   }
 
+  function handleVideoUpload(e) {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    if (videoBlobUrl) URL.revokeObjectURL(videoBlobUrl);
+    const url = URL.createObjectURL(file);
+    setVideoBlobUrl(url);
+    const reader = new FileReader();
+    reader.onload = () => {
+      setVideoUrl(typeof reader.result === 'string' ? reader.result : '');
+    };
+    reader.onerror = () => showToast('Could not read this video.', 'error');
+    reader.readAsDataURL(file);
+    setImageUrl('');
+    e.target.value = '';
+  }
+
   function handleSubmit() {
     const cleanImageUrl = imageUrl.trim();
     const cleanVideoUrl = videoUrl.trim();
-    if (!text.trim() && !cleanImageUrl && !cleanVideoUrl) { showToast('Write something or add media first', 'error'); return; }
+    if (!text.trim() && !cleanImageUrl && !cleanVideoUrl && !repostOf) { showToast('Write something or add media first', 'error'); return; }
     if (posting) return;
     setPosting(true);
+    if (repostOf && onRepost) {
+      onRepost(repostOf, text.trim());
+      showToast('Reposted with your thoughts!', 'success');
+      closeModal();
+      navigate('feed');
+      return;
+    }
     API.createPost(text.trim(), cleanImageUrl || null, cleanVideoUrl || null)
       .then(() => {
         showToast('Post published!');
@@ -48,13 +81,8 @@ function PostModal() {
     <div className="li-modal-overlay" style={{ display: 'flex' }}
       onClick={e => { if (e.target === e.currentTarget) closeModal(); }}>
       <div className="li-modal">
-        <input
-          ref={photoInputRef}
-          type="file"
-          accept="image/*"
-          style={{ display: 'none' }}
-          onChange={handlePhotoUpload}
-        />
+        <input ref={photoInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handlePhotoUpload} />
+        <input ref={videoInputRef} type="file" accept="video/*" style={{ display: 'none' }} onChange={handleVideoUpload} />
         <div className="li-modal__header">
           <span className="li-modal__title">Create a post</span>
           <button className="li-modal__close" onClick={closeModal}>
@@ -84,23 +112,14 @@ function PostModal() {
             onChange={e => setText(e.target.value)}
             autoFocus
           />
-          {showMediaInput && (
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 8 }}>
-              <input
-                className="li-input"
-                placeholder="Paste video URL..."
-                value={videoUrl}
-                onChange={e => setVideoUrl(e.target.value)}
-                style={{ flex: 1, fontSize: 13 }}
-              />
-              {videoUrl && (
-                <button onClick={() => setVideoUrl('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-3)', fontSize: 18 }}>x</button>
-              )}
+          {(videoBlobUrl || videoUrl) && (
+            <div style={{ position: 'relative', marginTop: 8 }}>
+              <video src={videoBlobUrl || videoUrl} controls style={{ maxHeight: 220, borderRadius: 8, width: '100%', background: '#000' }} />
+              <button
+                onClick={() => { if (videoBlobUrl) URL.revokeObjectURL(videoBlobUrl); setVideoUrl(''); setVideoBlobUrl(''); }}
+                style={{ position: 'absolute', top: 6, right: 6, background: 'rgba(0,0,0,0.6)', border: 'none', borderRadius: '50%', width: 24, height: 24, cursor: 'pointer', color: '#fff', fontSize: 14, lineHeight: '24px', textAlign: 'center' }}
+              >×</button>
             </div>
-          )}
-          {videoUrl && (
-            <video src={videoUrl} controls
-              style={{ maxHeight: 220, borderRadius: 8, width: '100%', marginTop: 8, background: '#000' }} />
           )}
           {imageUrl && (
             <img src={imageUrl} alt="preview"
@@ -108,6 +127,25 @@ function PostModal() {
               onError={e => { e.target.style.display = 'none'; }} />
           )}
           <div className="li-post-char-count">{text.length} / {MAX}</div>
+          {repostOf && (() => {
+            const rpName = repostOf.author?.name || repostOf.authorName || repostOf.author || 'User';
+            const rpHeadline = repostOf.authorTitle || repostOf.author?.headline || '';
+            const rpContent = repostOf.content || repostOf.text || repostOf.body || '';
+            const rpImage = repostOf.image || repostOf.imageUrl || repostOf.image_url || null;
+            return (
+              <div style={{ border: '1px solid var(--border)', borderRadius: 8, padding: 12, marginTop: 8, background: 'var(--bg)' }}>
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 6 }}>
+                  <Avatar name={rpName} size={32} color={repostOf.author?.avatarColor} />
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: 13 }}>{rpName}</div>
+                    {rpHeadline && <div style={{ fontSize: 11, color: 'var(--text-2)' }}>{rpHeadline}</div>}
+                  </div>
+                </div>
+                {rpContent && <p style={{ fontSize: 13, lineHeight: 1.5, margin: 0, color: 'var(--text)' }}>{rpContent.length > 200 ? rpContent.slice(0, 200) + '…' : rpContent}</p>}
+                {rpImage && <img src={rpImage} alt="" style={{ maxHeight: 140, borderRadius: 6, width: '100%', objectFit: 'cover', marginTop: 8 }} onError={e => { e.target.style.display = 'none'; }} />}
+              </div>
+            );
+          })()}
         </div>
         <div className="li-modal__footer" style={{ borderTop: '1px solid var(--border)', flexDirection: 'column', alignItems: 'stretch', gap: 8 }}>
           <div className="li-post-modal__toolbar">
@@ -119,12 +157,8 @@ function PostModal() {
               <button key={btn.label} className="li-post-tool-btn"
                 onClick={() => {
                   if (btn.label === 'Write article') { closeModal(); navigate('article'); return; }
-                  if (btn.label === 'Photo') {
-                    photoInputRef.current && photoInputRef.current.click();
-                    return;
-                  }
-                  setImageUrl('');
-                  setShowMediaInput(true);
+                  if (btn.label === 'Photo') { photoInputRef.current && photoInputRef.current.click(); return; }
+                  if (btn.label === 'Video') { videoInputRef.current && videoInputRef.current.click(); return; }
                 }}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill={btn.color}>{btn.icon}</svg>
                 {btn.label}

@@ -4,6 +4,9 @@
 function EditProfileModal() {
   const { closeModal, currentUser, setCurrentUser, showToast } = React.useContext(AppContext);
   const [saving, setSaving] = React.useState(false);
+  const [photoPreview, setPhotoPreview] = React.useState(currentUser?.photo || null);
+  const [photoChanged, setPhotoChanged] = React.useState(false);
+  const photoInputRef = React.useRef(null);
   const [form, setForm] = React.useState({
     firstName: currentUser ? (currentUser.name || '').split(' ')[0] : '',
     lastName: currentUser ? (currentUser.name || '').split(' ').slice(1).join(' ') : '',
@@ -13,6 +16,20 @@ function EditProfileModal() {
     location: currentUser ? (currentUser.location || '') : '',
     about: currentUser ? (currentUser.about || '') : '',
   });
+
+  function handlePhotoChange(e) {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        setPhotoPreview(reader.result);
+        setPhotoChanged(true);
+      }
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  }
 
   function update(key, val) {
     setForm(prev => ({ ...prev, [key]: val }));
@@ -28,6 +45,7 @@ function EditProfileModal() {
     const name = (form.firstName + ' ' + form.lastName).trim();
     const updates = { headline: form.headline, location: form.location, pronouns: form.pronouns, industry: form.industry, about: form.about };
     if (name) updates.name = name;
+    if (photoChanged) updates.photo = photoPreview || '';
     API.updateMe(updates)
       .then(updated => {
         setCurrentUser(updated);
@@ -53,6 +71,29 @@ function EditProfileModal() {
           </button>
         </div>
         <div className="li-modal__body">
+          <input ref={photoInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handlePhotoChange} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 20 }}>
+            <div style={{ position: 'relative', flexShrink: 0 }}>
+              <Avatar name={currentUser ? currentUser.name : ''} size={72} photo={photoPreview} />
+              <button
+                type="button"
+                onClick={() => photoInputRef.current && photoInputRef.current.click()}
+                style={{ position: 'absolute', bottom: 0, right: 0, width: 24, height: 24, borderRadius: '50%', background: 'var(--blue)', border: '2px solid var(--white)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                title="Upload photo"
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="#fff"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+              </button>
+            </div>
+            <div>
+              <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 4 }}>Profile photo</div>
+              <button type="button" className="li-btn li-btn--ghost li-btn--sm" onClick={() => photoInputRef.current && photoInputRef.current.click()}>
+                {photoPreview ? 'Change photo' : 'Upload photo'}
+              </button>
+              {photoPreview && (
+                <button type="button" style={{ background: 'none', border: 'none', color: 'var(--text-3)', fontSize: 12, cursor: 'pointer', marginLeft: 8 }} onClick={() => { setPhotoPreview(null); setPhotoChanged(true); }}>Remove</button>
+              )}
+            </div>
+          </div>
           <p style={{ fontSize: 13, color: 'var(--text-2)', marginBottom: 16 }}>* indicates required fields</p>
           <div className="li-settings-form-row">
             <div style={{ flex: 1 }}>

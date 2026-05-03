@@ -185,6 +185,9 @@ def _conference_cache_key(location, field):
     return (location or "").strip().lower(), (field or "").strip().lower()
 
 
+def _conference_response(location, field, conferences, source, raw=None):
+    return conferences
+
 
 def _stringify_address(value):
     if isinstance(value, list):
@@ -227,9 +230,9 @@ def _normalize_serpapi_conferences(data, location, field):
         venue = event.get("venue")
         venue_name = venue.get("name") if isinstance(venue, dict) else ""
         address = _stringify_address(event.get("address")) or _stringify_address(venue) or location
-        gps = event.get("gps_coordinates") if isinstance(event.get("gps_coordinates"), dict) else {}
-        lat = _coerce_float(event.get("latitude") or event.get("lat") or gps.get("latitude") or gps.get("lat"), None)
-        lng = _coerce_float(event.get("longitude") or event.get("lng") or gps.get("longitude") or gps.get("lng"), None)
+        gps_coordinates = event.get("gps_coordinates") if isinstance(event.get("gps_coordinates"), dict) else {}
+        lat = _coerce_float(event.get("latitude") or event.get("lat") or gps_coordinates.get("latitude"), None)
+        lng = _coerce_float(event.get("longitude") or event.get("lng") or gps_coordinates.get("longitude"), None)
         if lat is None or lng is None:
             dlat, dlng = offsets[index % len(offsets)]
             lat = fallback_lat + dlat
@@ -413,7 +416,7 @@ def get_me():
 def update_me():
     """PUT /api/me - update current user profile fields."""
     body = _get_body()
-    allowed = {"name", "headline", "location", "about", "pronouns", "industry"}
+    allowed = {"name", "headline", "location", "about", "pronouns", "industry", "photo"}
     updates = {k: v for k, v in body.items() if k in allowed and isinstance(v, str)}
     if not updates:
         abort(400, description="No valid fields to update")

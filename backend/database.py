@@ -530,7 +530,8 @@ def update_current_user(updates: dict, user_id: int = 1):
         return None
     data = json.loads(row["data"])
     field_map = {"name": "name", "headline": "headline", "location": "location",
-                 "about": "about", "pronouns": "pronouns", "industry": "industry"}
+                 "about": "about", "pronouns": "pronouns", "industry": "industry",
+                 "photo": "photo"}
     for key, val in updates.items():
         if key in field_map:
             data[field_map[key]] = val
@@ -822,6 +823,7 @@ def create_user(name: str, email: str, password: str, is_recruiter: bool = False
         "connections": 0,
         "followers": 0,
         "avatarColor": "#0F5DBD",
+        "photo": "",
         "isPremium": False,
         "openToWork": False,
         "isRecruiter": is_recruiter,

@@ -44,9 +44,8 @@ def test_conference_search_normalizes_serpapi_response(monkeypatch):
     body = response.get_json()
 
     assert response.status_code == 200
-    assert body["source"] == "serpapi"
-    assert len(body["conferences"]) == 1
-    conference = body["conferences"][0]
+    assert len(body) == 1
+    conference = body[0]
     assert conference["name"] == "Applied AI Summit"
     assert conference["title"] == "Applied AI Summit"
     assert conference["date"] == "May 20, 2026"
@@ -54,7 +53,6 @@ def test_conference_search_normalizes_serpapi_response(monkeypatch):
     assert conference["address"] == "Chicago, IL"
     assert conference["link"] == "https://example.com/ai-summit"
     assert conference["source"] == "serpapi"
-    assert body["events_results"] == body["conferences"]
 
 
 def test_conference_search_falls_back_without_serpapi_key(monkeypatch):
@@ -66,7 +64,6 @@ def test_conference_search_falls_back_without_serpapi_key(monkeypatch):
     body = response.get_json()
 
     assert response.status_code == 200
-    assert body["source"] == "fallback"
-    assert len(body["conferences"]) == 3
-    assert body["conferences"][0]["source"] == "fallback"
-    assert body["conferences"][0]["address"] == "Boston"
+    assert len(body) == 3
+    assert body[0]["source"] == "fallback"
+    assert body[0]["address"] == "Boston"
