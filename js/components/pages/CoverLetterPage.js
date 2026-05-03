@@ -695,7 +695,7 @@ function CoverLetterPage() {
                 <input
                   id="cl-file-upload"
                   type="file"
-                  accept=".txt,.pdf,.docx,.doc"
+                  accept=".txt,.pdf,.docx"
                   onChange={handleFileUpload}
                   style={{ display: 'none' }}
                 />

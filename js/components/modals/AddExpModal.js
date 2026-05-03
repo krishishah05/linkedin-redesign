@@ -40,6 +40,7 @@ function AddExpModal() {
     const title = form.title.trim();
     const company = form.company.trim();
     if (!title || !company) { showToast('Title and company are required', 'error'); return; }
+    if (!currentRole && (!form.endMonth.trim() || !form.endYear.trim())) { showToast('End date is required', 'error'); return; }
     if (saving) return;
     setSaving(true);
     const entry = {

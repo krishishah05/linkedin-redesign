@@ -105,6 +105,7 @@ function MessagingPage() {
     );
     if (existing) {
       selectConversation(existing.id);
+      showToast(`Opening conversation with ${user.name}`);
       return;
     }
     API.createConversation(user.id)
