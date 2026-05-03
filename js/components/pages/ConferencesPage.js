@@ -4,8 +4,6 @@
    ============================================================ */
 
 function ConferencesPage() {
-  const { showToast } = React.useContext(AppContext);
-
   const [locationQ, setLocationQ] = React.useState('');
   const [fieldQ, setFieldQ] = React.useState('technology');
   const [searchCenter, setSearchCenter] = React.useState(null); // geocoded center for searched location
@@ -51,7 +49,7 @@ function ConferencesPage() {
     try {
       const res = await fetch(
         `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(place)}`,
-        { headers: { 'Accept-Language': 'en-US' } }
+        { headers: { 'Accept-Language': 'en-US', 'User-Agent': 'LinkedInRedesign/1.0 (https://github.com/krishishah05/linkedin-redesign)' } }
       );
       const data = await res.json();
       if (data && data[0]) return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
@@ -71,13 +69,11 @@ function ConferencesPage() {
     try {
       // 1. Get center of searched location
       const geo = await geocodePlace(location);
-      if (geo) setSearchCenter(geo);
+      setSearchCenter(geo || null);
 
       // 2. Call the backend; it calls SerpAPI, normalizes results, and falls back if needed.
       const data = await API.searchConferences(location, field);
-      const events = Array.isArray(data)
-        ? data
-        : (Array.isArray(data.conferences) ? data.conferences : (data.events_results || []));
+      const events = Array.isArray(data) ? data : (Array.isArray(data.conferences) ? data.conferences : (data.events_results || []));
 
       // 3. Use backend-normalized conference data. Geocode only if an older response lacks coordinates.
       const cleaned = await Promise.all(
@@ -95,7 +91,7 @@ function ConferencesPage() {
             id: event.id || i + 1,
             name: event.name || event.title,
             category: event.category || field,
-            date: event.date || event.date?.start_date || "TBD",
+            date: typeof event.date === 'string' ? event.date : (event.date?.start_date || "TBD"),
             venue: event.venue || "",
             address: event.address || "Unknown",
             description: event.description || "",
@@ -115,7 +111,7 @@ function ConferencesPage() {
 
     } catch (err) {
       console.error(err);
-      showToast("Failed to fetch conferences", "error");
+      createToast("Failed to fetch conferences", "error");
     } finally {
       setSearching(false);
     }
@@ -136,7 +132,10 @@ function ConferencesPage() {
       const conf = conferences.find(c => {
         const sn = String(story.conferenceName || '').toLowerCase();
         const cn = String(c.name || '').toLowerCase();
-        return sn && (cn.includes(sn) || sn.includes(cn.split(' ')[0]));
+        if (!sn || !cn) return false;
+        const firstWord = cn.split(/\s+/)[0];
+        const storyFirstWord = sn.split(/\s+/)[0];
+        return cn === sn || cn.startsWith(`${sn} `) || sn.startsWith(`${cn} `) || (firstWord && storyFirstWord === firstWord);
       });
       if (!conf) return [];
       const offsets = [0.003, -0.003, 0.002, -0.002, 0.004];
@@ -169,7 +168,7 @@ function ConferencesPage() {
   function handleStorySubmit(e) {
     e.preventDefault();
     if (!storyForm.conferenceName.trim() || !storyForm.tagline.trim() || !storyForm.description.trim()) {
-      showToast('Conference name, headline, and takeaways are required.', 'error');
+      createToast('Conference name, headline, and takeaways are required.', 'error');
       return;
     }
     setStorySubmitting(true);
@@ -184,9 +183,9 @@ function ConferencesPage() {
         setStories(prev => [story, ...prev]);
         setShowStoryForm(false);
         setStoryForm({ conferenceName: '', tagline: '', description: '', photoUrl: '', companyLogoUrl: '' });
-        showToast('Conference experience shared!', 'success');
+        createToast('Conference experience shared!', 'success');
       })
-      .catch(() => showToast('Failed to share story.', 'error'))
+      .catch(() => createToast('Failed to share story.', 'error'))
       .finally(() => setStorySubmitting(false));
   }
 
@@ -203,9 +202,9 @@ function ConferencesPage() {
             </p>
           </div>
           <form onSubmit={searchConferences} style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-            <input value={locationQ} onChange={e => setLocationQ(e.target.value)}
+            <input aria-label="Conference location" value={locationQ} onChange={e => setLocationQ(e.target.value)}
               placeholder="Location" style={confInputStyle} />
-            <input value={fieldQ} onChange={e => setFieldQ(e.target.value)}
+            <input aria-label="Conference field or topic" value={fieldQ} onChange={e => setFieldQ(e.target.value)}
               placeholder="Field or topic" style={confInputStyle} />
             <button className="li-btn li-btn--primary li-btn--sm" type="submit" disabled={searching}>
               {searching ? 'Searching...' : 'Search'}
@@ -370,6 +369,9 @@ function SnapStoryViewer({ stories, initialIdx, onClose }) {
   const [paused, setPaused] = React.useState(false);
   const [liked, setLiked] = React.useState(new Set());
   const intervalRef = React.useRef(null);
+  const wrapperRef = React.useRef(null);
+
+  React.useEffect(() => { wrapperRef.current?.focus(); }, []);
   const DURATION = 7000; // ms per story
   const TICK = 50;
 
@@ -413,6 +415,7 @@ function SnapStoryViewer({ stories, initialIdx, onClose }) {
 
   return (
     <div
+      ref={wrapperRef}
       style={{
         position: 'fixed', inset: 0, zIndex: 9500,
         background: '#000',
@@ -506,7 +509,7 @@ function SnapStoryViewer({ stories, initialIdx, onClose }) {
               <span style={{ fontSize: 20 }}>{liked.has(story.id) ? '❤️' : '🤍'}</span>
               {liked.has(story.id) ? 'Liked' : 'Like'}
             </button>
-            <button onClick={e => { e.stopPropagation(); navigator.clipboard?.writeText(window.location.href).then(() => { /* no-op */ }); showToast && window.dispatchEvent(new CustomEvent('nexus-toast', { detail: { message: 'Link copied!' } })); }}
+            <button onClick={async e => { e.stopPropagation(); try { await navigator.clipboard.writeText(window.location.href); createToast('Link copied!', 'success'); } catch (_) { createToast('Failed to copy link.', 'error'); } }}
               style={{ background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: 20, padding: '8px 16px', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer', backdropFilter: 'blur(4px)' }}>
               Share ↗
             </button>
@@ -542,8 +545,11 @@ function SnapStoryViewer({ stories, initialIdx, onClose }) {
 
 /* ── Story share form ──────────────────────────────────────── */
 function ConferenceStoryForm({ conferences, storyForm, setStoryForm, submitting, onSubmit, onClose }) {
+  const formWrapperRef = React.useRef(null);
+  React.useEffect(() => { formWrapperRef.current?.focus(); }, []);
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 9000, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+    <div ref={formWrapperRef} tabIndex={-1} onKeyDown={e => { if (e.key === 'Escape') onClose(); }}
+      style={{ position: 'fixed', inset: 0, zIndex: 9000, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', outline: 'none' }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div style={{ background: 'var(--white)', borderRadius: 12, padding: 28, width: 500, maxWidth: '95vw', boxShadow: '0 20px 60px rgba(0,0,0,0.35)', maxHeight: '90vh', overflowY: 'auto' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>

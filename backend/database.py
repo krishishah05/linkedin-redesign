@@ -447,7 +447,9 @@ def verify_credentials(email: str, password: str):
         return None
     if row["pw_hash"] != _hash_pw(password):
         return None
-    return json.loads(row["data"])
+    data = json.loads(row["data"])
+    data.setdefault("isRecruiter", False)
+    return data
 
 
 def create_session(user_id: int) -> str:
@@ -509,7 +511,12 @@ def get_all_users(exclude_id: int = 1):
         "SELECT data FROM users WHERE id != %s", (exclude_id,)
     ).fetchall()
     conn.close()
-    return [json.loads(r["data"]) for r in rows]
+    result = []
+    for r in rows:
+        d = json.loads(r["data"])
+        d.setdefault("isRecruiter", False)
+        result.append(d)
+    return result
 
 
 def update_current_user(updates: dict, user_id: int = 1):
