@@ -146,6 +146,7 @@ function EventsPage() {
                         try { localStorage.setItem('li-interested-events', JSON.stringify([...next])); } catch (_) {}
                         return next;
                       });
+                      API.interestEvent(event.id).catch(() => showToast('Failed to update interest', 'error'));
                     }}
                   >
                     {interested.has(String(event.id)) ? '★ Interested' : '☆ Interested'}

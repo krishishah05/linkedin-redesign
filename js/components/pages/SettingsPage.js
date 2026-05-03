@@ -174,6 +174,20 @@ function SettingsPage() {
                 <Toggle label="Dark mode" desc="Use a darker color scheme"
                   value={darkMode}
                   onChange={v => { setDarkMode(v); showToast('Dark mode ' + (v ? 'enabled' : 'disabled')); }} />
+                <div style={{ paddingTop: 14, borderTop: '1px solid var(--border)', marginTop: 4 }}>
+                  <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 4 }}>Language</div>
+                  <div style={{ fontSize: 13, color: 'var(--text-2)', marginBottom: 8 }}>Choose your preferred display language</div>
+                  <select
+                    className="li-settings-input"
+                    style={{ width: 240 }}
+                    value={language}
+                    onChange={e => { setLanguage(e.target.value); showToast('Language updated'); }}
+                  >
+                    {langOptions.map(opt => (
+                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
             )}
 

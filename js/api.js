@@ -71,6 +71,7 @@
     getEvents: () => request('GET', '/events'),
     createEvent: (data) => request('POST', '/events', data),
     attendEvent: (id) => request('POST', `/events/${id}/attend`),
+    interestEvent: (id) => request('POST', `/events/${id}/interest`),
 
     // ── Groups ────────────────────────────────────────────────
     getGroups: () => request('GET', '/groups'),

@@ -275,6 +275,14 @@ def init_db():  # pragma: no cover
             PRIMARY KEY (event_id, event_src, user_id)
         )
     """)
+    _execute(conn, """
+        CREATE TABLE IF NOT EXISTS event_interest (
+            event_id  INTEGER NOT NULL,
+            event_src TEXT NOT NULL DEFAULT 'static',
+            user_id   INTEGER NOT NULL,
+            PRIMARY KEY (event_id, event_src, user_id)
+        )
+    """)
 
     # -- Social state tables --------------------------------------------------
     _execute(conn, """
@@ -1299,20 +1307,28 @@ def get_all_events_with_attendance(user_id: int):
     from data.events import get_events as _get_static_events
 
     conn    = _connect()
-    attended = set()
+    attended  = set()
+    interested = set()
     if user_id is not None:
-        rows = _execute(conn,
+        att_rows = _execute(conn,
             "SELECT event_id, event_src FROM event_attendance WHERE user_id=%s",
             (int(user_id),)
         ).fetchall()
-        for r in rows:
+        for r in att_rows:
             attended.add((r["event_id"], r["event_src"]))
+        int_rows = _execute(conn,
+            "SELECT event_id, event_src FROM event_interest WHERE user_id=%s",
+            (int(user_id),)
+        ).fetchall()
+        for r in int_rows:
+            interested.add((r["event_id"], r["event_src"]))
 
     static_events = _get_static_events()
     result = []
     for e in static_events:
         ev = dict(e)
-        ev["isAttending"] = (ev.get("id", 0), "static") in attended
+        ev["isAttending"]  = (ev.get("id", 0), "static") in attended
+        ev["isInterested"] = (ev.get("id", 0), "static") in interested
         ev["source"] = "static"
         result.append(ev)
 
@@ -1321,10 +1337,11 @@ def get_all_events_with_attendance(user_id: int):
     ).fetchall()
     for r in ue_rows:
         ev = json.loads(r["data"])
-        ev["id"]          = f"u{r['id']}"
-        ev["creatorId"]   = r["creator_id"]
-        ev["isAttending"] = (r["id"], "user") in attended
-        ev["source"]      = "user"
+        ev["id"]           = f"u{r['id']}"
+        ev["creatorId"]    = r["creator_id"]
+        ev["isAttending"]  = (r["id"], "user") in attended
+        ev["isInterested"] = (r["id"], "user") in interested
+        ev["source"]       = "user"
         result.append(ev)
 
     conn.close()
@@ -1363,6 +1380,28 @@ def toggle_event_attend(event_id, event_src: str, user_id: int):
     conn.commit()
     conn.close()
     return {"attending": attending}
+
+
+def toggle_event_interest(event_id, event_src: str, user_id: int):
+    raw_id   = int(str(event_id).lstrip("u"))
+    conn     = _connect()
+    existing = _execute(conn,
+        "SELECT 1 FROM event_interest WHERE event_id=%s AND event_src=%s AND user_id=%s",
+        (raw_id, event_src, int(user_id))
+    ).fetchone()
+    if existing:
+        _execute(conn,
+            "DELETE FROM event_interest WHERE event_id=%s AND event_src=%s AND user_id=%s",
+            (raw_id, event_src, int(user_id)))
+        interested = False
+    else:
+        _execute(conn,
+            "INSERT INTO event_interest (event_id, event_src, user_id) VALUES (%s, %s, %s)",
+            (raw_id, event_src, int(user_id)))
+        interested = True
+    conn.commit()
+    conn.close()
+    return {"interested": interested}
 
 
 # ---------------------------------------------------------------------------

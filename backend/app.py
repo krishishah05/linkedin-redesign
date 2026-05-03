@@ -1235,6 +1235,15 @@ def toggle_event_attend(event_id):
     return jsonify(result)
 
 
+@app.route("/api/events/<event_id>/interest", methods=["POST"])
+def toggle_event_interest(event_id):
+    """POST /api/events/:id/interest - toggle interest."""
+    current_user = _require_auth_user()
+    src = "user" if str(event_id).startswith("u") else "static"
+    result = dbl.toggle_event_interest(event_id, src, current_user["id"])
+    return jsonify(result)
+
+
 @app.route("/api/groups")
 def get_groups():
     return jsonify(static_data.GROUPS)

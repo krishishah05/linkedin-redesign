@@ -60,6 +60,17 @@ function FeedPage() {
     };
     setLocalPosts(prev => [newPost, ...(prev || [])]);
     setFeedSort('Recent');
+    API.createPost(commentText || '', null, null)
+      .then(savedPost => {
+        setLocalPosts(prev => (prev || []).map(p =>
+          p.id === newPost.id ? { ...p, id: savedPost.id } : p
+        ));
+        showToast('Reposted!', 'success');
+      })
+      .catch(() => {
+        setLocalPosts(prev => (prev || []).filter(p => p.id !== newPost.id));
+        showToast('Failed to repost. Please try again.', 'error');
+      });
   }
 
   function handleNewPost(content, imageUrl, videoUrl) {
