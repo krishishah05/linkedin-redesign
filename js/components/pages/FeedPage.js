@@ -43,6 +43,25 @@ function FeedPage() {
       });
   const u = currentUser || {};
 
+  function handleRepost(originalPost, commentText = '') {
+    const newPost = {
+      id: Date.now(),
+      author: u.name,
+      authorId: u.id,
+      authorTitle: u.headline,
+      content: commentText,
+      repostOf: originalPost,
+      createdAt: Date.now(),
+      timestamp: Date.now(),
+      likeCount: 0,
+      commentCount: 0,
+      repostCount: 0,
+      comments: [],
+    };
+    setLocalPosts(prev => [newPost, ...(prev || [])]);
+    setFeedSort('Recent');
+  }
+
   function handleNewPost(content, imageUrl, videoUrl) {
     const newPost = {
       id: Date.now(),
@@ -95,7 +114,7 @@ function FeedPage() {
         <div className="li-card li-profile-card">
           {u.name && (
             <>
-              <div className="li-profile-card__banner" style={{ background: u.coverGradient || 'linear-gradient(135deg,#0a66c2,#004182)' }}>
+              <div className="li-profile-card__banner" style={{ background: u.coverGradient || 'linear-gradient(135deg,#2E87F0 0%,#0F5DBD 60%,#764ba2 100%)' }}>
                 <div className="li-profile-card__photo" style={{ cursor: 'pointer' }} onClick={() => navigate(`profile?id=${u.id}`)}>
                   {getInitials(u.name)}
                 </div>
@@ -148,6 +167,7 @@ function FeedPage() {
               openModal={openModal}
               showToast={showToast}
               currentUser={u}
+              onRepost={handleRepost}
               savedPostIds={savedPostIds}
               onSave={id => setSavedPostIds(prev => { const next = new Set(prev); next.has(String(id)) ? next.delete(String(id)) : next.add(String(id)); return next; })}
               onRepost={(id, delta = 1) => setLocalPosts(prev => (prev || []).map(p => p.id === id ? { ...p, repostCount: Math.max(0, (p.repostCount || 0) + delta) } : p))}
@@ -232,10 +252,10 @@ function PostCreator({ user, onPost, openModal, showToast }) {
   const [showArticleTemplates, setShowArticleTemplates] = React.useState(false);
   const [isArticle, setIsArticle] = React.useState(false);
   const [videoUrl, setVideoUrl] = React.useState('');
+  const [videoPreviewUrl, setVideoPreviewUrl] = React.useState('');
   const MAX = 3000;
   const photoInputRef = React.useRef(null);
   const videoInputRef = React.useRef(null);
-  const [videoPreviewUrl, setVideoPreviewUrl] = React.useState('');
 
   React.useEffect(() => {
     return () => {
@@ -278,6 +298,9 @@ function PostCreator({ user, onPost, openModal, showToast }) {
     if (file) {
       const nextPreview = URL.createObjectURL(file);
       if (photoPreviewUrl) URL.revokeObjectURL(photoPreviewUrl);
+      if (videoPreviewUrl) URL.revokeObjectURL(videoPreviewUrl);
+      setVideoUrl('');
+      setVideoPreviewUrl('');
       setPhotoPreviewUrl(nextPreview);
       setExpanded(true);
       const reader = new FileReader();
@@ -290,10 +313,41 @@ function PostCreator({ user, onPost, openModal, showToast }) {
     e.target.value = '';
   }
 
-  function activatePhoto() { photoInputRef.current && photoInputRef.current.click(); setExpanded(true); }
-  function activateVideo() { videoInputRef.current && videoInputRef.current.click(); setExpanded(true); }
+  function activatePhoto() {
+    setMediaInputType('photo');
+    setShowMediaInput(true);
+    if (videoPreviewUrl) URL.revokeObjectURL(videoPreviewUrl);
+    setVideoUrl('');
+    setVideoPreviewUrl('');
+    photoInputRef.current && photoInputRef.current.click();
+    setExpanded(true);
+  }
+  function activateVideo() {
+    setMediaInputType('video');
+    setShowMediaInput(true);
+    if (photoPreviewUrl) URL.revokeObjectURL(photoPreviewUrl);
+    setImageUrl('');
+    setPhotoPreviewUrl('');
+    videoInputRef.current && videoInputRef.current.click();
+    setExpanded(true);
+  }
   function activateArticle() { setShowArticleTemplates(true); }
   function selectTemplate(tmpl) { setDraft(tmpl.body); setIsArticle(true); setShowArticleTemplates(false); setExpanded(true); }
+  function handleVideoUpload(e) {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const previewUrl = URL.createObjectURL(file);
+    setVideoPreviewUrl(previewUrl);
+    setImageUrl('');
+    setPhotoPreviewUrl('');
+    const reader = new FileReader();
+    reader.onload = () => {
+      setVideoUrl(typeof reader.result === 'string' ? reader.result : '');
+    };
+    reader.onerror = () => showToast('Could not read this video.', 'error');
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  }
   function cancelAll() {
     setExpanded(false);
     setIsArticle(false);
@@ -301,22 +355,9 @@ function PostCreator({ user, onPost, openModal, showToast }) {
     setShowMediaInput(false);
     setImageUrl('');
     setPhotoPreviewUrl('');
-    setVideoUrl('');
     if (videoPreviewUrl) URL.revokeObjectURL(videoPreviewUrl);
+    setVideoUrl('');
     setVideoPreviewUrl('');
-  }
-
-  function handleVideoCapture(e) {
-    const file = e.target.files && e.target.files[0];
-    if (file) {
-      if (!file.type.startsWith('video/')) { showToast('Please select a valid video file.', 'error'); return; }
-      if (videoPreviewUrl) URL.revokeObjectURL(videoPreviewUrl);
-      const objUrl = URL.createObjectURL(file);
-      setVideoPreviewUrl(objUrl);
-      setVideoUrl(objUrl);
-      setExpanded(true);
-    }
-    e.target.value = '';
   }
 
   if (showArticleTemplates) {
@@ -350,7 +391,7 @@ function PostCreator({ user, onPost, openModal, showToast }) {
   return (
     <div className="li-card li-post-creator">
       <input ref={photoInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handlePhotoCapture} />
-      <input ref={videoInputRef} type="file" accept="video/*" style={{ display: 'none' }} onChange={handleVideoCapture} />
+      <input ref={videoInputRef} type="file" accept="video/*" style={{ display: 'none' }} onChange={handleVideoUpload} />
 
       <div className="li-post-creator__top">
         <div style={{ width: 48, height: 48, borderRadius: '50%', background: user.avatarColor || 'var(--blue)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: 18, flexShrink: 0 }}>
@@ -383,15 +424,37 @@ function PostCreator({ user, onPost, openModal, showToast }) {
           </div>
         )}
       </div>
-      {expanded && videoUrl.trim() && (
-        <div style={{ position: 'relative', marginTop: 4 }}>
-          <video src={videoUrl.trim()} controls style={{ maxHeight: 180, borderRadius: 8, width: '100%', background: '#000' }} />
-          <button onClick={() => { if (videoPreviewUrl) URL.revokeObjectURL(videoPreviewUrl); setVideoUrl(''); setVideoPreviewUrl(''); }} style={{ position: 'absolute', top: 4, right: 4, background: 'rgba(0,0,0,0.6)', border: 'none', cursor: 'pointer', color: '#fff', fontSize: 16, borderRadius: '50%', width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}>×</button>
+      {expanded && (videoPreviewUrl || videoUrl) && (
+        <div style={{ position: 'relative', marginTop: 8 }}>
+          <video src={videoPreviewUrl || videoUrl} controls style={{ maxHeight: 180, borderRadius: 8, width: '100%', background: '#000' }} />
+          <button
+            onClick={() => { if (videoPreviewUrl) URL.revokeObjectURL(videoPreviewUrl); setVideoUrl(''); setVideoPreviewUrl(''); }}
+            style={{ position: 'absolute', top: 6, right: 6, background: 'rgba(0,0,0,0.6)', border: 'none', borderRadius: '50%', width: 24, height: 24, cursor: 'pointer', color: '#fff', fontSize: 14, lineHeight: '24px', textAlign: 'center' }}
+          >×</button>
         </div>
       )}
       {expanded && !videoUrl.trim() && (imageUrl || photoPreviewUrl) && (
         <img src={photoPreviewUrl || imageUrl} alt="preview" style={{ maxHeight: 180, borderRadius: 8, objectFit: 'cover', width: '100%', marginTop: 4 }}
           onError={e => { e.target.style.display = 'none'; }} />
+      )}
+      {expanded && showMediaInput && (
+        <input
+          value={mediaInputType === 'video' ? videoUrl : imageUrl}
+          onChange={e => mediaInputType === 'video' ? setVideoUrl(e.target.value) : setImageUrl(e.target.value)}
+          placeholder={mediaInputType === 'video' ? t('uploadVideoUrl') : t('pasteImageUrl')}
+          style={{
+            width: '100%',
+            marginTop: 8,
+            border: '1px solid var(--border)',
+            borderRadius: 8,
+            padding: '9px 12px',
+            fontSize: 14,
+            outline: 'none',
+            background: 'var(--white)',
+            color: 'var(--text)',
+            boxSizing: 'border-box',
+          }}
+        />
       )}
       {expanded && (
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--border)' }}>
@@ -497,9 +560,7 @@ function SponsoredPost({ ad, showToast, onDismiss }) {
 function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, following, onFollow, openModal, showToast, currentUser, onDelete, onHide, onSave, savedPostIds, onRepost }) {
   const [menuOpen, setMenuOpen] = React.useState(false);
   const [reactionHover, setReactionHover] = React.useState(false);
-  const [reactionTimer, setReactionTimer] = React.useState(null);
-  const [reactionHideTimer, setReactionHideTimer] = React.useState(null);
-  const [localReposted, setLocalReposted] = React.useState(false);
+  const reactionTimerRef = React.useRef(null);
   const [localReaction, setLocalReaction] = React.useState(null);
   const [commentDraft, setCommentDraft] = React.useState('');
   const [localComments, setLocalComments] = React.useState(() => {
@@ -540,23 +601,12 @@ function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, followi
   const isFollowingAuthor = following && following.has(String(authorId));
 
   function handleLikeHover() {
-    if (reactionHideTimer) clearTimeout(reactionHideTimer);
-    const t = setTimeout(() => setReactionHover(true), 500);
-    setReactionTimer(t);
+    clearTimeout(reactionTimerRef.current);
+    reactionTimerRef.current = setTimeout(() => setReactionHover(true), 500);
   }
   function handleLikeLeave() {
-    if (reactionTimer) clearTimeout(reactionTimer);
-    const t = setTimeout(() => setReactionHover(false), 300);
-    setReactionHideTimer(t);
-  }
-  function handlePickerEnter() {
-    if (reactionTimer) clearTimeout(reactionTimer);
-    if (reactionHideTimer) clearTimeout(reactionHideTimer);
-    setReactionHover(true);
-  }
-  function handlePickerLeave() {
-    const t = setTimeout(() => setReactionHover(false), 300);
-    setReactionHideTimer(t);
+    clearTimeout(reactionTimerRef.current);
+    reactionTimerRef.current = setTimeout(() => setReactionHover(false), 300);
   }
   function selectReaction(r) {
     setLocalReaction(r.name);
@@ -679,6 +729,26 @@ function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, followi
           style={{ cursor: 'zoom-in' }}
           onClick={() => openModal('imageViewer', { src: post.image })} />
       )}
+      {post.repostOf && (() => {
+        const rp = post.repostOf;
+        const rpName = rp.author?.name || rp.authorName || rp.author || 'User';
+        const rpHeadline = rp.authorTitle || rp.author?.headline || '';
+        const rpContent = rp.content || rp.text || rp.body || '';
+        const rpImage = rp.image || rp.imageUrl || rp.image_url || null;
+        return (
+          <div style={{ margin: '8px 16px', border: '1px solid var(--border)', borderRadius: 8, padding: '12px', background: 'var(--bg)' }}>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8 }}>
+              <Avatar name={rpName} size={32} color={rp.author?.avatarColor} />
+              <div>
+                <div style={{ fontWeight: 700, fontSize: 13 }}>{rpName}</div>
+                {rpHeadline && <div style={{ fontSize: 11, color: 'var(--text-2)' }}>{rpHeadline}</div>}
+              </div>
+            </div>
+            {rpContent && <p style={{ fontSize: 14, lineHeight: 1.5, margin: 0, color: 'var(--text)' }}>{rpContent.length > 200 ? rpContent.slice(0, 200) + '…' : rpContent}</p>}
+            {rpImage && <img src={rpImage} alt="" style={{ maxHeight: 180, borderRadius: 6, width: '100%', objectFit: 'cover', marginTop: 8 }} onError={e => { e.target.style.display = 'none'; }} />}
+          </div>
+        );
+      })()}
 
       {/* Reactions count row */}
       {(totalReactions > 0 || commentCount > 0 || repostCount > 0) && (
@@ -730,7 +800,9 @@ function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, followi
           </button>
           {reactionHover && (
             <div
-              style={{ position: 'absolute', bottom: '100%', left: 0, display: 'flex', gap: 4, background: 'var(--white)', borderRadius: 24, padding: '6px 10px', boxShadow: '0 4px 16px rgba(0,0,0,0.2)', zIndex: 200 }}>
+              style={{ position: 'absolute', bottom: '100%', left: 0, display: 'flex', gap: 4, background: 'var(--white)', borderRadius: 24, padding: '6px 10px', boxShadow: '0 4px 16px rgba(0,0,0,0.2)', zIndex: 200 }}
+              onMouseEnter={() => { clearTimeout(reactionTimerRef.current); setReactionHover(true); }}
+              onMouseLeave={() => { reactionTimerRef.current = setTimeout(() => setReactionHover(false), 100); }}>
               {reactions.map(r => (
                 <button key={r.name} title={r.name}
                   onMouseDown={e => { e.preventDefault(); e.stopPropagation(); selectReaction(r); }}
@@ -752,19 +824,8 @@ function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, followi
           <span>Comment</span>
         </button>
 
-        <button
-          className={`li-post__action${localReposted ? ' liked' : ''}`}
-          style={{ flex: 1 }}
-          onClick={() => {
-            if (localReposted) {
-              onRepost && onRepost(post.id, -1);
-              setLocalReposted(false);
-            } else {
-              openModal('share', { post, onRepost: () => { onRepost && onRepost(post.id, 1); setLocalReposted(true); } });
-            }
-          }}
-        >
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke={localReposted ? 'var(--blue)' : 'currentColor'} strokeWidth="1.5">
+        <button className="li-post__action" onClick={() => openModal('share', { post, onRepost })} style={{ flex: 1 }}>
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.5">
             <path d="M17 1l4 4-4 4M3 11V9a4 4 0 014-4h14M7 23l-4-4 4-4M21 13v2a4 4 0 01-4 4H3" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
           <span style={localReposted ? { color: 'var(--blue)', fontWeight: 600 } : {}}>

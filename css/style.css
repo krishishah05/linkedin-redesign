@@ -2721,6 +2721,76 @@ body.dark-mode [style*="color: #888"],
 body.dark-mode [style*="color:#999"],
 body.dark-mode [style*="color: #999"] { color: var(--text-2) !important; }
 
+/* ── Dark green text (#057642, #1e7e34) — becomes unreadable on dark bg ── */
+body.dark-mode [style*="color:#057642"],
+body.dark-mode [style*="color: #057642"],
+body.dark-mode [style*="color:#1e7e34"],
+body.dark-mode [style*="color: #1e7e34"] { color: #4ade80 !important; }
+
+/* ── Dark orange / amber text (#b45309, #c7910a) ── */
+body.dark-mode [style*="color:#b45309"],
+body.dark-mode [style*="color: #b45309"],
+body.dark-mode [style*="color:#c7910a"],
+body.dark-mode [style*="color: #c7910a"] { color: #fbbf24 !important; }
+
+/* ── Dark gray (#344054) used in map markers & misc text ── */
+body.dark-mode [style*="color:#344054"],
+body.dark-mode [style*="color: #344054"] { color: var(--text-2) !important; }
+
+/* ── Light blue badge backgrounds (#EAF4FF) → dark blue tint ── */
+body.dark-mode [style*="background:#EAF4FF"],
+body.dark-mode [style*="background: #EAF4FF"] {
+  background: rgba(10,102,194,0.22) !important;
+}
+
+/* ── Light green badge backgrounds (#E6F4EA, #e8f5e9) → dark green tint ── */
+body.dark-mode [style*="background:#E6F4EA"],
+body.dark-mode [style*="background: #E6F4EA"],
+body.dark-mode [style*="background:#e8f5e9"],
+body.dark-mode [style*="background: #e8f5e9"] {
+  background: rgba(5,118,66,0.22) !important;
+}
+
+/* ── Light purple badge background (#F3E8FD) → dark purple tint ── */
+body.dark-mode [style*="background:#F3E8FD"],
+body.dark-mode [style*="background: #F3E8FD"] {
+  background: rgba(124,58,237,0.22) !important;
+}
+
+/* ── Light yellow badge background (#fff8e1, #fef3c7) → dark amber tint ── */
+body.dark-mode [style*="background:#fff8e1"],
+body.dark-mode [style*="background: #fff8e1"],
+body.dark-mode [style*="background:#fef3c7"],
+body.dark-mode [style*="background: #fef3c7"] {
+  background: rgba(231,165,0,0.18) !important;
+}
+
+/* ── Light blue card/section highlights (active job, conference rows) ── */
+body.dark-mode [style*="background:#EAF4FF"] { color: var(--text) !important; }
+
+/* ── Green border in open-to-work badges ── */
+body.dark-mode [style*="border:1px solid #b2dfdb"],
+body.dark-mode [style*="border: 1px solid #b2dfdb"] { border-color: rgba(5,118,66,0.4) !important; }
+body.dark-mode [style*="border:1px solid #ffe082"],
+body.dark-mode [style*="border: 1px solid #ffe082"] { border-color: rgba(231,165,0,0.4) !important; }
+
+/* ── rgba(0,0,0,...) text that's hardcoded for light mode ── */
+body.dark-mode [style*="color:rgba(0,0,0,0.9)"],
+body.dark-mode [style*="color: rgba(0,0,0,0.9)"] { color: var(--text) !important; }
+body.dark-mode [style*="color:rgba(0,0,0,0.6)"],
+body.dark-mode [style*="color: rgba(0,0,0,0.6)"] { color: var(--text-2) !important; }
+body.dark-mode [style*="color:rgba(0,0,0,0.45)"],
+body.dark-mode [style*="color: rgba(0,0,0,0.45)"],
+body.dark-mode [style*="color:rgba(0,0,0,0.4)"],
+body.dark-mode [style*="color: rgba(0,0,0,0.4)"] { color: var(--text-3) !important; }
+
+/* ── rgba(0,0,0,...) backgrounds that stay black in dark mode ── */
+body.dark-mode [style*="background:rgba(0,0,0,0.04)"],
+body.dark-mode [style*="background:rgba(0,0,0,0.06)"],
+body.dark-mode [style*="background:rgba(0,0,0,0.08)"] {
+  background: rgba(255,255,255,0.05) !important;
+}
+
 body.dark-mode [style*="border-bottom:1px solid #e0e0e0"],
 body.dark-mode [style*="border-top:1px solid #e0e0e0"],
 body.dark-mode [style*="border:1px solid #e0e0e0"],
@@ -2760,6 +2830,28 @@ body.dark-mode table { color: var(--text); }
 body.dark-mode th { color: var(--text-2) !important; }
 body.dark-mode td { color: var(--text); }
 body.dark-mode tr:hover td { background: rgba(255,255,255,0.04); }
+
+/* ── Flip rgba(0,0,0,...) hover/active backgrounds to white-tint ── */
+body.dark-mode .li-btn--ghost:hover,
+body.dark-mode .li-btn--icon:hover,
+body.dark-mode .li-btn--outline-dark:hover,
+body.dark-mode .li-post-creator__action:hover,
+body.dark-mode .li-post__options:hover,
+body.dark-mode .li-section__edit:hover,
+body.dark-mode .li-modal__close:hover,
+body.dark-mode .li-post-tool-btn:hover,
+body.dark-mode .li-manage-item:hover,
+body.dark-mode .li-msg-conv:not(.unread):hover,
+body.dark-mode .li-settings-nav__item:hover,
+body.dark-mode .li-app-item:hover,
+body.dark-mode .li-job-card__save:hover { background: rgba(255,255,255,0.07) !important; }
+
+/* ── Borders using rgba(0,0,0,...) → flip to white-tint ── */
+body.dark-mode .li-msg-conv,
+body.dark-mode .li-notif-item { border-bottom-color: var(--border) !important; }
+
+/* ── Bar track backgrounds ── */
+body.dark-mode .li-msg-score__bar-track { background: rgba(255,255,255,0.1) !important; }
 
 /* ============================================================
    CARD HOVER LIFT (subtle UX improvement)
@@ -3940,3 +4032,271 @@ body.dark-mode .li-msg-guide__tone-badge {
 .search-suggestions .sugg-item.is-active {
   background: rgba(0, 0, 0, 0.06);
 }
+
+/* ============================================================
+   UI POLISH — Modern visual enhancements
+   ============================================================ */
+
+/* ── Design token upgrades ── */
+:root {
+  --color-primary:  #0A66C2;
+  --bp-tablet:      900px;
+  --bp-mobile:      600px;
+  --blue:           #0F5DBD;
+  --blue-hover:     #0A4A9E;
+  --gradient-brand: linear-gradient(135deg, #0F5DBD 0%, #2E87F0 100%);
+  --gradient-warm:  linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --gradient-green: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+  --gradient-sunset:linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  --gradient-ocean: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  --radius:         10px;
+  --radius-lg:      14px;
+  --radius-xl:      999px;
+  --transition:     0.18s cubic-bezier(0.4,0,0.2,1);
+  --shadow-sm:      0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
+  --shadow:         0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.06);
+  --shadow-md:      0 10px 15px rgba(0,0,0,0.1), 0 4px 6px rgba(0,0,0,0.05);
+  --shadow-lg:      0 20px 25px rgba(0,0,0,0.1), 0 8px 10px rgba(0,0,0,0.04);
+  --shadow-blue:    0 4px 14px rgba(15,93,189,0.25);
+}
+
+/* ── Glassmorphism NavBar ── */
+.li-nav {
+  background: rgba(255,255,255,0.88) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 1px 0 rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04) !important;
+}
+
+/* ── Search bar: pill shape + glow ── */
+.li-nav__search-input {
+  border-radius: 22px !important;
+  background: rgba(0,0,0,0.05) !important;
+  transition: box-shadow var(--transition), background var(--transition) !important;
+}
+.li-nav__search-input:focus {
+  background: var(--white) !important;
+  box-shadow: 0 0 0 2px var(--blue), 0 2px 8px rgba(15,93,189,0.15) !important;
+}
+
+/* ── Active nav item: gradient underline ── */
+.li-nav__item.active {
+  color: var(--blue) !important;
+  border-bottom-color: transparent !important;
+  position: relative;
+}
+.li-nav__item.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 8px; right: 8px;
+  height: 2px;
+  background: var(--gradient-brand);
+  border-radius: 2px 2px 0 0;
+}
+
+/* ── Nav item hover: blue tint ── */
+.li-nav__item:hover {
+  color: var(--blue) !important;
+  background: rgba(15,93,189,0.06) !important;
+}
+
+/* ── Me avatar: gradient ring ── */
+.li-nav__me-avatar {
+  background: var(--gradient-brand) !important;
+  box-shadow: 0 0 0 2px var(--blue), 0 0 0 3px rgba(255,255,255,0.9);
+  font-size: 11px !important;
+  font-weight: 800 !important;
+}
+
+/* ── Cards: lifted look with hover effect ── */
+.li-card, .li-post, .li-section, .li-profile-header {
+  box-shadow: var(--shadow-sm) !important;
+  transition: box-shadow var(--transition), transform var(--transition) !important;
+  border-radius: var(--radius) !important;
+}
+.li-card:hover { box-shadow: var(--shadow) !important; }
+
+/* ── Primary button: gradient fill ── */
+.li-btn--primary,
+button.li-btn--primary,
+a.li-btn--primary {
+  background: var(--gradient-brand) !important;
+  border: none !important;
+  box-shadow: var(--shadow-blue) !important;
+  transition: transform var(--transition), box-shadow var(--transition), opacity var(--transition) !important;
+}
+.li-btn--primary:hover,
+button.li-btn--primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(15,93,189,0.35) !important;
+  opacity: 0.95;
+}
+.li-btn--primary:active { transform: translateY(0); }
+
+/* ── Connect / Follow buttons: outline polish ── */
+.li-btn--outline,
+.li-btn--connect,
+.li-follow-btn,
+.li-skill-endorse-btn,
+.li-dropdown__header-link {
+  border-radius: var(--radius-xl) !important;
+  transition: background var(--transition), box-shadow var(--transition), transform var(--transition) !important;
+}
+.li-btn--outline:hover,
+.li-btn--connect:hover,
+.li-follow-btn:hover,
+.li-skill-endorse-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(15,93,189,0.18) !important;
+}
+
+/* ── Post creator trigger: improved hover ── */
+.li-post-creator__trigger {
+  border-radius: var(--radius-xl) !important;
+  transition: background var(--transition), border-color var(--transition), box-shadow var(--transition) !important;
+}
+.li-post-creator__trigger:hover {
+  box-shadow: 0 0 0 1px var(--blue) !important;
+}
+
+/* ── Post action buttons: icon lift on hover ── */
+.li-post__action {
+  border-radius: 8px !important;
+  transition: background var(--transition), color var(--transition), transform var(--transition) !important;
+}
+.li-post__action:hover {
+  background: rgba(15,93,189,0.07) !important;
+  color: var(--blue) !important;
+}
+.li-post__action:hover svg { transform: scale(1.12); }
+.li-post__action svg { transition: transform var(--transition); }
+
+/* ── Profile cover: vibrant gradient presets ── */
+.li-profile-cover {
+  background: var(--gradient-warm) !important;
+}
+.li-profile-card__banner {
+  background: var(--gradient-brand) !important;
+}
+
+/* ── Profile photo ring ── */
+.li-profile-photo {
+  box-shadow: 0 0 0 4px var(--white), 0 0 0 6px rgba(15,93,189,0.2), 0 8px 16px rgba(0,0,0,0.12) !important;
+}
+
+/* ── Dropdown: animation + polish ── */
+.li-dropdown {
+  border-radius: var(--radius-lg) !important;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05), 0 10px 30px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.06) !important;
+  animation: dropdown-fade-in 0.14s cubic-bezier(0.4,0,0.2,1) !important;
+  transform-origin: top right;
+  overflow: hidden;
+}
+@keyframes dropdown-fade-in {
+  from { opacity: 0; transform: scale(0.96) translateY(-4px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+.li-dropdown__item {
+  transition: background var(--transition), color var(--transition) !important;
+  border-radius: 6px !important;
+  margin: 2px 6px !important;
+  padding: 10px 12px !important;
+}
+.li-dropdown__item:hover {
+  background: rgba(15,93,189,0.08) !important;
+  color: var(--blue) !important;
+}
+
+/* ── Me menu header avatar: gradient ── */
+.li-dropdown__header-name {
+  font-size: 17px !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.2px;
+}
+.li-dropdown__header-link {
+  background: linear-gradient(to right, rgba(15,93,189,0.06), rgba(15,93,189,0.03)) !important;
+  transition: background var(--transition), box-shadow var(--transition) !important;
+}
+.li-dropdown__header-link:hover {
+  background: rgba(15,93,189,0.12) !important;
+  box-shadow: 0 2px 8px rgba(15,93,189,0.15) !important;
+}
+
+/* ── Recruiter mode badge in dropdown: polished ── */
+span[style*="background:#057642"],
+span[style*="background: #057642"] {
+  background: linear-gradient(135deg, #057642, #10b981) !important;
+  border-radius: 8px !important;
+}
+
+/* ── Toast notifications: rounded pill ── */
+.li-toast {
+  border-radius: var(--radius-xl) !important;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.16) !important;
+  backdrop-filter: blur(8px);
+}
+
+/* ── Notification badge: gradient ── */
+.li-nav__item-badge {
+  background: linear-gradient(135deg, #e53e3e, #f56565) !important;
+  border-radius: var(--radius-xl) !important;
+  box-shadow: 0 2px 4px rgba(229,62,62,0.3);
+}
+
+/* ── Job card: polished active state ── */
+.li-job-card.active {
+  background: linear-gradient(to right, rgba(15,93,189,0.06), rgba(15,93,189,0.02)) !important;
+  border-left: 3px solid var(--blue) !important;
+}
+
+/* ── Section headers: slight weight bump ── */
+.li-section__title, .li-news-card__header { font-weight: 800 !important; letter-spacing: -0.3px; }
+
+/* ── Profile name: sharper ── */
+.li-profile-name { font-weight: 800 !important; letter-spacing: -0.4px; }
+
+/* ── Post author name hover: blue tint ── */
+.li-post__author-name:hover { color: var(--blue) !important; text-decoration: underline; }
+
+/* ── Scrollbar: brand-tinted ── */
+::-webkit-scrollbar-thumb { background: rgba(15,93,189,0.25) !important; border-radius: 6px !important; }
+::-webkit-scrollbar-thumb:hover { background: rgba(15,93,189,0.45) !important; }
+
+/* ── Focus ring: brand blue ── */
+:focus-visible { outline: 2px solid var(--blue) !important; outline-offset: 3px !important; box-shadow: 0 0 0 4px rgba(15,93,189,0.15) !important; }
+
+/* ── Search suggestions: polished ── */
+.search-suggestions {
+  border-radius: var(--radius-lg) !important;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05), 0 10px 30px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.06) !important;
+  overflow: hidden;
+  animation: dropdown-fade-in 0.12s cubic-bezier(0.4,0,0.2,1);
+}
+.search-suggestions .sugg-item:hover,
+.search-suggestions .sugg-item.is-active {
+  background: rgba(15,93,189,0.07) !important;
+  color: var(--blue) !important;
+}
+
+/* ── Input fields: consistent polish ── */
+.li-settings-input:focus { border-color: var(--blue) !important; box-shadow: 0 0 0 3px rgba(15,93,189,0.15) !important; }
+
+/* ── Logo wordmark: scale on hover ── */
+.li-nav__logo { transition: transform var(--transition) !important; }
+.li-nav__logo:hover { transform: scale(1.06) !important; }
+
+/* ── Dark mode: glassmorphism nav ── */
+body.dark-mode .li-nav {
+  background: rgba(30,37,48,0.88) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+}
+body.dark-mode .li-nav__item:hover { background: rgba(255,255,255,0.07) !important; }
+body.dark-mode .li-nav__item.active { color: #5fa8ff !important; }
+body.dark-mode .li-nav__item.active::after { background: linear-gradient(135deg, #5fa8ff, #a8d4ff); }
+body.dark-mode .li-post__action:hover { background: rgba(255,255,255,0.08) !important; color: #5fa8ff !important; }
+body.dark-mode .li-dropdown__item:hover { background: rgba(255,255,255,0.08) !important; color: #5fa8ff !important; }
+body.dark-mode .search-suggestions .sugg-item:hover,
+body.dark-mode .search-suggestions .sugg-item.is-active { background: rgba(255,255,255,0.08) !important; color: #5fa8ff !important; }
+body.dark-mode .li-nav__me-avatar { box-shadow: 0 0 0 2px #5fa8ff, 0 0 0 3px rgba(20,28,40,0.9) !important; }
+body.dark-mode .li-profile-photo { box-shadow: 0 0 0 4px var(--white), 0 0 0 6px rgba(95,168,255,0.2), 0 8px 16px rgba(0,0,0,0.4) !important; }

@@ -10,12 +10,7 @@ function NavBar() {
   const currentHash = useHash();
 
   const [meOpen, setMeOpen] = React.useState(false);
-  const [searchVal, setSearchVal] = React.useState('');
-  const [suggestions, setSuggestions] = React.useState([]);
-  const [showSuggestions, setShowSuggestions] = React.useState(false);
-  const [activeIndex, setActiveIndex] = React.useState(-1);
 
-  const searchListId = 'nav-search-listbox';
   const meMenuId = 'nav-me-menu';
 
   const meBtnRef = React.useRef(null);
@@ -32,72 +27,11 @@ function NavBar() {
   // Close menus on Escape
   React.useEffect(() => {
     function onKeyDown(e) {
-      if (e.key === 'Escape') {
-        setMeOpen(false);
-        setShowSuggestions(false);
-        setActiveIndex(-1);
-      }
+      if (e.key === 'Escape') setMeOpen(false);
     }
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
   }, []);
-
-  function handleSearchInput(val) {
-    setSearchVal(val);
-    setActiveIndex(-1);
-
-    if (!val.trim()) {
-      setSuggestions([]);
-      setShowSuggestions(false);
-      return;
-    }
-
-    API.search(val)
-      .then(results => {
-        // API returns {users:[], jobs:[], posts:[], query:''}
-        const users = (results.users || []).slice(0, 4);
-        const jobs = (results.jobs || []).slice(0, 2);
-        const combined = [...users, ...jobs];
-        setSuggestions(combined.slice(0, 6));
-        setShowSuggestions(true);
-      })
-      .catch(() => {
-        setSuggestions([]);
-        setShowSuggestions(false);
-      });
-  }
-
-  function goToSearchValue(v) {
-    const q = encodeURIComponent(v || '');
-    navigate(`search?q=${q}`);
-    setShowSuggestions(false);
-    setActiveIndex(-1);
-  }
-
-  function handleSearchKeyDown(e) {
-    if (!showSuggestions || suggestions.length === 0) {
-      if (e.key === 'Enter' && searchVal.trim()) {
-        goToSearchValue(searchVal.trim());
-      }
-      return;
-    }
-
-    if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      setActiveIndex(i => Math.min(i + 1, suggestions.length - 1));
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      setActiveIndex(i => Math.max(i - 1, 0));
-    } else if (e.key === 'Enter') {
-      e.preventDefault();
-      const s = suggestions[activeIndex];
-      if (s) goToSearchValue(s.name || s.title || s.query || '');
-      else if (searchVal.trim()) goToSearchValue(searchVal.trim());
-    } else if (e.key === 'Escape') {
-      setShowSuggestions(false);
-      setActiveIndex(-1);
-    }
-  }
 
   const navItems = [
     { id: 'feed',        label: t('home'),         badge: 0,                         icon: <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/> },
@@ -120,76 +54,17 @@ function NavBar() {
           onClick={e => { e.preventDefault(); navigate('feed'); }}
           aria-label="Nexus Home"
         >
-          <svg width="34" height="34" viewBox="0 0 34 34" fill="none" aria-hidden="true" focusable="false">
-            <rect width="34" height="34" rx="6" fill="#0F5DBD"/>
-            <text x="8" y="25" fontFamily="-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" fontSize="20" fontWeight="800" fill="#fff">N</text>
+          <svg width="36" height="36" viewBox="0 0 36 36" fill="none" aria-hidden="true" focusable="false">
+            <defs>
+              <linearGradient id="logo-grad" x1="0" y1="0" x2="36" y2="36" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stopColor="#2E87F0"/>
+                <stop offset="100%" stopColor="#0F5DBD"/>
+              </linearGradient>
+            </defs>
+            <rect width="36" height="36" rx="8" fill="url(#logo-grad)"/>
+            <text x="8" y="27" fontFamily="-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" fontSize="22" fontWeight="900" fill="#fff" letterSpacing="-1">N</text>
           </svg>
         </a>
-
-        {/* Search (combobox + listbox) */}
-        <div className="li-nav__search" style={{ position: 'relative' }}>
-          <span className="li-nav__search-icon" aria-hidden="true">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
-              <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
-            </svg>
-          </span>
-
-          <input
-            type="text"
-            className="li-nav__search-input"
-            id="nav-search"
-            placeholder="Search"
-            autoComplete="off"
-            value={searchVal}
-            onChange={e => handleSearchInput(e.target.value)}
-            onKeyDown={handleSearchKeyDown}
-            onFocus={() => { if (searchVal.trim() && suggestions.length) setShowSuggestions(true); }}
-            onBlur={() => setTimeout(() => { setShowSuggestions(false); setActiveIndex(-1); }, 150)}
-            aria-label="Search"
-            role="combobox"
-            aria-autocomplete="list"
-            aria-expanded={showSuggestions && suggestions.length > 0}
-            aria-controls={searchListId}
-            aria-activedescendant={activeIndex >= 0 ? `sugg-${activeIndex}` : undefined}
-          />
-
-          {showSuggestions && suggestions.length > 0 && (
-            <div
-              className="search-suggestions"
-              id={searchListId}
-              role="listbox"
-              aria-label="Search suggestions"
-              style={{ display: 'block', position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 9999 }}
-            >
-              {suggestions.map((s, i) => {
-                const label = s.name || s.title || s.query || '';
-                const selected = i === activeIndex;
-
-                return (
-                  <button
-                    key={i}
-                    id={`sugg-${i}`}
-                    type="button"
-                    className={`sugg-item${selected ? ' is-active' : ''}`}
-                    role="option"
-                    aria-selected={selected}
-                    onMouseDown={(e) => {
-                      // prevent blur before click fires
-                      e.preventDefault();
-                      goToSearchValue(label);
-                    }}
-                  >
-                    <Avatar name={label} size={28} />
-                    <span style={{ fontSize: 13, textAlign: 'left' }}>
-                      <span style={{ fontWeight: 600, display: 'block' }}>{label}</span>
-                      {s.headline && <span style={{ color: 'var(--text-2)', display: 'block' }}>{s.headline}</span>}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          )}
-        </div>
 
         {/* Nav Items */}
         <div className="li-nav__items">
@@ -285,18 +160,19 @@ function NavBar() {
             </button>
 
             {meOpen && (
-              <div className="li-dropdown" id={meMenuId} role="menu" style={{ display: 'block' }}>
+              <div className="li-dropdown" id={meMenuId} role="menu" style={{ display: 'block', minWidth: 280 }}>
                 <div className="li-dropdown__header">
-                  <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                    {currentUser && <Avatar name={currentUser.name} size={56} />}
+                  <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 12 }}>
+                    <div style={{ borderRadius: '50%', flexShrink: 0, lineHeight: 0 }}>
+                      {currentUser && <Avatar name={currentUser.name} size={48} photo={currentUser.photo} colorOverride={currentUser.avatarColor} />}
+                    </div>
                     <div>
                       <div className="li-dropdown__header-name">{currentUser ? currentUser.name : ''}</div>
-                      <div style={{ fontSize: 12, color: 'var(--text-2)', maxWidth: 220, lineHeight: 1.3 }}>
+                      <div style={{ fontSize: 12, color: 'var(--text-2)', maxWidth: 190, lineHeight: 1.35 }}>
                         {currentUser ? currentUser.headline : ''}
                       </div>
                     </div>
                   </div>
-
                   <a
                     href="#"
                     className="li-dropdown__header-link"
@@ -307,8 +183,8 @@ function NavBar() {
                   </a>
                 </div>
 
-                <div style={{ padding: '8px 0' }}>
-                  <div style={{ padding: '6px 16px', fontSize: 12, fontWeight: 700, color: 'var(--text-2)' }}>
+                <div style={{ padding: '4px 0 8px' }}>
+                  <div style={{ padding: '6px 16px 4px', fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                     Account
                   </div>
 
@@ -337,9 +213,11 @@ function NavBar() {
                     <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       Recruiter Mode
                       <span style={{
-                        fontSize: 11, fontWeight: 700, padding: '1px 6px', borderRadius: 8,
-                        background: recruiterMode ? '#057642' : 'var(--border)',
+                        fontSize: 10, fontWeight: 800, padding: '2px 7px', borderRadius: 99,
+                        background: recruiterMode ? 'linear-gradient(135deg,#057642,#10b981)' : 'var(--border)',
                         color: recruiterMode ? '#fff' : 'var(--text-2)',
+                        letterSpacing: '0.04em',
+                        boxShadow: recruiterMode ? '0 1px 4px rgba(5,118,66,0.3)' : 'none',
                       }}>
                         {recruiterMode ? 'ON' : 'OFF'}
                       </span>

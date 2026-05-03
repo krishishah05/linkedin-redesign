@@ -927,11 +927,6 @@
             </select>
             <span class="error-msg" id="s-country-err">Please select your country/region.</span>
           </div>
-          <div class="form-group">
-            <label for="s-postal">Postal code</label>
-            <input type="text" id="s-postal" placeholder="e.g. 10001" />
-            <span class="error-msg" id="s-postal-err">Please enter your postal code.</span>
-          </div>
           <div class="step-actions">
             <button class="btn-primary" onclick="nextStep(4)">Continue</button>
             <div class="step-back-link"><a href="#" onclick="skipStep(4); return false;">Skip for now</a> &nbsp;&middot;&nbsp;
@@ -939,45 +934,8 @@
           </div>
         </div>
 
-        <!-- Step 5 -->
+        <!-- Step 5 - Industry -->
         <div class="step" id="step-5">
-          <h2 class="step-heading">Your most recent job title</h2>
-          <p class="step-sub">Tell us a bit about your work experience. <em
-              style="color:rgba(0,0,0,0.45);font-style:normal;">(optional)</em></p>
-          <div class="form-group">
-            <label for="s-title">Job title</label>
-            <input type="text" id="s-title" placeholder="e.g. Software Engineer" />
-            <span class="error-msg" id="s-title-err">Please enter your job title.</span>
-          </div>
-          <div class="form-group">
-            <label for="s-emptype">Employment type</label>
-            <select id="s-emptype">
-              <option value="">Please select</option>
-              <option>Full-time</option>
-              <option>Part-time</option>
-              <option>Self-employed</option>
-              <option>Freelance</option>
-              <option>Contract</option>
-              <option>Internship</option>
-              <option>Apprenticeship</option>
-              <option>Seasonal</option>
-            </select>
-            <span class="error-msg" id="s-emptype-err">Please select an employment type.</span>
-          </div>
-          <div class="form-group">
-            <label for="s-company">Most recent company</label>
-            <input type="text" id="s-company" placeholder="e.g. Google" />
-            <span class="error-msg" id="s-company-err">Please enter your most recent company.</span>
-          </div>
-          <div class="step-actions">
-            <button class="btn-primary" onclick="nextStep(5)">Continue</button>
-            <div class="step-back-link"><a href="#" onclick="skipStep(5); return false;">Skip for now</a> &nbsp;&middot;&nbsp;
-              <a href="#" onclick="prevStep(5); return false;">Go back</a></div>
-          </div>
-        </div>
-
-        <!-- Step 6 -->
-        <div class="step" id="step-6">
           <h2 class="step-heading">What industry do you work in?</h2>
           <p class="step-sub">This helps us personalize your experience. <em
               style="color:rgba(0,0,0,0.45);font-style:normal;">(optional)</em></p>
@@ -985,39 +943,37 @@
           <span class="error-msg" id="s-industry-err" style="margin-top:8px;">Please select at least one
             industry.</span>
           <div class="step-actions">
+            <button class="btn-primary" onclick="nextStep(5)">Continue</button>
+            <div class="step-back-link"><a href="#" onclick="skipStep(5); return false;">Skip for now</a> &nbsp;&middot;&nbsp;
+              <a href="#" onclick="prevStep(5); return false;">Go back</a></div>
+          </div>
+        </div>
+
+        <!-- Step 6 - Goals (multi-select) -->
+        <div class="step" id="step-6">
+          <h2 class="step-heading">What are you looking for?</h2>
+          <p class="step-sub">Select all that apply. <em
+              style="color:rgba(0,0,0,0.45);font-style:normal;">(optional)</em></p>
+          <label class="radio-option" for="goal-1"><input type="checkbox" id="goal-1" value="job">Find
+            a new job</label>
+          <label class="radio-option" for="goal-2"><input type="checkbox" id="goal-2"
+              value="connect">Connect with colleagues &amp; classmates</label>
+          <label class="radio-option" for="goal-3"><input type="checkbox" id="goal-3"
+              value="clients">Find clients or business partners</label>
+          <label class="radio-option" for="goal-4"><input type="checkbox" id="goal-4"
+              value="conferences">Find nearby conferences</label>
+          <label class="radio-option" for="goal-5"><input type="checkbox" id="goal-5"
+              value="other">Something else</label>
+          <span class="error-msg" id="s-goal-err" style="margin-top:4px;">Please select an option.</span>
+          <div class="step-actions">
             <button class="btn-primary" onclick="nextStep(6)">Continue</button>
             <div class="step-back-link"><a href="#" onclick="skipStep(6); return false;">Skip for now</a> &nbsp;&middot;&nbsp;
               <a href="#" onclick="prevStep(6); return false;">Go back</a></div>
           </div>
         </div>
 
-        <!-- Step 7 -->
+        <!-- Step 7 - Student -->
         <div class="step" id="step-7">
-          <h2 class="step-heading">What kind of network do you want to build?</h2>
-          <p class="step-sub">We'll personalize your experience based on your goals. <em
-              style="color:rgba(0,0,0,0.45);font-style:normal;">(optional)</em></p>
-          <label class="radio-option" for="goal-1"><input type="radio" name="network-goal" id="goal-1" value="job">Find
-            a new job</label>
-          <label class="radio-option" for="goal-2"><input type="radio" name="network-goal" id="goal-2"
-              value="connect">Connect with colleagues &amp; classmates</label>
-          <label class="radio-option" for="goal-3"><input type="radio" name="network-goal" id="goal-3"
-              value="clients">Find clients or business partners</label>
-          <label class="radio-option" for="goal-4"><input type="radio" name="network-goal" id="goal-4"
-              value="skills">Build skills &amp; knowledge</label>
-          <label class="radio-option" for="goal-5"><input type="radio" name="network-goal" id="goal-5" value="hire">Hire
-            talent</label>
-          <label class="radio-option" for="goal-6"><input type="radio" name="network-goal" id="goal-6"
-              value="other">Something else</label>
-          <span class="error-msg" id="s-goal-err" style="margin-top:4px;">Please select an option.</span>
-          <div class="step-actions">
-            <button class="btn-primary" onclick="nextStep(7)">Continue</button>
-            <div class="step-back-link"><a href="#" onclick="skipStep(7); return false;">Skip for now</a> &nbsp;&middot;&nbsp;
-              <a href="#" onclick="prevStep(7); return false;">Go back</a></div>
-          </div>
-        </div>
-
-        <!-- Step 8 -->
-        <div class="step" id="step-8">
           <h2 class="step-heading">Are you a student?</h2>
           <p class="step-sub">Students get exclusive Nexus features to help start their career. <em
               style="color:rgba(0,0,0,0.45);font-style:normal;">(optional)</em></p>
@@ -1027,62 +983,24 @@
           </div>
           <span class="error-msg" id="s-student-err" style="margin-top:8px;">Please select an option.</span>
           <div class="step-actions" style="margin-top:16px;">
-            <button class="btn-primary" onclick="nextStep(8)">Continue</button>
-            <div class="step-back-link"><a href="#" onclick="skipStep(8); return false;">Skip for now</a> &nbsp;&middot;&nbsp;
-              <a href="#" onclick="prevStep(8); return false;">Go back</a></div>
+            <button class="btn-primary" onclick="nextStep(7)">Continue</button>
+            <div class="step-back-link"><a href="#" onclick="skipStep(7); return false;">Skip for now</a> &nbsp;&middot;&nbsp;
+              <a href="#" onclick="prevStep(7); return false;">Go back</a></div>
           </div>
         </div>
 
-        <!-- Step 9 - Recruiter -->
-        <div class="step" id="step-9">
+        <!-- Step 8 - Recruiter (required, final) -->
+        <div class="step" id="step-8">
           <h2 class="step-heading">Are you a recruiter?</h2>
-          <p class="step-sub">Recruiters get a <strong>Candidate Shortlist</strong> tool to save and export profiles.
-            <em style="color:rgba(0,0,0,0.45);font-style:normal;">(optional)</em></p>
+          <p class="step-sub">Recruiters get a <strong>Candidate Shortlist</strong> tool to save and export profiles.</p>
           <div class="yes-no-btns">
             <button id="recruiter-yes" onclick="selectRecruiter('yes')">Yes, I hire talent</button>
             <button id="recruiter-no" onclick="selectRecruiter('no')">No, I'm job seeking</button>
           </div>
-          <span class="error-msg" id="s-recruiter-err" style="margin-top:8px;">Please select an option.</span>
+          <span class="error-msg" id="s-recruiter-err" style="margin-top:8px;">Please select an option to continue.</span>
           <div class="step-actions" style="margin-top:16px;">
-            <button class="btn-primary" onclick="nextStep(9)">Continue</button>
-            <div class="step-back-link"><a href="#" onclick="skipStep(9); return false;">Skip for now</a> &nbsp;&middot;&nbsp;
-              <a href="#" onclick="prevStep(9); return false;">Go back</a></div>
-          </div>
-        </div>
-
-        <!-- Step 10 - Birthday -->
-        <div class="step" id="step-10">
-          <h2 class="step-heading">What's your birthday?</h2>
-          <p class="step-sub">This won't be shown publicly on your profile. <em
-              style="color:rgba(0,0,0,0.45);font-style:normal;">(optional)</em></p>
-          <div class="bday-selects">
-            <select id="s-bday-month">
-              <option value="">Month</option>
-              <option value="1">January</option>
-              <option value="2">February</option>
-              <option value="3">March</option>
-              <option value="4">April</option>
-              <option value="5">May</option>
-              <option value="6">June</option>
-              <option value="7">July</option>
-              <option value="8">August</option>
-              <option value="9">September</option>
-              <option value="10">October</option>
-              <option value="11">November</option>
-              <option value="12">December</option>
-            </select>
-            <select id="s-bday-day">
-              <option value="">Day</option>
-            </select>
-            <select id="s-bday-year">
-              <option value="">Year</option>
-            </select>
-          </div>
-          <span class="error-msg" id="s-bday-err" style="margin-top:8px;">Please enter a valid birthday.</span>
-          <div class="step-actions">
-            <button class="btn-primary" onclick="nextStep(10)">Agree &amp; Join</button>
-            <div class="step-back-link"><a href="#" onclick="skipStep(10); return false;">Skip for now</a> &nbsp;&middot;&nbsp;
-              <a href="#" onclick="prevStep(10); return false;">Go back</a></div>
+            <button class="btn-primary" onclick="nextStep(8)">Agree &amp; Join</button>
+            <div class="step-back-link"><a href="#" onclick="prevStep(8); return false;">Go back</a></div>
           </div>
         </div>
 
@@ -1096,8 +1014,14 @@
     const configuredApiBase = typeof window !== 'undefined' && typeof window.__API_BASE__ === 'string'
       ? window.__API_BASE__.replace(/\/+$/, '')
       : '';
-    const API_BASE = configuredApiBase || `${window.location.origin}/api`;
-    const TOTAL_STEPS = 10;
+    // On localhost the frontend runs on :8080 but the backend is on :5000 — match
+    // the same logic used in js/api.js so login/register calls reach the right port.
+    const _localApi = `${window.location.protocol}//${window.location.hostname}:5000/api`;
+    const _defaultApi = ['localhost', '127.0.0.1'].includes(window.location.hostname)
+      ? _localApi
+      : `${window.location.origin}/api`;
+    const API_BASE = configuredApiBase || _defaultApi;
+    const TOTAL_STEPS = 8;
     let currentStep = 1;
     let _registered = false;
     let studentChoice = null;
@@ -1253,7 +1177,7 @@
       const last = document.getElementById('s-last').value.trim();
       const name = (first + ' ' + last).trim();
 
-      const btn = document.querySelector('#step-10 .btn-primary');
+      const btn = document.querySelector('#step-8 .btn-primary');
       if (btn) { btn.disabled = true; btn.textContent = 'Creating account...'; }
 
       try {
@@ -1266,7 +1190,21 @@
         if (!res.ok) {
           if (btn) { btn.disabled = false; btn.textContent = 'Agree & Join'; }
           if (data.error === 'email_taken' || (data.error || '').includes('email')) {
-            showToast('That email is already registered. Try signing in.', true);
+            showToast('That email is already registered.', true);
+            goToStep(1);
+            const errEl = document.getElementById('s-email-err');
+            if (errEl) { errEl.textContent = 'Email already registered. Sign in instead.'; errEl.style.display = 'block'; }
+            const emailInput = document.getElementById('s-email');
+            if (emailInput) emailInput.classList.add('error');
+            const existingLink = document.getElementById('email-taken-link');
+            if (!existingLink) {
+              const link = document.createElement('div');
+              link.id = 'email-taken-link';
+              link.style.cssText = 'margin-top:10px;text-align:center;font-size:13px;';
+              link.innerHTML = '<a href="#" onclick="showView(\'login\'); return false;" style="color:var(--brand,#0077b5);font-weight:600;">Go to sign in →</a>';
+              const emailGroup = emailInput && emailInput.closest('.form-group');
+              if (emailGroup) emailGroup.appendChild(link);
+            }
           } else {
             showToast(data.error || 'Registration failed. Please try again.', true);
           }
@@ -1302,45 +1240,25 @@
           return ok;
         }
         case 4: {
-          // Optional step - only validate if partially filled
-          const country = document.getElementById('s-country').value;
-          const postal = document.getElementById('s-postal').value.trim();
-          if (country && !postal) { fieldErr('s-postal'); return false; }
-          if (postal && !country) { fieldErr('s-country'); return false; }
-          fieldOk('s-country'); fieldOk('s-postal'); return true;
+          // Optional - just need a country if anything is entered
+          fieldOk('s-country'); return true;
         }
         case 5: {
-          // Optional step - only validate if title/company partially filled
-          const title = document.getElementById('s-title').value.trim();
-          const company = document.getElementById('s-company').value.trim();
-          if (title && !company) { fieldErr('s-company'); return false; }
-          if (company && !title) { fieldErr('s-title'); return false; }
-          fieldOk('s-title'); fieldOk('s-emptype'); fieldOk('s-company'); return true;
-        }
-        case 6: {
           // Optional step - allow proceeding with no industry selected
           document.getElementById('s-industry-err').style.display = 'none'; return true;
         }
-        case 7: {
+        case 6: {
           // Optional step - allow proceeding with no goal selected
           document.getElementById('s-goal-err').style.display = 'none'; return true;
         }
-        case 8: {
+        case 7: {
           // Optional step - allow proceeding with no student choice
           document.getElementById('s-student-err').style.display = 'none'; return true;
         }
-        case 9: {
-          // Optional step - allow proceeding with no recruiter choice
+        case 8: {
+          // Required - must pick yes or no before joining
+          if (!recruiterChoice) { document.getElementById('s-recruiter-err').style.display = 'block'; return false; }
           document.getElementById('s-recruiter-err').style.display = 'none'; return true;
-        }
-        case 10: {
-          // Optional step - only validate if birthday is partially filled
-          const m = document.getElementById('s-bday-month').value;
-          const d = document.getElementById('s-bday-day').value;
-          const y = document.getElementById('s-bday-year').value;
-          const err = document.getElementById('s-bday-err');
-          if ((m || d || y) && (!m || !d || !y)) { err.style.display = 'block'; return false; }
-          err.style.display = 'none'; return true;
         }
       }
       return true;
@@ -1384,12 +1302,6 @@
       grid.appendChild(div);
     });
 
-    // -- Build birthday selects ------------------------------------------------
-    const dayEl = document.getElementById('s-bday-day');
-    for (let d = 1; d <= 31; d++) { const o = document.createElement('option'); o.value = d; o.textContent = d; dayEl.appendChild(o); }
-    const yearEl = document.getElementById('s-bday-year');
-    const curY = new Date().getFullYear();
-    for (let y = curY - 13; y >= curY - 100; y--) { const o = document.createElement('option'); o.value = y; o.textContent = y; yearEl.appendChild(o); }
 
     document.addEventListener('input', function (e) {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') e.target.classList.remove('error');

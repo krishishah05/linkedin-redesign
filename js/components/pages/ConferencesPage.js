@@ -1,189 +1,174 @@
 /* ============================================================
-   CONFERENCESPAGE.JS - Search conferences and view attendee stories
+   CONFERENCESPAGE.JS — Conferences map + Snapchat-style stories
+   Uses LightMap (zero-dependency OSM tile map, no Leaflet)
    ============================================================ */
 
 function ConferencesPage() {
-  const { showToast } = React.useContext(AppContext);
-  const mapContainerRef = React.useRef(null);
-  const leafletMap = React.useRef(null);
-  const conferenceMarkers = React.useRef([]);
-  const storyMarkers = React.useRef([]);
-
-  const [locationQ, setLocationQ] = React.useState('San Francisco, CA');
+  const [locationQ, setLocationQ] = React.useState('');
   const [fieldQ, setFieldQ] = React.useState('technology');
+  const [searchCenter, setSearchCenter] = React.useState(null); // geocoded center for searched location
   const [conferences, setConferences] = React.useState([]);
   const [selectedId, setSelectedId] = React.useState(null);
-  const [mapReady, setMapReady] = React.useState(false);
   const [searching, setSearching] = React.useState(false);
-  const [registeredIds, setRegisteredIds] = React.useState(new Set());
   const [stories, setStories] = React.useState([]);
   const [showStoryForm, setShowStoryForm] = React.useState(false);
-  const [viewingStory, setViewingStory] = React.useState(null);
+  const [viewingStoryIdx, setViewingStoryIdx] = React.useState(null); // index into stories[]
   const [storyForm, setStoryForm] = React.useState({
     conferenceName: '', tagline: '', description: '', photoUrl: '', companyLogoUrl: '',
   });
   const [storySubmitting, setStorySubmitting] = React.useState(false);
 
-  const selectedConf = conferences.find(c => String(c.id) === String(selectedId));
-  const selectedConfUrl = getSafeHttpUrl(selectedConf && selectedConf.link);
+  // Map center follows selected conf, or first conf with valid coords, or geocoded search center
+  const SF_DEFAULT = { lat: 37.7749, lng: -122.4194 };
+  function isDefaultCoord(lat, lng) {
+    return Math.abs(lat - SF_DEFAULT.lat) < 0.001 && Math.abs(lng - SF_DEFAULT.lng) < 0.001;
+  }
+  const mapCenter = React.useMemo(() => {
+    if (selectedId) {
+      const c = conferences.find(x => String(x.id) === String(selectedId));
+      if (c && !isDefaultCoord(c.lat, c.lng)) return { lat: c.lat, lng: c.lng };
+    }
+    const first = conferences.find(c => !isDefaultCoord(c.lat, c.lng));
+    if (first) return { lat: first.lat, lng: first.lng };
+    if (searchCenter) return searchCenter;
+    return SF_DEFAULT;
+  }, [selectedId, conferences, searchCenter]);
 
+  const selectedConf = conferences.find(c => String(c.id) === String(selectedId));
+  const selectedConfUrl = getSafeHttpUrl(selectedConf?.link);
+
+  // Load stories on mount
   React.useEffect(() => {
     API.getConferenceStories()
       .then(data => setStories(Array.isArray(data) ? data : []))
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
-  React.useEffect(() => {
-    let attempts = 0;
-    function tryInit() {
-      if (!window.L) {
-        if (attempts++ < 30) setTimeout(tryInit, 200);
-        return;
-      }
-      if (!mapContainerRef.current || leafletMap.current) return;
-      const map = window.L.map(mapContainerRef.current, { zoomControl: true }).setView([37.7749, -122.4194], 11);
-      window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: 'OpenStreetMap contributors',
-        maxZoom: 19,
-      }).addTo(map);
-      leafletMap.current = map;
-      setMapReady(true);
-    }
-    tryInit();
-    return () => {
-      if (leafletMap.current) {
-        leafletMap.current.remove();
-        leafletMap.current = null;
-      }
-    };
-  }, []);
+  // Geocode a place name → { lat, lng } using OSM Nominatim (free, no key)
+  async function geocodePlace(place) {
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(place)}`,
+        { headers: { 'Accept-Language': 'en-US', 'User-Agent': 'LinkedInRedesign/1.0 (https://github.com/krishishah05/linkedin-redesign)' } }
+      );
+      const data = await res.json();
+      if (data && data[0]) return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
+    } catch (_) { }
+    return null;
+  }
 
-  React.useEffect(() => {
-    searchConferences();
-  }, []);
-
-  React.useEffect(() => {
-    if (!mapReady) return;
-    renderMarkers();
-  }, [mapReady, conferences, stories, selectedId]);
-
-  function searchConferences(e) {
+  async function searchConferences(e) {
     if (e) e.preventDefault();
-    const location = locationQ.trim() || 'San Francisco, CA';
-    const field = fieldQ.trim() || 'technology';
+
+    const location = locationQ.trim() || "United States";
+    const field = fieldQ.trim() || "technology";
+
     setSearching(true);
-    API.searchConferences(location, field)
-      .then(items => {
-        const cleanItems = (Array.isArray(items) ? items : []).map((item, index) => ({
-          ...item,
-          id: item.id || index + 1,
-          lat: Number(item.lat) || 37.7749,
-          lng: Number(item.lng) || -122.4194,
-          tags: Array.isArray(item.tags) ? item.tags : [],
-        }));
-        setConferences(cleanItems);
-        setSelectedId(cleanItems[0]?.id || null);
-      })
-      .catch(() => showToast('Could not load conferences. Showing saved results when available.', 'error'))
-      .finally(() => setSearching(false));
-  }
+    setSelectedId(null);
 
-  function renderMarkers() {
-    const L = window.L;
-    const map = leafletMap.current;
-    if (!L || !map) return;
+    try {
+      // 1. Get center of searched location
+      const geo = await geocodePlace(location);
+      setSearchCenter(geo || null);
 
-    conferenceMarkers.current.forEach(marker => map.removeLayer(marker));
-    storyMarkers.current.forEach(marker => map.removeLayer(marker));
-    conferenceMarkers.current = [];
-    storyMarkers.current = [];
+      // 2. Call the backend; it calls SerpAPI, normalizes results, and falls back if needed.
+      const data = await API.searchConferences(location, field);
+      const events = Array.isArray(data) ? data : (Array.isArray(data.conferences) ? data.conferences : (data.events_results || []));
 
-    const bounds = [];
-    conferences.forEach(conf => {
-      const marker = L.marker([conf.lat, conf.lng], { icon: conferenceIcon(conf, String(conf.id) === String(selectedId)) })
-        .addTo(map)
-        .bindTooltip(`<b>${escapeHtml(conf.name)}</b><br><small>${escapeHtml(conf.date || '')}</small>`, {
-          direction: 'top',
-          offset: [0, -18],
-        });
-      marker.on('click', () => setSelectedId(id => String(id) === String(conf.id) ? null : conf.id));
-      conferenceMarkers.current.push(marker);
-      bounds.push([conf.lat, conf.lng]);
+      // 3. Use backend-normalized conference data. Geocode only if an older response lacks coordinates.
+      const cleaned = await Promise.all(
+        events.map(async (event, i) => {
+          let coords = null;
+          if ((event.lat === undefined || event.lng === undefined) && event.address) {
+            coords = await geocodePlace(event.address);
+          }
 
-      storiesForConference(conf).forEach((story, index) => {
-        const offset = storyOffset(index);
-        const storyMarker = L.marker([conf.lat + offset.lat, conf.lng + offset.lng], { icon: storyIcon(story) })
-          .addTo(map)
-          .bindTooltip(`<b>${escapeHtml(story.author?.name || 'Attendee')}</b><br><small>${escapeHtml(story.conferenceName || conf.name)}</small>`, {
-            direction: 'top',
-            offset: [0, -14],
-          });
-        storyMarker.on('click', () => setViewingStory(story));
-        storyMarkers.current.push(storyMarker);
-        bounds.push([conf.lat + offset.lat, conf.lng + offset.lng]);
-      });
-    });
+          const fallbackLat = geo?.lat || 37.7749;
+          const fallbackLng = geo?.lng || -122.4194;
+          const jitter = (i % 5) * 0.008 - 0.016;
 
-    if (bounds.length) {
-      map.fitBounds(bounds, { padding: [50, 50], maxZoom: 13 });
+          return {
+            id: event.id || i + 1,
+            name: event.name || event.title,
+            category: event.category || field,
+            date: typeof event.date === 'string' ? event.date : (event.date?.start_date || "TBD"),
+            venue: event.venue || "",
+            address: event.address || "Unknown",
+            description: event.description || "",
+            link: event.link,
+            price: event.price,
+            attendees: event.attendees || 0,
+            lat: Number(event.lat ?? coords?.lat ?? fallbackLat + jitter),
+            lng: Number(event.lng ?? coords?.lng ?? fallbackLng + jitter),
+            tags: event.tags || [field],
+            source: event.source || data.source || "serpapi",
+          };
+        })
+      );
+
+      setConferences(cleaned);
+      setSelectedId(cleaned[0]?.id || null);
+
+    } catch (err) {
+      console.error(err);
+      createToast("Failed to fetch conferences", "error");
+    } finally {
+      setSearching(false);
     }
-}
-
-function getSafeHttpUrl(rawUrl) {
-  if (!rawUrl) return '';
-  try {
-    const url = new URL(String(rawUrl), window.location.origin);
-    return /^https?:$/i.test(url.protocol) ? url.href : '';
-  } catch (_) {
-    return '';
   }
-}
 
-function conferenceIcon(conf, active) {
-    const color = active ? '#0a66c2' : '#344054';
-    return window.L.divIcon({
-      className: '',
-      html: `<div style="width:34px;height:34px;border-radius:8px;background:${color};border:2px solid #fff;box-shadow:0 3px 10px rgba(0,0,0,0.28);display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:800;">${escapeHtml((conf.category || 'C').slice(0, 2).toUpperCase())}</div>`,
-      iconSize: [34, 34],
-      iconAnchor: [17, 17],
+  // Build markers for LightMap
+  const mapMarkers = React.useMemo(() => {
+    const confMarkers = conferences.map(c => ({
+      id: `conf-${c.id}`,
+      lat: c.lat,
+      lng: c.lng,
+      label: (c.category || c.name || 'C').slice(0, 2).toUpperCase(),
+      active: String(c.id) === String(selectedId),
+      isStory: false,
+    }));
+
+    const storyMarkers = stories.flatMap(story => {
+      const conf = conferences.find(c => {
+        const sn = String(story.conferenceName || '').toLowerCase();
+        const cn = String(c.name || '').toLowerCase();
+        if (!sn || !cn) return false;
+        const firstWord = cn.split(/\s+/)[0];
+        const storyFirstWord = sn.split(/\s+/)[0];
+        return cn === sn || cn.startsWith(`${sn} `) || sn.startsWith(`${cn} `) || (firstWord && storyFirstWord === firstWord);
+      });
+      if (!conf) return [];
+      const offsets = [0.003, -0.003, 0.002, -0.002, 0.004];
+      const idx = stories.indexOf(story);
+      return [{
+        id: `story-${story.id}`,
+        lat: conf.lat + offsets[idx % offsets.length],
+        lng: conf.lng + offsets[(idx + 2) % offsets.length],
+        label: getInitials(story.author?.name || 'A'),
+        active: false,
+        isStory: true,
+        color: story.author?.avatarColor || '#0F5DBD',
+      }];
     });
-  }
 
-  function storyIcon(story) {
-    const name = story.author?.name || 'Attendee';
-    const initials = getInitials(name);
-    const color = story.author?.avatarColor || '#0F5DBD';
-    return window.L.divIcon({
-      className: '',
-      html: `<div style="width:30px;height:30px;border-radius:50%;background:${color};border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:800;">${escapeHtml(initials)}</div>`,
-      iconSize: [30, 30],
-      iconAnchor: [15, 15],
-    });
-  }
+    return [...confMarkers, ...storyMarkers];
+  }, [conferences, selectedId, stories]);
 
-  function storiesForConference(conf) {
-    return stories.filter(story => {
-      const storyName = String(story.conferenceName || '').toLowerCase();
-      const confName = String(conf.name || '').toLowerCase();
-      return storyName && (confName.includes(storyName) || storyName.includes(confName.split(' ')[0]));
-    }).slice(0, 5);
-  }
-
-  function storyOffset(index) {
-    const offsets = [
-      { lat: 0.003, lng: 0.002 },
-      { lat: -0.003, lng: 0.002 },
-      { lat: 0.002, lng: -0.003 },
-      { lat: -0.002, lng: -0.003 },
-      { lat: 0.004, lng: 0 },
-    ];
-    return offsets[index % offsets.length];
+  function onMarkerClick(markerId) {
+    if (String(markerId).startsWith('story-')) {
+      const storyId = String(markerId).replace('story-', '');
+      const idx = stories.findIndex(s => String(s.id) === storyId);
+      if (idx >= 0) setViewingStoryIdx(idx);
+    } else {
+      const confId = String(markerId).replace('conf-', '');
+      setSelectedId(prev => String(prev) === confId ? null : confId);
+    }
   }
 
   function handleStorySubmit(e) {
     e.preventDefault();
     if (!storyForm.conferenceName.trim() || !storyForm.tagline.trim() || !storyForm.description.trim()) {
-      showToast('Conference name, headline, and takeaways are required.', 'error');
+      createToast('Conference name, headline, and takeaways are required.', 'error');
       return;
     }
     setStorySubmitting(true);
@@ -198,35 +183,29 @@ function conferenceIcon(conf, active) {
         setStories(prev => [story, ...prev]);
         setShowStoryForm(false);
         setStoryForm({ conferenceName: '', tagline: '', description: '', photoUrl: '', companyLogoUrl: '' });
-        showToast('Conference experience shared.', 'success');
+        createToast('Conference experience shared!', 'success');
       })
-      .catch(() => showToast('Failed to share story.', 'error'))
+      .catch(() => createToast('Failed to share story.', 'error'))
       .finally(() => setStorySubmitting(false));
   }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 52px)', overflow: 'hidden', background: 'var(--bg)' }}>
+
+      {/* ── Search bar ── */}
       <div style={{ background: 'var(--white)', borderBottom: '1px solid var(--border)', padding: '12px 20px', flexShrink: 0, zIndex: 10 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap', justifyContent: 'space-between' }}>
           <div>
-            <h1 style={{ fontSize: 19, fontWeight: 750, margin: 0 }}>Conferences</h1>
+            <h1 style={{ fontSize: 19, fontWeight: 750, margin: 0, color: 'var(--text)' }}>Conferences</h1>
             <p style={{ fontSize: 12, color: 'var(--text-2)', margin: '2px 0 0' }}>
-              Search by location and field, then explore events and attendee experiences on the map.
+              Search by location and field. Conferences appear on the map with attendee stories.
             </p>
           </div>
           <form onSubmit={searchConferences} style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-            <input
-              value={locationQ}
-              onChange={e => setLocationQ(e.target.value)}
-              placeholder="Location"
-              style={conferenceInputStyle}
-            />
-            <input
-              value={fieldQ}
-              onChange={e => setFieldQ(e.target.value)}
-              placeholder="Field or topic"
-              style={conferenceInputStyle}
-            />
+            <input aria-label="Conference location" value={locationQ} onChange={e => setLocationQ(e.target.value)}
+              placeholder="Location" style={confInputStyle} />
+            <input aria-label="Conference field or topic" value={fieldQ} onChange={e => setFieldQ(e.target.value)}
+              placeholder="Field or topic" style={confInputStyle} />
             <button className="li-btn li-btn--primary li-btn--sm" type="submit" disabled={searching}>
               {searching ? 'Searching...' : 'Search'}
             </button>
@@ -234,65 +213,80 @@ function conferenceIcon(conf, active) {
         </div>
       </div>
 
+      {/* ── Body: sidebar + map ── */}
       <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
-        <aside style={{ width: 370, flexShrink: 0, overflowY: 'auto', borderRight: '1px solid var(--border)', background: 'var(--white)', display: 'flex', flexDirection: 'column' }}>
+
+        {/* Sidebar */}
+        <aside style={{ width: 350, flexShrink: 0, overflowY: 'auto', borderRight: '1px solid var(--border)', background: 'var(--white)', display: 'flex', flexDirection: 'column' }}>
+
+          {/* Story row */}
           <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--border)' }}>
-            <div style={{ fontSize: 12, fontWeight: 750, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 10 }}>
+            <div style={{ fontSize: 11, fontWeight: 750, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 10 }}>
               Attendee experiences
             </div>
             <div style={{ display: 'flex', gap: 10, overflowX: 'auto', paddingBottom: 4 }}>
+              {/* Add story ring */}
+              <button type="button" onClick={() => setShowStoryForm(true)}
+                style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, flexShrink: 0, border: 'none', background: 'none', padding: 0, cursor: 'pointer' }}>
+                <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'linear-gradient(135deg,#0a66c2,#7c3aed)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 22, fontWeight: 700, border: '2px solid var(--border)' }}>+</div>
+                <div style={{ fontSize: 10, color: 'var(--text-2)' }}>Share</div>
+              </button>
+
               {stories.length === 0 && (
-                <div style={{ fontSize: 12, color: 'var(--text-3)', paddingTop: 4 }}>
-                  No experiences yet. Share the first one.
-                </div>
+                <div style={{ fontSize: 12, color: 'var(--text-3)', paddingTop: 14, paddingLeft: 4 }}>No experiences yet.</div>
               )}
-              {stories.map(story => (
-                <button key={story.id} type="button" onClick={() => setViewingStory(story)}
-                  style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, cursor: 'pointer', flexShrink: 0, border: 'none', background: 'none', padding: 0, font: 'inherit' }}
-                  aria-label={`Open ${story.author ? story.author.name : 'attendee'} conference story`}>
-                  <Avatar name={story.author ? story.author.name : 'Attendee'} size={48} colorOverride={story.author ? story.author.avatarColor : undefined} />
-                  <div style={{ fontSize: 10, color: 'var(--text-2)', maxWidth: 58, textAlign: 'center', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {story.author ? story.author.name.split(' ')[0] : 'Attendee'}
+
+              {stories.map((story, idx) => (
+                <button key={story.id} type="button" onClick={() => setViewingStoryIdx(idx)}
+                  style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, flexShrink: 0, border: 'none', background: 'none', padding: 0, cursor: 'pointer' }}>
+                  {/* Story ring gradient border */}
+                  <div style={{ padding: 2, borderRadius: '50%', background: 'linear-gradient(135deg, #f59e0b, #ef4444, #a855f7)', display: 'inline-block' }}>
+                    <div style={{ background: 'var(--white)', borderRadius: '50%', padding: 2 }}>
+                      <Avatar name={story.author?.name || 'Attendee'} size={40} colorOverride={story.author?.avatarColor} />
+                    </div>
+                  </div>
+                  <div style={{ fontSize: 10, color: 'var(--text-2)', maxWidth: 52, textAlign: 'center', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {(story.author?.name || 'Attendee').split(' ')[0]}
                   </div>
                 </button>
               ))}
             </div>
           </div>
 
-          <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ fontSize: 13, color: 'var(--text-2)' }}>{conferences.length} conference{conferences.length !== 1 ? 's' : ''}</div>
-            <button data-testid="share-conference-story-btn" type="button" className="li-btn li-btn--ghost li-btn--sm" onClick={() => setShowStoryForm(true)}>
-              Share experience
-            </button>
+          {/* Conference count */}
+          <div style={{ padding: '10px 16px', borderBottom: '1px solid var(--border)' }}>
+            <div style={{ fontSize: 13, color: 'var(--text-2)' }}>
+              {searching ? 'Searching...' : `${conferences.length} conference${conferences.length !== 1 ? 's' : ''}`}
+            </div>
           </div>
 
+          {/* Conference list */}
           <div style={{ flex: 1, overflowY: 'auto' }}>
-            {conferences.length === 0 && (
+            {!searching && conferences.length === 0 && (
               <div style={{ padding: 32, color: 'var(--text-2)', fontSize: 14 }}>Search for conferences to see results.</div>
             )}
             {conferences.map(conf => {
               const isActive = String(conf.id) === String(selectedId);
-              const isRegistered = registeredIds.has(String(conf.id));
               return (
-                <button key={conf.id} type="button" onClick={() => setSelectedId(id => String(id) === String(conf.id) ? null : conf.id)}
+                <button key={conf.id} type="button"
+                  onClick={() => setSelectedId(id => String(id) === String(conf.id) ? null : conf.id)}
                   style={{
-                    width: '100%', textAlign: 'left', padding: '15px 16px', cursor: 'pointer',
+                    width: '100%', textAlign: 'left', padding: '14px 16px', cursor: 'pointer',
                     borderTop: 0, borderRight: 0, borderBottom: '1px solid var(--border)',
                     borderLeft: `3px solid ${isActive ? 'var(--blue)' : 'transparent'}`,
-                    background: isActive ? '#EAF4FF' : 'var(--white)',
+                    background: isActive ? 'var(--blue-light)' : 'var(--white)',
                     font: 'inherit',
                   }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, marginBottom: 5 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, marginBottom: 4 }}>
                     <div style={{ fontSize: 14, fontWeight: 750, color: isActive ? 'var(--blue)' : 'var(--text)', lineHeight: 1.3 }}>{conf.name}</div>
-                    <span style={{ fontSize: 11, color: 'var(--text-3)', whiteSpace: 'nowrap' }}>{conf.price || 'See event'}</span>
+                    <span style={{ fontSize: 11, color: 'var(--text-3)', whiteSpace: 'nowrap', flexShrink: 0 }}>{conf.price || 'See event'}</span>
                   </div>
-                  <div style={{ fontSize: 12, color: 'var(--text-2)', marginBottom: 5 }}>{conf.date}</div>
-                  <div style={{ fontSize: 12, color: 'var(--text-3)', marginBottom: 8 }}>{conf.venue || conf.address}</div>
+                  <div style={{ fontSize: 12, color: 'var(--text-2)', marginBottom: 3 }}>{conf.date}</div>
+                  <div style={{ fontSize: 12, color: 'var(--text-3)', marginBottom: 7 }}>{conf.venue || conf.address}</div>
                   <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', alignItems: 'center' }}>
                     {(conf.tags || []).slice(0, 3).map(tag => (
                       <span key={tag} style={{ fontSize: 11, background: 'var(--bg-2)', padding: '2px 6px', borderRadius: 6, color: 'var(--text-2)' }}>{tag}</span>
                     ))}
-                    {isRegistered && <span style={{ fontSize: 11, color: '#057642', fontWeight: 750, marginLeft: 'auto' }}>Registered</span>}
                   </div>
                 </button>
               );
@@ -300,36 +294,41 @@ function conferenceIcon(conf, active) {
           </div>
         </aside>
 
-        <main style={{ flex: 1, position: 'relative' }}>
-          <div ref={mapContainerRef} style={{ width: '100%', height: '100%' }} />
-          {!mapReady && (
-            <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)', zIndex: 5 }}>
-              <LoadingSpinner text="Loading map..." />
-            </div>
-          )}
+        {/* Map area */}
+        <main style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
+          <LightMap
+            centerLat={mapCenter.lat}
+            centerLng={mapCenter.lng}
+            zoom={10}
+            markers={mapMarkers}
+            onMarkerClick={onMarkerClick}
+          />
 
+          {/* Selected conference popup */}
           {selectedConf && (
             <div style={{
-              position: 'absolute', bottom: 20, right: 20, width: 330, zIndex: 1000,
-              background: 'var(--white)', borderRadius: 10, padding: 18,
+              position: 'absolute', bottom: 20, right: 20, width: 320, zIndex: 100,
+              background: 'var(--white)', borderRadius: 12, padding: 18,
               boxShadow: '0 8px 32px rgba(0,0,0,0.18)', border: '1px solid var(--border)',
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
-                <span style={{ fontSize: 11, fontWeight: 750, textTransform: 'uppercase', letterSpacing: 0.4, color: 'var(--blue)', background: '#EAF4FF', padding: '3px 9px', borderRadius: 8 }}>
+                <span style={{ fontSize: 11, fontWeight: 750, textTransform: 'uppercase', letterSpacing: 0.4, color: 'var(--blue)', background: 'var(--blue-light)', padding: '3px 9px', borderRadius: 8 }}>
                   {selectedConf.category || fieldQ}
                 </span>
-                <button onClick={() => setSelectedId(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-3)', fontSize: 22, lineHeight: 1, padding: 0 }}>x</button>
+                <button onClick={() => setSelectedId(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-3)', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
               </div>
-              <h3 style={{ fontSize: 17, fontWeight: 750, margin: '0 0 6px', lineHeight: 1.3 }}>{selectedConf.name}</h3>
-              <p style={{ fontSize: 13, color: 'var(--text-2)', margin: '0 0 12px', lineHeight: 1.55 }}>{selectedConf.description}</p>
-              <div style={{ fontSize: 12, color: 'var(--text-2)', display: 'flex', flexDirection: 'column', gap: 5, marginBottom: 12 }}>
-                <span><strong>{selectedConf.date}</strong></span>
+              <h3 style={{ fontSize: 16, fontWeight: 750, margin: '0 0 5px', lineHeight: 1.3, color: 'var(--text)' }}>{selectedConf.name}</h3>
+              <p style={{ fontSize: 13, color: 'var(--text-2)', margin: '0 0 10px', lineHeight: 1.55 }}>{selectedConf.description}</p>
+              <div style={{ fontSize: 12, color: 'var(--text-2)', display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 12 }}>
+                <span><strong style={{ color: 'var(--text)' }}>{selectedConf.date}</strong></span>
                 <span>{selectedConf.address}</span>
-                <span>{selectedConf.attendees ? `${Number(selectedConf.attendees).toLocaleString()} expected | ` : ''}<strong>{selectedConf.price || 'See event'}</strong></span>
+                {selectedConf.attendees > 0 && (
+                  <span>{Number(selectedConf.attendees).toLocaleString()} expected · <strong>{selectedConf.price || 'See event'}</strong></span>
+                )}
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
                 {selectedConfUrl && (
-                  <button className="li-btn li-btn--ghost" style={{ flex: 1, fontSize: 13, padding: '9px 16px' }} onClick={() => window.open(selectedConfUrl, '_blank', 'noopener,noreferrer')}>
+                  <button className="li-btn li-btn--ghost" style={{ flex: 1, fontSize: 13 }} onClick={() => window.open(selectedConfUrl, '_blank', 'noopener,noreferrer')}>
                     View event
                   </button>
                 )}
@@ -339,6 +338,7 @@ function conferenceIcon(conf, active) {
         </main>
       </div>
 
+      {/* ── Story form modal ── */}
       {showStoryForm && (
         <ConferenceStoryForm
           conferences={conferences}
@@ -350,78 +350,244 @@ function conferenceIcon(conf, active) {
         />
       )}
 
-      {viewingStory && (
-        <ConferenceStoryViewer story={viewingStory} onClose={() => setViewingStory(null)} />
+      {/* ── Snapchat-style story viewer ── */}
+      {viewingStoryIdx !== null && stories.length > 0 && (
+        <SnapStoryViewer
+          stories={stories}
+          initialIdx={viewingStoryIdx}
+          onClose={() => setViewingStoryIdx(null)}
+        />
       )}
     </div>
   );
 }
 
-const conferenceInputStyle = {
-  width: 190,
-  padding: '8px 10px',
-  border: '1px solid var(--border-2)',
-  borderRadius: 6,
-  fontSize: 13,
-  background: 'var(--white)',
-  color: 'var(--text)',
-  outline: 'none',
-};
+/* ── Snapchat-style full-screen story viewer ───────────────── */
+function SnapStoryViewer({ stories, initialIdx, onClose }) {
+  const [idx, setIdx] = React.useState(initialIdx);
+  const [progress, setProgress] = React.useState(0);
+  const [paused, setPaused] = React.useState(false);
+  const [liked, setLiked] = React.useState(new Set());
+  const intervalRef = React.useRef(null);
+  const wrapperRef = React.useRef(null);
 
-function ConferenceStoryForm({ conferences, storyForm, setStoryForm, submitting, onSubmit, onClose }) {
+  React.useEffect(() => { wrapperRef.current?.focus(); }, []);
+  const DURATION = 7000; // ms per story
+  const TICK = 50;
+
+  const story = stories[idx];
+
+  // Auto-advance timer
+  React.useEffect(() => {
+    setProgress(0);
+    if (paused) return;
+    intervalRef.current = setInterval(() => {
+      setProgress(prev => {
+        const next = prev + (TICK / DURATION) * 100;
+        if (next >= 100) {
+          clearInterval(intervalRef.current);
+          goNext();
+          return 100;
+        }
+        return next;
+      });
+    }, TICK);
+    return () => clearInterval(intervalRef.current);
+  }, [idx, paused]);
+
+  function goNext() {
+    if (idx < stories.length - 1) { setIdx(i => i + 1); }
+    else { onClose(); }
+  }
+  function goPrev() {
+    if (idx > 0) { setIdx(i => i - 1); }
+  }
+
+  function handleTap(e) {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    if (x < rect.width * 0.35) goPrev();
+    else if (x > rect.width * 0.65) goNext();
+  }
+
+  const hasPhoto = story.photoUrl && story.photoUrl.startsWith('http');
+  const accentColor = story.author?.avatarColor || '#0a66c2';
+
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 9000, background: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-      onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div style={{ background: 'var(--white)', borderRadius: 10, padding: 28, width: 500, maxWidth: '95vw', boxShadow: '0 20px 60px rgba(0,0,0,0.3)', maxHeight: '90vh', overflowY: 'auto' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-          <div>
-            <h2 style={{ fontSize: 18, fontWeight: 750, margin: 0 }}>Share Your Experience</h2>
-            <p style={{ fontSize: 13, color: 'var(--text-2)', margin: '4px 0 0' }}>Add a short reflection from a conference you attended.</p>
-          </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 22, color: 'var(--text-3)', lineHeight: 1 }}>x</button>
+    <div
+      ref={wrapperRef}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 9500,
+        background: '#000',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}
+      onKeyDown={e => { if (e.key === 'Escape') onClose(); if (e.key === 'ArrowRight') goNext(); if (e.key === 'ArrowLeft') goPrev(); }}
+      tabIndex={-1}
+    >
+      {/* Story card */}
+      <div
+        style={{
+          position: 'relative',
+          width: '100%', maxWidth: 420,
+          height: '100%', maxHeight: 780,
+          borderRadius: 16,
+          overflow: 'hidden',
+          background: hasPhoto ? '#000' : `linear-gradient(155deg, ${accentColor}cc 0%, #0d1117 60%, #0d1117 100%)`,
+          boxShadow: '0 24px 80px rgba(0,0,0,0.8)',
+          userSelect: 'none',
+        }}
+        onPointerDown={() => setPaused(true)}
+        onPointerUp={() => setPaused(false)}
+        onPointerLeave={() => setPaused(false)}
+        onClick={handleTap}
+      >
+        {/* Background photo */}
+        {hasPhoto && (
+          <>
+            <img src={story.photoUrl} alt="" onError={e => { e.target.style.display = 'none'; }}
+              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.7 }} />
+            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.1) 35%, rgba(0,0,0,0.75) 70%, rgba(0,0,0,0.92) 100%)' }} />
+          </>
+        )}
+
+        {/* Progress bars */}
+        <div style={{ position: 'absolute', top: 12, left: 12, right: 12, display: 'flex', gap: 4, zIndex: 10 }}>
+          {stories.map((_, i) => (
+            <div key={i} style={{ flex: 1, height: 3, borderRadius: 2, background: 'rgba(255,255,255,0.3)', overflow: 'hidden' }}>
+              <div style={{
+                height: '100%', borderRadius: 2,
+                background: '#fff',
+                width: i < idx ? '100%' : i === idx ? `${progress}%` : '0%',
+                transition: i === idx ? `width ${TICK}ms linear` : 'none',
+              }} />
+            </div>
+          ))}
         </div>
 
+        {/* Top: author + close */}
+        <div style={{ position: 'absolute', top: 26, left: 14, right: 14, display: 'flex', alignItems: 'center', gap: 10, zIndex: 10 }}>
+          <div style={{ padding: 2, borderRadius: '50%', background: 'linear-gradient(135deg,#f59e0b,#ef4444,#a855f7)', flexShrink: 0 }}>
+            <div style={{ background: '#111', borderRadius: '50%', padding: 2 }}>
+              <Avatar name={story.author?.name || 'Attendee'} size={34} colorOverride={story.author?.avatarColor} />
+            </div>
+          </div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: '#fff', lineHeight: 1.2 }}>{story.author?.name || 'Attendee'}</div>
+            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.65)' }}>{story.conferenceName}</div>
+          </div>
+          {story.companyLogoUrl && (
+            <img src={story.companyLogoUrl} alt="" style={{ width: 30, height: 30, objectFit: 'contain', borderRadius: 6, background: 'rgba(255,255,255,0.1)', padding: 3 }}
+              onError={e => { e.target.style.display = 'none'; }} />
+          )}
+          <button onClick={e => { e.stopPropagation(); onClose(); }}
+            style={{ background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: '50%', width: 32, height: 32, color: '#fff', fontSize: 18, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, backdropFilter: 'blur(4px)' }}>
+            ×
+          </button>
+        </div>
+
+        {/* Content — bottom half */}
+        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '20px 20px 24px', zIndex: 10 }}>
+          {/* Conference tag */}
+          <div style={{ display: 'inline-block', background: `${accentColor}cc`, color: '#fff', fontSize: 11, fontWeight: 750, padding: '4px 10px', borderRadius: 20, marginBottom: 12, backdropFilter: 'blur(6px)', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+            {story.conferenceName}
+          </div>
+
+          {/* Tagline */}
+          <div style={{ fontSize: 22, fontWeight: 800, color: '#fff', lineHeight: 1.25, marginBottom: 10, textShadow: '0 2px 8px rgba(0,0,0,0.5)' }}>
+            {story.tagline}
+          </div>
+
+          {/* Description */}
+          <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.82)', lineHeight: 1.6, marginBottom: 18, display: '-webkit-box', WebkitLineClamp: 4, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+            {story.description}
+          </div>
+
+          {/* Actions row */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <button onClick={e => { e.stopPropagation(); setLiked(prev => { const n = new Set(prev); n.has(story.id) ? n.delete(story.id) : n.add(story.id); return n; }); }}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, color: liked.has(story.id) ? '#ef4444' : 'rgba(255,255,255,0.75)', fontSize: 13, fontWeight: 600, padding: '8px 0' }}>
+              <span style={{ fontSize: 20 }}>{liked.has(story.id) ? '❤️' : '🤍'}</span>
+              {liked.has(story.id) ? 'Liked' : 'Like'}
+            </button>
+            <button onClick={async e => { e.stopPropagation(); try { await navigator.clipboard.writeText(window.location.href); createToast('Link copied!', 'success'); } catch (_) { createToast('Failed to copy link.', 'error'); } }}
+              style={{ background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: 20, padding: '8px 16px', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer', backdropFilter: 'blur(4px)' }}>
+              Share ↗
+            </button>
+
+            {/* Story count indicator */}
+            <div style={{ marginLeft: 'auto', fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>
+              {idx + 1} / {stories.length}
+            </div>
+          </div>
+        </div>
+
+        {/* Tap zones (visual hint) */}
+        <div style={{ position: 'absolute', top: 80, bottom: 120, left: 0, width: '35%', zIndex: 5 }} />
+        <div style={{ position: 'absolute', top: 80, bottom: 120, right: 0, width: '35%', zIndex: 5 }} />
+      </div>
+
+      {/* Prev/Next nav arrows (outside card) */}
+      {idx > 0 && (
+        <button onClick={e => { e.stopPropagation(); goPrev(); }}
+          style={{ position: 'absolute', left: 'max(12px, calc(50% - 230px))', top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: '50%', width: 44, height: 44, fontSize: 22, color: '#fff', cursor: 'pointer', backdropFilter: 'blur(4px)', zIndex: 10 }}>
+          ‹
+        </button>
+      )}
+      {idx < stories.length - 1 && (
+        <button onClick={e => { e.stopPropagation(); goNext(); }}
+          style={{ position: 'absolute', right: 'max(12px, calc(50% - 230px))', top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: '50%', width: 44, height: 44, fontSize: 22, color: '#fff', cursor: 'pointer', backdropFilter: 'blur(4px)', zIndex: 10 }}>
+          ›
+        </button>
+      )}
+    </div>
+  );
+}
+
+/* ── Story share form ──────────────────────────────────────── */
+function ConferenceStoryForm({ conferences, storyForm, setStoryForm, submitting, onSubmit, onClose }) {
+  const formWrapperRef = React.useRef(null);
+  React.useEffect(() => { formWrapperRef.current?.focus(); }, []);
+  return (
+    <div ref={formWrapperRef} tabIndex={-1} onKeyDown={e => { if (e.key === 'Escape') onClose(); }}
+      style={{ position: 'fixed', inset: 0, zIndex: 9000, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', outline: 'none' }}
+      onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <div style={{ background: 'var(--white)', borderRadius: 12, padding: 28, width: 500, maxWidth: '95vw', boxShadow: '0 20px 60px rgba(0,0,0,0.35)', maxHeight: '90vh', overflowY: 'auto' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+          <div>
+            <h2 style={{ fontSize: 18, fontWeight: 750, margin: 0, color: 'var(--text)' }}>Share Your Experience</h2>
+            <p style={{ fontSize: 13, color: 'var(--text-2)', margin: '4px 0 0' }}>Your story will appear in the attendee ring.</p>
+          </div>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 22, color: 'var(--text-3)', lineHeight: 1 }}>×</button>
+        </div>
         <form onSubmit={onSubmit}>
-          <ConferenceField label="Conference name" required>
-            <input type="text" list="conf-list" value={storyForm.conferenceName}
-              onChange={e => setStoryForm(f => ({ ...f, conferenceName: e.target.value }))}
-              placeholder="Select or type a conference"
-              style={storyInputStyle} />
-            <datalist id="conf-list">
-              {conferences.map(c => <option key={c.id} value={c.name} />)}
-            </datalist>
-          </ConferenceField>
-
-          <ConferenceField label="Headline" required>
-            <input type="text" value={storyForm.tagline}
-              onChange={e => setStoryForm(f => ({ ...f, tagline: e.target.value }))}
-              placeholder="A concise takeaway from the event"
-              maxLength={120}
-              style={storyInputStyle} />
-          </ConferenceField>
-
+          {[
+            { label: 'Conference name', key: 'conferenceName', required: true, type: 'text', list: 'conf-datalist', placeholder: 'Select or type a conference' },
+            { label: 'Headline', key: 'tagline', required: true, type: 'text', placeholder: 'A concise takeaway from the event', max: 120 },
+          ].map(f => (
+            <ConferenceField key={f.key} label={f.label} required={f.required}>
+              <input type={f.type} list={f.list} value={storyForm[f.key]}
+                onChange={e => setStoryForm(prev => ({ ...prev, [f.key]: e.target.value }))}
+                placeholder={f.placeholder} maxLength={f.max}
+                style={storyInputStyle} />
+              {f.list && <datalist id="conf-datalist">{conferences.map(c => <option key={c.id} value={c.name} />)}</datalist>}
+            </ConferenceField>
+          ))}
           <ConferenceField label="Key takeaways" required>
             <textarea value={storyForm.description}
-              onChange={e => setStoryForm(f => ({ ...f, description: e.target.value }))}
-              placeholder="What did you learn? Which talks or conversations stood out?"
-              rows={4}
-              style={{ ...storyInputStyle, resize: 'vertical', fontFamily: 'inherit' }} />
+              onChange={e => setStoryForm(prev => ({ ...prev, description: e.target.value }))}
+              placeholder="What did you learn? Which talks stood out?"
+              rows={4} style={{ ...storyInputStyle, resize: 'vertical', fontFamily: 'inherit' }} />
           </ConferenceField>
-
-          <ConferenceField label="Photo URL">
-            <input type="url" value={storyForm.photoUrl}
-              onChange={e => setStoryForm(f => ({ ...f, photoUrl: e.target.value }))}
-              placeholder="https://..."
-              style={storyInputStyle} />
-          </ConferenceField>
-
-          <ConferenceField label="Company or conference logo URL">
-            <input type="url" value={storyForm.companyLogoUrl}
-              onChange={e => setStoryForm(f => ({ ...f, companyLogoUrl: e.target.value }))}
-              placeholder="https://..."
-              style={storyInputStyle} />
-          </ConferenceField>
-
+          {[
+            { label: 'Photo URL', key: 'photoUrl', placeholder: 'https://... (displayed as story background)' },
+            { label: 'Company/conference logo URL', key: 'companyLogoUrl', placeholder: 'https://...' },
+          ].map(f => (
+            <ConferenceField key={f.key} label={f.label}>
+              <input type="url" value={storyForm[f.key]}
+                onChange={e => setStoryForm(prev => ({ ...prev, [f.key]: e.target.value }))}
+                placeholder={f.placeholder} style={storyInputStyle} />
+            </ConferenceField>
+          ))}
           <div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
             <button type="button" className="li-btn li-btn--ghost" style={{ flex: 1 }} onClick={onClose}>Cancel</button>
             <button type="submit" className="li-btn li-btn--primary" style={{ flex: 2 }} disabled={submitting}>
@@ -445,43 +611,21 @@ function ConferenceField({ label, required, children }) {
   );
 }
 
-const storyInputStyle = {
-  width: '100%',
-  padding: '10px 12px',
-  borderRadius: 6,
-  border: '1px solid var(--border-2)',
-  fontSize: 14,
-  background: 'var(--white)',
-  color: 'var(--text)',
-  boxSizing: 'border-box',
-  outline: 'none',
+function getSafeHttpUrl(rawUrl) {
+  if (!rawUrl) return '';
+  try {
+    const url = new URL(String(rawUrl), window.location.origin);
+    return /^https?:$/i.test(url.protocol) ? url.href : '';
+  } catch (_) { return ''; }
+}
+
+const confInputStyle = {
+  width: 180, padding: '8px 10px', border: '1px solid var(--border-2)',
+  borderRadius: 6, fontSize: 13, background: 'var(--white)', color: 'var(--text)', outline: 'none',
 };
 
-function ConferenceStoryViewer({ story, onClose }) {
-  return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 9100, background: 'rgba(0,0,0,0.86)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-      onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div style={{ position: 'relative', width: 390, maxWidth: '95vw', background: 'var(--white)', borderRadius: 10, overflow: 'hidden', boxShadow: '0 24px 80px rgba(0,0,0,0.45)' }}>
-        {story.photoUrl && (
-          <img src={story.photoUrl} alt="" style={{ width: '100%', height: 210, objectFit: 'cover' }} onError={e => { e.target.style.display = 'none'; }} />
-        )}
-        <div style={{ padding: 22 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-            <Avatar name={story.author ? story.author.name : 'Attendee'} size={40} colorOverride={story.author ? story.author.avatarColor : undefined} />
-            <div>
-              <div style={{ fontSize: 14, fontWeight: 750, color: 'var(--text)' }}>{story.author ? story.author.name : 'Attendee'}</div>
-              <div style={{ fontSize: 12, color: 'var(--text-2)' }}>{story.conferenceName}</div>
-            </div>
-            {story.companyLogoUrl && (
-              <img src={story.companyLogoUrl} alt="" style={{ width: 36, height: 36, objectFit: 'contain', borderRadius: 6, background: 'var(--bg-2)', padding: 3, marginLeft: 'auto' }}
-                onError={e => { e.target.style.display = 'none'; }} />
-            )}
-          </div>
-          <h3 style={{ fontSize: 20, fontWeight: 800, color: 'var(--text)', lineHeight: 1.25, margin: '0 0 12px' }}>{story.tagline}</h3>
-          <p style={{ fontSize: 14, color: 'var(--text-2)', lineHeight: 1.65, margin: 0 }}>{story.description}</p>
-        </div>
-        <button onClick={onClose} style={{ position: 'absolute', top: 10, right: 10, width: 32, height: 32, borderRadius: '50%', background: 'rgba(255,255,255,0.92)', border: '1px solid var(--border)', color: 'var(--text-2)', fontSize: 18, cursor: 'pointer', lineHeight: 1 }}>x</button>
-      </div>
-    </div>
-  );
-}
+const storyInputStyle = {
+  width: '100%', padding: '10px 12px', borderRadius: 6,
+  border: '1px solid var(--border-2)', fontSize: 14,
+  background: 'var(--white)', color: 'var(--text)', boxSizing: 'border-box', outline: 'none',
+};
