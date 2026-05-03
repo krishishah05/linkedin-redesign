@@ -39,7 +39,7 @@ function NavBar() {
     { id: 'jobs',        label: t('jobs'),         badge: 0,                         icon: <path d="M20 6h-2.18c.07-.44.18-.88.18-1.36C18 2.51 15.49 0 12.36 0c-1.4 0-2.72.56-3.71 1.56L12 4.91l3.35-3.35C15.69 2.65 16 3.32 16 4.07c0 .9-.66 1.65-1.5 1.8L14.18 6H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2z"/> },
     { id: 'messaging',   label: t('messaging'),    badge: unreadMessages,            icon: <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/> },
     { id: 'conferences', label: t('conferences'),  badge: 0,                         icon: <path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/> },
-    { id: 'cover-letter', label: 'Cover Letter',  badge: 0,                         icon: <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/> },
+    { id: 'cover-letter', label: t('coverLetter'), badge: 0,                         icon: <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/> },
   ];
 
   return (
@@ -179,13 +179,13 @@ function NavBar() {
                     onClick={e => { e.preventDefault(); navigate('profile'); setMeOpen(false); }}
                     role="menuitem"
                   >
-                    View Profile
+                    {t('viewProfile')}
                   </a>
                 </div>
 
                 <div style={{ padding: '4px 0 8px' }}>
                   <div style={{ padding: '6px 16px 4px', fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                    Account
+                    {t('account')}
                   </div>
 
                   <button

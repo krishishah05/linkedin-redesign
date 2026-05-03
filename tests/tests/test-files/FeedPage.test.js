@@ -19,7 +19,7 @@ const mockCreatePost = jest.fn(() => Promise.resolve());
 
 global.React = React;
 // English UI translations used by PostCreator (mirrors AppContext TRANSLATIONS.en)
-const EN_T = { startPost:'Start a post', photo:'Photo', video:'Video', writeArticle:'Write article', post:'Post', publish:'Publish', cancel:'Cancel', whatToTalk:'What do you want to talk about?', editTemplate:'Edit the template, then publish your article…', chooseTemplate:'Choose an article template', uploadVideoUrl:'Upload video URL…', pasteImageUrl:'Paste image URL…', article:'ARTICLE' };
+const EN_T = { startPost:'Start a post', photo:'Photo', video:'Video', writeArticle:'Write article', post:'Post', publish:'Publish', cancel:'Cancel', whatToTalk:'What do you want to talk about?', editTemplate:'Edit the template, then publish your article…', chooseTemplate:'Choose an article template', uploadVideoUrl:'Upload video URL…', pasteImageUrl:'Paste image URL…', article:'ARTICLE', like:'Like', comment:'Comment', repost:'Repost', send:'Send', coverLetter:'Cover Letter', viewProfile:'View Profile', account:'Account', recruiterMode:'Recruiter Mode', notifications:'Notifications', saveJob:'Save', saved:'Saved', apply:'Apply', connect:'Connect', follow:'Follow', following:'Following', message:'Message', connections:'Connections', suggestions:'Suggestions', searchConnections:'Search connections…', noConnections:'No connections yet.', attending:'Attending', interested:'Interested', createPost:'Create a post', save:'Save' };
 global.t = (key) => EN_T[key] || key;
 global.AppContext = React.createContext({ t: global.t });
 global.API = {

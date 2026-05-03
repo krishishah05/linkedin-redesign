@@ -2,7 +2,7 @@
    POSTMODAL.JS - Create a post
    ============================================================ */
 function PostModal() {
-  const { currentUser, closeModal, showToast, modalData } = React.useContext(AppContext);
+  const { currentUser, closeModal, showToast, modalData, t } = React.useContext(AppContext);
   const repostOf = modalData?.repostOf;
   const onRepost = modalData?.onRepost;
   const [text, setText] = React.useState('');
@@ -106,7 +106,7 @@ function PostModal() {
           </div>
           <textarea
             className="li-post-textarea"
-            placeholder="What do you want to talk about?"
+            placeholder={t('whatToTalk')}
             maxLength={MAX}
             value={text}
             onChange={e => setText(e.target.value)}
@@ -150,16 +150,16 @@ function PostModal() {
         <div className="li-modal__footer" style={{ borderTop: '1px solid var(--border)', flexDirection: 'column', alignItems: 'stretch', gap: 8 }}>
           <div className="li-post-modal__toolbar">
             {[
-              { label: 'Photo',        color: '#70B5F9', icon: <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/> },
-              { label: 'Video',        color: '#F5CA8A', icon: <path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/> },
+              { key: 'photo', color: '#70B5F9', icon: <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/> },
+              { key: 'video', color: '#F5CA8A', icon: <path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/> },
             ].map(btn => (
-              <button key={btn.label} className="li-post-tool-btn"
+              <button key={btn.key} className="li-post-tool-btn"
                 onClick={() => {
-                  if (btn.label === 'Photo') { photoInputRef.current && photoInputRef.current.click(); return; }
-                  if (btn.label === 'Video') { videoInputRef.current && videoInputRef.current.click(); return; }
+                  if (btn.key === 'photo') { photoInputRef.current && photoInputRef.current.click(); return; }
+                  if (btn.key === 'video') { videoInputRef.current && videoInputRef.current.click(); return; }
                 }}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill={btn.color}>{btn.icon}</svg>
-                {btn.label}
+                {t(btn.key)}
               </button>
             ))}
           </div>
@@ -170,7 +170,7 @@ function PostModal() {
               disabled={(!text.trim() && !imageUrl.trim() && !videoUrl.trim()) || posting}
               style={{ padding: '8px 20px', fontSize: 14 }}
             >
-              {posting ? 'Posting...' : 'Post'}
+              {posting ? '...' : t('post')}
             </button>
           </div>
         </div>

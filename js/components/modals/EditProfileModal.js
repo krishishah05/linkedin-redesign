@@ -190,6 +190,7 @@ function EditProfileModal() {
                   position: 'absolute',
                   width: displayW,
                   height: displayH,
+                  maxWidth: 'none',
                   left: '50%',
                   top: '50%',
                   transform: `translate(calc(-50% + ${cropOffset.x}px), calc(-50% + ${cropOffset.y}px))`,

@@ -39,7 +39,6 @@ function Router() {
     'search':        <SearchPage query={params.q || ''} />,
     'company':       <CompanyPage companyId={params.id} />,
     'events':        <EventsPage />,
-    'learning':      <LearningPage />,
     'settings':      <SettingsPage />,
     'conferences':   <ConferencesPage />,
     'cover-letter':  <CoverLetterPage />,
