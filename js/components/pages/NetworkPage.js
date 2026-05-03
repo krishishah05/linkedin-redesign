@@ -186,7 +186,7 @@ function NetworkPage() {
         </svg>
         <input
           type="text"
-          placeholder={t('searchConnections')}
+          placeholder={activeTab === 'connections' ? t('searchConnections') : 'Search suggestions…'}
           value={searchQuery}
           onChange={e => handleSearchChange(e.target.value)}
           style={{ flex: 1, border: 'none', outline: 'none', fontSize: 14, background: 'transparent', color: 'var(--text)' }}
