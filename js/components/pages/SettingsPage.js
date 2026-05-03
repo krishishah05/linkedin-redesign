@@ -117,12 +117,6 @@ function SettingsPage() {
                         onChange={e => setAccountForm(f => ({ ...f, lastName: e.target.value }))}
                         style={{ width: '100%', boxSizing: 'border-box' }} />
                     </div>
-                    <div>
-                      <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 4 }}>Nexus URL</label>
-                      <input className="li-settings-input" readOnly
-                        value={getNexusProfileUrl(currentUser)}
-                        style={{ width: '100%', boxSizing: 'border-box', color: 'var(--text-2)' }} />
-                    </div>
                   </div>
                 </div>
                 <div style={{ borderTop: '1px solid var(--border)', paddingTop: 20 }}>
