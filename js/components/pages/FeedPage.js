@@ -567,6 +567,7 @@ function SponsoredPost({ ad, showToast, onDismiss }) {
 
 /* ── FeedPost ────────────────────────────────────────────── */
 function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, following, onFollow, openModal, showToast, currentUser, onDelete, onHide, onSave, savedPostIds, onRepost }) {
+  const { t } = React.useContext(AppContext);
   const [menuOpen, setMenuOpen] = React.useState(false);
   const [reactionHover, setReactionHover] = React.useState(false);
   const reactionTimerRef = React.useRef(null);

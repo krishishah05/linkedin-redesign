@@ -130,6 +130,14 @@ function EventsPage() {
                         try { localStorage.setItem('li-attending-events', JSON.stringify([...next])); } catch (_) {}
                         return next;
                       });
+                      // Attending and Interested are mutually exclusive
+                      setInterested(prev => {
+                        if (!prev.has(key)) return prev;
+                        const next = new Set(prev);
+                        next.delete(key);
+                        try { localStorage.setItem('li-interested-events', JSON.stringify([...next])); } catch (_) {}
+                        return next;
+                      });
                       API.attendEvent(event.id).catch(() => showToast('Failed to update attendance', 'error'));
                     }}
                   >
@@ -144,6 +152,14 @@ function EventsPage() {
                         if (next.has(key)) { next.delete(key); showToast('Removed from interested'); }
                         else { next.add(key); showToast('Marked as interested!'); }
                         try { localStorage.setItem('li-interested-events', JSON.stringify([...next])); } catch (_) {}
+                        return next;
+                      });
+                      // Attending and Interested are mutually exclusive
+                      setAttending(prev => {
+                        if (!prev.has(key)) return prev;
+                        const next = new Set(prev);
+                        next.delete(key);
+                        try { localStorage.setItem('li-attending-events', JSON.stringify([...next])); } catch (_) {}
                         return next;
                       });
                       API.interestEvent(event.id).catch(() => {

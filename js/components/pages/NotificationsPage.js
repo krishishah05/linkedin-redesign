@@ -13,6 +13,30 @@ function NotificationsPage() {
       .catch(e => { setError(e.message); setLoading(false); });
   }, []);
 
+  const typeNavMap = {
+    reaction: 'feed', comment: 'feed', mention: 'feed', repost: 'feed',
+    connect: 'network', connection: 'network',
+    job: 'jobs',
+    message: 'messaging',
+    event: 'events',
+    view: 'profile', birthday: null, anniversary: null, work_anniversary: null,
+  };
+
+  function handleNotifClick(n) {
+    if (!n.isRead) {
+      API.markRead(n.id).then(() => {
+        setNotifications(prev => (prev || []).map(x => x.id === n.id ? { ...x, isRead: true } : x));
+        setUnreadNotifications(prev => Math.max(0, prev - 1));
+      }).catch(() => {});
+    }
+    if (n.actor && (n.type === 'view' || n.type === 'birthday' || n.type === 'work_anniversary' || n.type === 'anniversary')) {
+      navigate(`profile?id=${n.actor.id}`);
+      return;
+    }
+    const dest = typeNavMap[n.type];
+    if (dest) navigate(dest);
+  }
+
   function markRead(id) {
     API.markRead(id).then(() => {
       setNotifications(prev => (prev || []).map(n => n.id === id ? { ...n, isRead: true } : n));
@@ -86,7 +110,7 @@ function NotificationsPage() {
                 cursor: 'pointer',
                 transition: 'background 0.15s',
               }}
-              onClick={() => !n.isRead && markRead(n.id)}
+              onClick={() => handleNotifClick(n)}
             >
               {/* Icon/avatar */}
               <div style={{ position: 'relative', flexShrink: 0 }}>

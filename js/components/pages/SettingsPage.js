@@ -138,6 +138,7 @@ function SettingsPage() {
                   disabled={savingAccount}
                   onClick={() => {
                     if (!accountForm.firstName.trim()) { showToast('First name is required', 'error'); return; }
+                    if (accountForm.email && !accountForm.email.includes('@')) { showToast('Enter a valid email address', 'error'); return; }
                     if (savingAccount) return;
                     setSavingAccount(true);
                     const name = (accountForm.firstName + ' ' + accountForm.lastName).trim();
@@ -303,7 +304,7 @@ function SettingsPage() {
                          `li-user-status-${userId}`, `li-shortlisted-${userId}`].forEach(k => localStorage.removeItem(k));
                         setCurrentUser(null);
                         showToast('Account deleted. Redirecting…', 'error');
-                        setTimeout(() => { window.location.href = 'index.html'; }, 1500);
+                        window.location.href = 'index.html';
                       })
                       .catch(() => showToast('Failed to delete account', 'error'));
                   }}
