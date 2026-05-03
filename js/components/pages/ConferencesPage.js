@@ -110,7 +110,6 @@ function ConferencesPage() {
       setSelectedId(cleaned[0]?.id || null);
 
     } catch (err) {
-      console.error(err);
       createToast("Failed to fetch conferences", "error");
     } finally {
       setSearching(false);

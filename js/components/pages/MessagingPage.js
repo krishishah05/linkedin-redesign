@@ -852,7 +852,7 @@ function ProfileReadinessPanel({ readiness, loading, error, onClose, onRefresh }
                   >
                     {aiLoading ? 'Analyzing…' : aiData ? 'Re-analyze' : '✦ AI Analyze'}
                   </button>
-                  <button className="li-msg-score__btn primary" onClick={() => { window.location.hash = 'profile'; }}>
+                  <button className="li-msg-score__btn primary" onClick={() => navigate('profile')}>
                     Go to profile
                   </button>
                 </div>
@@ -869,7 +869,7 @@ function ProfileReadinessPanel({ readiness, loading, error, onClose, onRefresh }
       </div>
 
       <div className="li-msg-score__footer">
-        <button className="li-msg-score__footer-btn" onClick={() => { window.location.hash = 'profile'; }}>
+        <button className="li-msg-score__footer-btn" onClick={() => navigate('profile')}>
           Go to profile
         </button>
         <div style={{ flex: 1 }} />
