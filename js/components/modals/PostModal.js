@@ -152,11 +152,9 @@ function PostModal() {
             {[
               { label: 'Photo',        color: '#70B5F9', icon: <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/> },
               { label: 'Video',        color: '#F5CA8A', icon: <path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/> },
-              { label: 'Write article',color: '#7FC15E', icon: <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/> },
             ].map(btn => (
               <button key={btn.label} className="li-post-tool-btn"
                 onClick={() => {
-                  if (btn.label === 'Write article') { closeModal(); navigate('article'); return; }
                   if (btn.label === 'Photo') { photoInputRef.current && photoInputRef.current.click(); return; }
                   if (btn.label === 'Video') { videoInputRef.current && videoInputRef.current.click(); return; }
                 }}>

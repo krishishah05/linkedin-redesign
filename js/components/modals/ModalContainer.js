@@ -17,7 +17,6 @@ function ModalContainer() {
     'add-exp':       <AddExpModal />,
     'add-education': <AddEducationModal />,
     'add-skill':     <AddSkillModal />,
-    'report':        <ReportModal />,
     'create-event':  <CreateEventModal />,
     'add-project':   <AddProjectModal />,
     'add-volunteer': <AddVolunteerModal />,

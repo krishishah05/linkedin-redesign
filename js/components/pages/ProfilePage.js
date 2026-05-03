@@ -212,18 +212,6 @@ function ProfilePage({ userId }) {
                       >
                         {isFollowing ? 'Following' : 'Follow'}
                       </button>
-                      <div style={{ position: 'relative' }}>
-                        <button className="li-btn li-btn--ghost li-btn--sm" onClick={() => setMoreMenuOpen(v => !v)}>...</button>
-                        {moreMenuOpen && (
-                          <div style={{ position: 'absolute', right: 0, top: '100%', marginTop: 4, background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 8, boxShadow: '0 4px 16px rgba(0,0,0,0.12)', zIndex: 200, minWidth: 160, overflow: 'hidden' }}
-                            onMouseLeave={() => setMoreMenuOpen(false)}>
-                            <button style={{ display: 'block', width: '100%', textAlign: 'left', padding: '10px 16px', background: 'none', border: 'none', fontSize: 14, cursor: 'pointer', color: 'var(--text)' }}
-                              onClick={() => { setMoreMenuOpen(false); openModal('report', { targetName: user.name }); }}>
-                              Report
-                            </button>
-                          </div>
-                        )}
-                      </div>
                       {currentUser?.isRecruiter && userStatus === 'recruiting' && recruiterMode && (() => {
                         const inPipeline = shortlisted.has(String(user.id));
                         return (

@@ -685,14 +685,13 @@ function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, followi
                 {[
                   ...(currentUser && (post.authorId === currentUser.id || post.authorId === String(currentUser.id)) ? ['Delete post'] : []),
                   savedPostIds && savedPostIds.has(String(post.id)) ? 'Unsave post' : 'Save post',
-                  'Copy link to post', 'Not interested', 'Report post'
+                  'Copy link to post', 'Not interested'
                 ].map(label => (
                   <div key={label} className="li-dropdown__item"
                     style={label === 'Delete post' ? { color: 'var(--red)' } : {}}
                     onClick={() => {
                       setMenuOpen(false);
                       if (label === 'Delete post') { onDelete && onDelete(post.id); showToast('Post deleted'); }
-                      else if (label === 'Report post') openModal('report', { post });
                       else if (label === 'Copy link to post') {
                         copyLink(`${window.location.origin}${window.location.pathname}#post-${post.id}`, showToast);
                       }

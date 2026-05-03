@@ -42,7 +42,6 @@ function Router() {
     'learning':      <LearningPage />,
     'settings':      <SettingsPage />,
     'conferences':   <ConferencesPage />,
-    'article':       <ArticlePage />,
     'cover-letter':  <CoverLetterPage />,
   };
 
