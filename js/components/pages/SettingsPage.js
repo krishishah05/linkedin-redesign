@@ -225,7 +225,13 @@ function SettingsPage() {
                         if (updatingPw) return;
                         setUpdatingPw(true);
                         API.changePassword(passwordData.current, passwordData.newPw)
-                          .then(() => { showToast('Password updated successfully!'); setPasswordData({ current: '', newPw: '', confirm: '' }); setUpdatingPw(false); })
+                          .then(() => {
+                            showToast('Password updated — signing you out…');
+                            API.logout().catch(() => {});
+                            localStorage.removeItem('nx-token');
+                            localStorage.removeItem('nx-uid');
+                            setTimeout(() => { window.location.href = 'index.html'; }, 1500);
+                          })
                           .catch(err => { showToast(err.message || 'Failed to update password', 'error'); setUpdatingPw(false); });
                       }}>
                       {updatingPw ? 'Updating…' : 'Update password'}

@@ -1153,7 +1153,11 @@ def create_conversation():
     participant_id = body.get("participantId")
     if not participant_id:
         abort(400, description="participantId is required")
-    participant = dbl.get_user_by_id(int(participant_id))
+    try:
+        participant_id = int(participant_id)
+    except (ValueError, TypeError):
+        abort(400, description="participantId must be a number")
+    participant = dbl.get_user_by_id(participant_id)
     if not participant:
         abort(404, description="Participant not found")
     conv = dbl.create_conversation(user["id"], participant)
