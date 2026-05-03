@@ -288,9 +288,8 @@ def search_conferences():
     api_key = os.getenv("SERPAPI_API_KEY", "").strip()
     if not api_key:
         conferences = _fallback_conferences(location, field)
-        payload = _conference_response(location, field, conferences, "fallback")
-        _conference_search_cache[cache_key] = {"fetched_at": now, "payload": payload}
-        return jsonify(payload), 200
+        _conference_search_cache[cache_key] = {"fetched_at": now, "payload": conferences}
+        return jsonify(conferences), 200
 
     try:
         query = f"{field} conference in {location}"
@@ -304,19 +303,12 @@ def search_conferences():
         conferences = _normalize_serpapi_conferences(data, location, field)
         if not conferences:
             conferences = _fallback_conferences(location, field)
-            source = "fallback"
-        else:
-            source = "serpapi"
-        payload = _conference_response(location, field, conferences, source, raw={
-            "search_metadata": data.get("search_metadata", {}),
-            "search_parameters": data.get("search_parameters", {}),
-        })
     except Exception:
         app.logger.warning("SerpAPI conference search failed; using fallback conference results")
-        payload = _conference_response(location, field, _fallback_conferences(location, field), "fallback")
+        conferences = _fallback_conferences(location, field)
 
-    _conference_search_cache[cache_key] = {"fetched_at": now, "payload": payload}
-    return jsonify(payload), 200
+    _conference_search_cache[cache_key] = {"fetched_at": now, "payload": conferences}
+    return jsonify(conferences), 200
 
 @app.errorhandler(404)
 def not_found(e):
