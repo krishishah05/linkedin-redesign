@@ -238,8 +238,9 @@ def _normalize_serpapi_conferences(data, location, field):
         venue = event.get("venue")
         venue_name = venue.get("name") if isinstance(venue, dict) else ""
         address = _stringify_address(event.get("address")) or _stringify_address(venue) or location
-        lat = _coerce_float(event.get("latitude") or event.get("lat"), None)
-        lng = _coerce_float(event.get("longitude") or event.get("lng"), None)
+        gps = event.get("gps_coordinates") if isinstance(event.get("gps_coordinates"), dict) else {}
+        lat = _coerce_float(event.get("latitude") or event.get("lat") or gps.get("latitude") or gps.get("lat"), None)
+        lng = _coerce_float(event.get("longitude") or event.get("lng") or gps.get("longitude") or gps.get("lng"), None)
         if lat is None or lng is None:
             dlat, dlng = offsets[index % len(offsets)]
             lat = fallback_lat + dlat
