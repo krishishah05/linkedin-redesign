@@ -185,17 +185,6 @@ def _conference_cache_key(location, field):
     return (location or "").strip().lower(), (field or "").strip().lower()
 
 
-def _conference_response(location, field, conferences, source, raw=None):
-    return {
-        "location": location,
-        "field": field,
-        "source": source,
-        "conferences": conferences,
-        # Keep the old frontend path working while exposing the normalized list.
-        "events_results": conferences,
-        "raw": raw or {},
-    }
-
 
 def _stringify_address(value):
     if isinstance(value, list):

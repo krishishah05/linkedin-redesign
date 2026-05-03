@@ -4185,11 +4185,11 @@ button.li-btn--primary:hover {
 .li-dropdown {
   border-radius: var(--radius-lg) !important;
   box-shadow: 0 4px 6px rgba(0,0,0,0.05), 0 10px 30px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.06) !important;
-  animation: dropdownFadeIn 0.14s cubic-bezier(0.4,0,0.2,1) !important;
+  animation: dropdown-fade-in 0.14s cubic-bezier(0.4,0,0.2,1) !important;
   transform-origin: top right;
   overflow: hidden;
 }
-@keyframes dropdownFadeIn {
+@keyframes dropdown-fade-in {
   from { opacity: 0; transform: scale(0.96) translateY(-4px); }
   to   { opacity: 1; transform: scale(1) translateY(0); }
 }
@@ -4267,7 +4267,7 @@ span[style*="background: #057642"] {
   border-radius: var(--radius-lg) !important;
   box-shadow: 0 4px 6px rgba(0,0,0,0.05), 0 10px 30px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.06) !important;
   overflow: hidden;
-  animation: dropdownFadeIn 0.12s cubic-bezier(0.4,0,0.2,1);
+  animation: dropdown-fade-in 0.12s cubic-bezier(0.4,0,0.2,1);
 }
 .search-suggestions .sugg-item:hover,
 .search-suggestions .sugg-item.is-active {

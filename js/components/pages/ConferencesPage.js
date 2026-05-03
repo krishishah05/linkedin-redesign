@@ -137,7 +137,8 @@ function ConferencesPage() {
         const cn = String(c.name || '').toLowerCase();
         if (!sn || !cn) return false;
         const firstWord = cn.split(/\s+/)[0];
-        return cn.includes(sn) || (firstWord && sn.includes(firstWord));
+        const storyFirstWord = sn.split(/\s+/)[0];
+        return cn === sn || cn.startsWith(`${sn} `) || sn.startsWith(`${cn} `) || (firstWord && storyFirstWord === firstWord);
       });
       if (!conf) return [];
       const offsets = [0.003, -0.003, 0.002, -0.002, 0.004];
@@ -204,9 +205,9 @@ function ConferencesPage() {
             </p>
           </div>
           <form onSubmit={searchConferences} style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-            <input value={locationQ} onChange={e => setLocationQ(e.target.value)}
+            <input aria-label="Conference location" value={locationQ} onChange={e => setLocationQ(e.target.value)}
               placeholder="Location" style={confInputStyle} />
-            <input value={fieldQ} onChange={e => setFieldQ(e.target.value)}
+            <input aria-label="Conference field or topic" value={fieldQ} onChange={e => setFieldQ(e.target.value)}
               placeholder="Field or topic" style={confInputStyle} />
             <button className="li-btn li-btn--primary li-btn--sm" type="submit" disabled={searching}>
               {searching ? 'Searching...' : 'Search'}
