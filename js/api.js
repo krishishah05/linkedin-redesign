@@ -126,7 +126,6 @@
     acceptConnection: (id) => request('POST', `/me/connections/${id}/accept`),
     toggleFollow: (id) => request('POST', `/me/following/${id}`),
     applyToJob: (id) => request('POST', `/me/applied-jobs/${id}`),
-    toggleGroup: (id) => request('POST', `/me/groups/${id}/toggle`),
     dismissInvitation: (key) => request('POST', '/me/invitations/dismiss', { key }),
 
     // ── Conference Stories ────────────────────────────────────

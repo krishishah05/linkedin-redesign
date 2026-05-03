@@ -20,9 +20,7 @@
     .li-settings-input:focus { border-color:var(--blue); box-shadow:0 0 0 2px rgba(10,102,194,0.2); }
     .li-job-detail-empty { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:60px 24px; color:var(--text-2); text-align:center; }
     .li-job-detail-empty svg { margin-bottom:16px; opacity:0.3; }
-    .li-group-tab { padding:14px 20px; font-size:14px; font-weight:600; color:var(--text-2); cursor:pointer; border-bottom:2px solid transparent; background:none; border-top:none; border-left:none; border-right:none; transition:color 0.15s; }
-    .li-group-tab.active { color:var(--text); border-bottom-color:var(--text); }
-  </style>
+</style>
 </head>
 <body>
 
@@ -74,7 +72,7 @@
   crossorigin="anonymous"></script>
 
 <!-- API utility (plain JS, no JSX) -->
-<script src="js/api.js?v=9"></script>
+<script src="js/api.js?v=10"></script>
 
 <!-- Auth guard: redirect to login if no session token stored -->
 <script>
@@ -95,7 +93,7 @@
 
 <!-- -- Shared utilities & context ---------------------------- -->
 <script type="text/babel" src="js/components/utils.js?v=9"></script>
-<script type="text/babel" src="js/components/AppContext.js?v=11"></script>
+<script type="text/babel" src="js/components/AppContext.js?v=12"></script>
 
 <!-- -- Shared UI components ---------------------------------- -->
 <script type="text/babel" src="js/components/shared/Avatar.js?v=10"></script>
@@ -113,12 +111,10 @@
 <script type="text/babel" src="js/components/pages/SearchPage.js?v=12"></script>
 <script type="text/babel" src="js/components/pages/CompanyPage.js?v=11"></script>
 <script type="text/babel" src="js/components/pages/EventsPage.js?v=14"></script>
-<script type="text/babel" src="js/components/pages/SettingsPage.js?v=15"></script>
+<script type="text/babel" src="js/components/pages/SettingsPage.js?v=16"></script>
 <script type="text/babel" src="js/components/shared/LightMap.js?v=2"></script>
 <script type="text/babel" src="js/components/pages/ConferencesPage.js?v=13"></script>
 <script type="text/babel" src="js/components/pages/CoverLetterPage.js?v=11"></script>
-<script type="text/babel" src="js/components/pages/GroupsPage.js?v=11"></script>
-<script type="text/babel" src="js/components/pages/GroupDetailPage.js?v=11"></script>
 
 <!-- -- Modal components -------------------------------------- -->
 <script type="text/babel" src="js/components/modals/PostModal.js?v=13"></script>
@@ -130,19 +126,18 @@
 <script type="text/babel" src="js/components/modals/AddExpModal.js?v=11"></script>
 <script type="text/babel" src="js/components/modals/AddEducationModal.js?v=10"></script>
 <script type="text/babel" src="js/components/modals/AddSkillModal.js?v=10"></script>
-<script type="text/babel" src="js/components/modals/CreateGroupModal.js?v=10"></script>
 <script type="text/babel" src="js/components/modals/CreateEventModal.js?v=10"></script>
 <script type="text/babel" src="js/components/modals/AddProjectModal.js?v=10"></script>
 <script type="text/babel" src="js/components/modals/AddVolunteerModal.js?v=10"></script>
 <script type="text/babel" src="js/components/modals/AddHonorModal.js?v=10"></script>
-<script type="text/babel" src="js/components/modals/ModalContainer.js?v=11"></script>
+<script type="text/babel" src="js/components/modals/ModalContainer.js?v=12"></script>
 
 <!-- -- Navigation components --------------------------------- -->
-<script type="text/babel" src="js/components/NavBar.js?v=15"></script>
+<script type="text/babel" src="js/components/NavBar.js?v=16"></script>
 <script type="text/babel" src="js/components/MobileNav.js?v=11"></script>
 
 <!-- -- Root - mounts React app (must be last) ---------------- -->
-<script type="text/babel" src="js/components/App.js?v=12"></script>
+<script type="text/babel" src="js/components/App.js?v=13"></script>
 
 </body>
 </html>

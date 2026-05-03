@@ -305,7 +305,7 @@ function SettingsPage() {
                       .then(() => {
                         const userId = currentUser.id;
                         ['nx-token','nx-uid','li-liked-posts','li-saved-jobs','li-connections','li-following',
-                         'li-pending-conn','li-dismissed-inv','li-applied-jobs','li-joined-groups',
+                         'li-pending-conn','li-dismissed-inv','li-applied-jobs',
                          'li-settings','li-language','li-user-status','li-recruiter-mode',
                          `li-user-status-${userId}`, `li-shortlisted-${userId}`].forEach(k => localStorage.removeItem(k));
                         setCurrentUser(null);

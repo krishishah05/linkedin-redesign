@@ -4,11 +4,11 @@
    ============================================================ */
 
 const TRANSLATIONS = {
-  en: { home:'Home', myNetwork:'My Network', jobs:'Jobs', messaging:'Messaging', conferences:'Conferences', me:'Me', meShort:'Me', search:'Search', startPost:'Start a post', photo:'Photo', video:'Video', post:'Post', publish:'Publish', cancel:'Cancel', whatToTalk:'What do you want to talk about?', like:'Like', comment:'Comment', repost:'Repost', send:'Send', network:'Network', signOut:'Sign out', settingsPrivacy:'Settings & Privacy', messages:'Messages', coverLetter:'Cover Letter', viewProfile:'View Profile', account:'Account', recruiterMode:'Recruiter Mode', notifications:'Notifications', saveJob:'Save', saved:'Saved', apply:'Apply', connect:'Connect', follow:'Follow', following:'Following', message:'Message', connections:'Connections', suggestions:'Suggestions', searchConnections:'Search connections…', noConnections:'No connections yet.', attending:'Attending', interested:'Interested', createPost:'Create a post', save:'Save', groups:'Groups', },
-  es: { home:'Inicio', myNetwork:'Mi red', jobs:'Empleos', messaging:'Mensajes', conferences:'Conferencias', me:'Yo', meShort:'Yo', search:'Buscar', startPost:'Iniciar publicación', photo:'Foto', video:'Video', post:'Publicar', publish:'Publicar', cancel:'Cancelar', whatToTalk:'¿De qué quieres hablar?', like:'Me gusta', comment:'Comentar', repost:'Compartir', send:'Enviar', network:'Red', signOut:'Cerrar sesión', settingsPrivacy:'Configuración y privacidad', messages:'Mensajes', coverLetter:'Carta de presentación', viewProfile:'Ver perfil', account:'Cuenta', recruiterMode:'Modo reclutador', notifications:'Notificaciones', saveJob:'Guardar', saved:'Guardado', apply:'Postular', connect:'Conectar', follow:'Seguir', following:'Siguiendo', message:'Mensaje', connections:'Conexiones', suggestions:'Sugerencias', searchConnections:'Buscar conexiones…', noConnections:'Aún no hay conexiones.', attending:'Asistiré', interested:'Interesado', createPost:'Crear publicación', save:'Guardar', groups:'Grupos', },
-  fr: { home:'Accueil', myNetwork:'Mon réseau', jobs:'Emplois', messaging:'Messagerie', conferences:'Conférences', me:'Moi', meShort:'Moi', search:'Rechercher', startPost:'Commencer une publication', photo:'Photo', video:'Vidéo', post:'Publier', publish:'Publier', cancel:'Annuler', whatToTalk:'De quoi souhaitez-vous parler ?', like:'Aimer', comment:'Commenter', repost:'Repartager', send:'Envoyer', network:'Réseau', signOut:'Se déconnecter', settingsPrivacy:'Paramètres et confidentialité', messages:'Messages', coverLetter:'Lettre de motivation', viewProfile:'Voir le profil', account:'Compte', recruiterMode:'Mode recruteur', notifications:'Notifications', saveJob:'Enregistrer', saved:'Enregistré', apply:'Postuler', connect:'Se connecter', follow:'Suivre', following:'Abonné', message:'Message', connections:'Relations', suggestions:'Suggestions', searchConnections:'Rechercher des relations…', noConnections:'Pas encore de relations.', attending:'Je participe', interested:'Intéressé', createPost:'Créer une publication', save:'Enregistrer', groups:'Groupes', },
-  de: { home:'Startseite', myNetwork:'Mein Netzwerk', jobs:'Jobs', messaging:'Nachrichten', conferences:'Konferenzen', me:'Ich', meShort:'Ich', search:'Suchen', startPost:'Beitrag starten', photo:'Foto', video:'Video', post:'Posten', publish:'Veröffentlichen', cancel:'Abbrechen', whatToTalk:'Worüber möchtest du sprechen?', like:'Gefällt mir', comment:'Kommentieren', repost:'Teilen', send:'Senden', network:'Netzwerk', signOut:'Abmelden', settingsPrivacy:'Einstellungen und Datenschutz', messages:'Nachrichten', coverLetter:'Anschreiben', viewProfile:'Profil anzeigen', account:'Konto', recruiterMode:'Recruiter-Modus', notifications:'Benachrichtigungen', saveJob:'Speichern', saved:'Gespeichert', apply:'Bewerben', connect:'Vernetzen', follow:'Folgen', following:'Gefolgt', message:'Nachricht', connections:'Kontakte', suggestions:'Vorschläge', searchConnections:'Kontakte suchen…', noConnections:'Noch keine Kontakte.', attending:'Teilnehmen', interested:'Interessiert', createPost:'Beitrag erstellen', save:'Speichern', groups:'Gruppen', },
-  ja: { home:'ホーム', myNetwork:'マイネットワーク', jobs:'求人', messaging:'メッセージ', conferences:'カンファレンス', me:'自分', meShort:'自分', search:'検索', startPost:'投稿を開始', photo:'写真', video:'動画', post:'投稿', publish:'公開', cancel:'キャンセル', whatToTalk:'何について話したいですか？', like:'いいね', comment:'コメント', repost:'共有', send:'送信', network:'ネットワーク', signOut:'ログアウト', settingsPrivacy:'設定とプライバシー', messages:'メッセージ', coverLetter:'カバーレター', viewProfile:'プロフィールを見る', account:'アカウント', recruiterMode:'リクルーターモード', notifications:'通知', saveJob:'保存', saved:'保存済み', apply:'応募', connect:'つながる', follow:'フォロー', following:'フォロー中', message:'メッセージ', connections:'つながり', suggestions:'おすすめ', searchConnections:'つながりを検索…', noConnections:'まだつながりがありません。', attending:'参加予定', interested:'興味あり', createPost:'投稿を作成', save:'保存', groups:'グループ', },
+  en: { home:'Home', myNetwork:'My Network', jobs:'Jobs', messaging:'Messaging', conferences:'Conferences', me:'Me', meShort:'Me', search:'Search', startPost:'Start a post', photo:'Photo', video:'Video', post:'Post', publish:'Publish', cancel:'Cancel', whatToTalk:'What do you want to talk about?', like:'Like', comment:'Comment', repost:'Repost', send:'Send', network:'Network', signOut:'Sign out', settingsPrivacy:'Settings & Privacy', messages:'Messages', coverLetter:'Cover Letter', viewProfile:'View Profile', account:'Account', recruiterMode:'Recruiter Mode', notifications:'Notifications', saveJob:'Save', saved:'Saved', apply:'Apply', connect:'Connect', follow:'Follow', following:'Following', message:'Message', connections:'Connections', suggestions:'Suggestions', searchConnections:'Search connections…', noConnections:'No connections yet.', attending:'Attending', interested:'Interested', createPost:'Create a post', save:'Save', },
+  es: { home:'Inicio', myNetwork:'Mi red', jobs:'Empleos', messaging:'Mensajes', conferences:'Conferencias', me:'Yo', meShort:'Yo', search:'Buscar', startPost:'Iniciar publicación', photo:'Foto', video:'Video', post:'Publicar', publish:'Publicar', cancel:'Cancelar', whatToTalk:'¿De qué quieres hablar?', like:'Me gusta', comment:'Comentar', repost:'Compartir', send:'Enviar', network:'Red', signOut:'Cerrar sesión', settingsPrivacy:'Configuración y privacidad', messages:'Mensajes', coverLetter:'Carta de presentación', viewProfile:'Ver perfil', account:'Cuenta', recruiterMode:'Modo reclutador', notifications:'Notificaciones', saveJob:'Guardar', saved:'Guardado', apply:'Postular', connect:'Conectar', follow:'Seguir', following:'Siguiendo', message:'Mensaje', connections:'Conexiones', suggestions:'Sugerencias', searchConnections:'Buscar conexiones…', noConnections:'Aún no hay conexiones.', attending:'Asistiré', interested:'Interesado', createPost:'Crear publicación', save:'Guardar', },
+  fr: { home:'Accueil', myNetwork:'Mon réseau', jobs:'Emplois', messaging:'Messagerie', conferences:'Conférences', me:'Moi', meShort:'Moi', search:'Rechercher', startPost:'Commencer une publication', photo:'Photo', video:'Vidéo', post:'Publier', publish:'Publier', cancel:'Annuler', whatToTalk:'De quoi souhaitez-vous parler ?', like:'Aimer', comment:'Commenter', repost:'Repartager', send:'Envoyer', network:'Réseau', signOut:'Se déconnecter', settingsPrivacy:'Paramètres et confidentialité', messages:'Messages', coverLetter:'Lettre de motivation', viewProfile:'Voir le profil', account:'Compte', recruiterMode:'Mode recruteur', notifications:'Notifications', saveJob:'Enregistrer', saved:'Enregistré', apply:'Postuler', connect:'Se connecter', follow:'Suivre', following:'Abonné', message:'Message', connections:'Relations', suggestions:'Suggestions', searchConnections:'Rechercher des relations…', noConnections:'Pas encore de relations.', attending:'Je participe', interested:'Intéressé', createPost:'Créer une publication', save:'Enregistrer', },
+  de: { home:'Startseite', myNetwork:'Mein Netzwerk', jobs:'Jobs', messaging:'Nachrichten', conferences:'Konferenzen', me:'Ich', meShort:'Ich', search:'Suchen', startPost:'Beitrag starten', photo:'Foto', video:'Video', post:'Posten', publish:'Veröffentlichen', cancel:'Abbrechen', whatToTalk:'Worüber möchtest du sprechen?', like:'Gefällt mir', comment:'Kommentieren', repost:'Teilen', send:'Senden', network:'Netzwerk', signOut:'Abmelden', settingsPrivacy:'Einstellungen und Datenschutz', messages:'Nachrichten', coverLetter:'Anschreiben', viewProfile:'Profil anzeigen', account:'Konto', recruiterMode:'Recruiter-Modus', notifications:'Benachrichtigungen', saveJob:'Speichern', saved:'Gespeichert', apply:'Bewerben', connect:'Vernetzen', follow:'Folgen', following:'Gefolgt', message:'Nachricht', connections:'Kontakte', suggestions:'Vorschläge', searchConnections:'Kontakte suchen…', noConnections:'Noch keine Kontakte.', attending:'Teilnehmen', interested:'Interessiert', createPost:'Beitrag erstellen', save:'Speichern', },
+  ja: { home:'ホーム', myNetwork:'マイネットワーク', jobs:'求人', messaging:'メッセージ', conferences:'カンファレンス', me:'自分', meShort:'自分', search:'検索', startPost:'投稿を開始', photo:'写真', video:'動画', post:'投稿', publish:'公開', cancel:'キャンセル', whatToTalk:'何について話したいですか？', like:'いいね', comment:'コメント', repost:'共有', send:'送信', network:'ネットワーク', signOut:'ログアウト', settingsPrivacy:'設定とプライバシー', messages:'メッセージ', coverLetter:'カバーレター', viewProfile:'プロフィールを見る', account:'アカウント', recruiterMode:'リクルーターモード', notifications:'通知', saveJob:'保存', saved:'保存済み', apply:'応募', connect:'つながる', follow:'フォロー', following:'フォロー中', message:'メッセージ', connections:'つながり', suggestions:'おすすめ', searchConnections:'つながりを検索…', noConnections:'まだつながりがありません。', attending:'参加予定', interested:'興味あり', createPost:'投稿を作成', save:'保存', },
 };
 
 const AppContext = React.createContext(null);
@@ -29,7 +29,6 @@ function AppProvider({ children }) {
 
   const [dismissedInvitations, setDismissedInvitations] = React.useState(() => new Set());
   const [appliedJobs, setAppliedJobs] = React.useState(() => new Set());
-  const [joinedGroups, setJoinedGroups] = React.useState(() => new Set(['1', '2', '4']));
   const [unreadMessages, setUnreadMessages] = React.useState(0);
   const [unreadNotifications, setUnreadNotifications] = React.useState(0);
   const [pendingInvitations, setPendingInvitations] = React.useState([]);
@@ -215,8 +214,6 @@ function AppProvider({ children }) {
       setAppliedJobs(applied ? new Set(JSON.parse(applied)) : new Set());
       const pending = localStorage.getItem(`li-pending-conn-${uid}`);
       setPendingConnections(pending ? new Set(JSON.parse(pending)) : new Set());
-      const groups = localStorage.getItem(`li-joined-groups-${uid}`);
-      setJoinedGroups(groups ? new Set(JSON.parse(groups)) : new Set(['1', '2', '4']));
       const dismissed = localStorage.getItem(`li-dismissed-inv-${uid}`);
       setDismissedInvitations(dismissed ? new Set(JSON.parse(dismissed)) : new Set());
     } catch (_) {
@@ -258,14 +255,12 @@ function AppProvider({ children }) {
           const foll     = toSet(social.following);
           const pend     = toSet(social.pendingConnections);
           const applied  = toSet(social.appliedJobs);
-          const groups   = toSet(social.joinedGroups);
           const dismissed = new Set(social.dismissedInvitations || []);
           setSavedJobs(savedJ);
           setConnections(conns);
           setFollowing(foll);
           setPendingConnections(pend);
           setAppliedJobs(applied);
-          setJoinedGroups(groups);
           setDismissedInvitations(dismissed);
           // Sync back to localStorage so offline fallback stays fresh
           try {
@@ -274,7 +269,6 @@ function AppProvider({ children }) {
             localStorage.setItem(`li-following-${uid}`,     JSON.stringify([...foll]));
             localStorage.setItem(`li-pending-conn-${uid}`,  JSON.stringify([...pend]));
             localStorage.setItem(`li-applied-jobs-${uid}`,  JSON.stringify([...applied]));
-            localStorage.setItem(`li-joined-groups-${uid}`, JSON.stringify([...groups]));
             localStorage.setItem(`li-dismissed-inv-${uid}`, JSON.stringify([...dismissed]));
           } catch {}
         })
@@ -411,25 +405,6 @@ function AppProvider({ children }) {
     API.toggleFollow(userId).catch(() => {});
   }
 
-  function joinGroup(groupId) {
-    setJoinedGroups(prev => {
-      const next = new Set([...prev, String(groupId)]);
-      _save('li-joined-groups', next);
-      return next;
-    });
-    API.toggleGroup(groupId).catch(() => {});
-  }
-
-  function leaveGroup(groupId) {
-    setJoinedGroups(prev => {
-      const next = new Set(prev);
-      next.delete(String(groupId));
-      _save('li-joined-groups', next);
-      return next;
-    });
-    API.toggleGroup(groupId).catch(() => {});
-  }
-
   function openModal(name, data) {
     setActiveModal(name);
     setModalData(data || null);
@@ -477,9 +452,6 @@ function AppProvider({ children }) {
     resolveInvitation,
     appliedJobs,
     applyJob,
-    joinedGroups,
-    joinGroup,
-    leaveGroup,
     // Actions
     toggleLike,
     toggleSaveJob,

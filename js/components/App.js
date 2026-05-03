@@ -42,8 +42,6 @@ function Router() {
     'settings':      <SettingsPage />,
     'conferences':   <ConferencesPage />,
     'cover-letter':  <CoverLetterPage />,
-    'groups':        <GroupsPage />,
-    'group-detail':  <GroupDetailPage groupId={params.id} />,
   };
 
   return pageMap[route] || pageMap['feed'];
