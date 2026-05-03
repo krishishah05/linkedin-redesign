@@ -192,9 +192,6 @@ function ProfilePage({ userId }) {
                   {isOwnProfile ? (
                     <>
                       <button className="li-btn li-btn--outline li-btn--sm" onClick={() => openModal('edit-profile')}>Edit profile</button>
-                      <button className="li-btn li-btn--ghost li-btn--sm" onClick={() => {
-                        copyLink(getNexusProfileUrl(user), showToast);
-                      }}>Share</button>
                     </>
                   ) : (
                     <>
@@ -223,13 +220,6 @@ function ProfilePage({ userId }) {
                             <button style={{ display: 'block', width: '100%', textAlign: 'left', padding: '10px 16px', background: 'none', border: 'none', fontSize: 14, cursor: 'pointer', color: 'var(--text)' }}
                               onClick={() => { setMoreMenuOpen(false); openModal('report', { targetName: user.name }); }}>
                               Report
-                            </button>
-                            <button style={{ display: 'block', width: '100%', textAlign: 'left', padding: '10px 16px', background: 'none', border: 'none', fontSize: 14, cursor: 'pointer', color: 'var(--text)' }}
-                              onClick={() => {
-                                setMoreMenuOpen(false);
-                                copyLink(getNexusProfileUrl(user), showToast);
-                              }}>
-                              Copy profile link
                             </button>
                           </div>
                         )}
