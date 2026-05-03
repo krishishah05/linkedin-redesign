@@ -2,7 +2,9 @@
    SHAREMODAL.JS — Repost / share options
    ============================================================ */
 function ShareModal() {
-  const { closeModal, showToast, openModal } = React.useContext(AppContext);
+  const { closeModal, showToast, openModal, modalData } = React.useContext(AppContext);
+  const post = modalData?.post;
+  const onRepost = modalData?.onRepost;
 
   return (
     <div className="li-modal-overlay" style={{ display: 'flex' }}
@@ -17,7 +19,11 @@ function ShareModal() {
           </button>
         </div>
         <div className="li-modal__body" style={{ padding: 0 }}>
-          <div className="li-dropdown__item" onClick={() => { showToast('Reposted!'); closeModal(); }}>
+          <div className="li-dropdown__item" onClick={() => {
+            if (onRepost && post) onRepost(post);
+            showToast('Reposted!');
+            closeModal();
+          }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
               <path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/>
             </svg>
@@ -26,7 +32,9 @@ function ShareModal() {
               <div style={{ fontSize: 12, color: 'var(--text-2)' }}>Instantly share to feed</div>
             </div>
           </div>
-          <div className="li-dropdown__item" onClick={() => { openModal('post'); }}>
+          <div className="li-dropdown__item" onClick={() => {
+            openModal('post', { repostOf: post, onRepost });
+          }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
               <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
             </svg>

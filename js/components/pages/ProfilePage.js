@@ -274,15 +274,10 @@ function ProfilePage({ userId }) {
               <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 4 }}>{user.name}</h1>
               <p style={{ fontSize: 16, color: 'var(--text)', marginBottom: 8 }}>{user.headline}</p>
 
-              {/* Location + connections */}
-              <div style={{ display: 'flex', gap: 16, fontSize: 14, color: 'var(--text-2)', flexWrap: 'wrap', marginBottom: 12 }}>
-                {user.location && <span>{user.location}</span>}
-                {user.connections > 0 && (
-                  <span style={{ color: 'var(--blue)', cursor: 'pointer', fontWeight: 600 }}>
-                    {user.connections >= 500 ? '500+' : user.connections} connections
-                  </span>
-                )}
-              </div>
+              {/* Location */}
+              {user.location && (
+                <div style={{ fontSize: 14, color: 'var(--text-2)', marginBottom: 12 }}>{user.location}</div>
+              )}
 
               {/* Status badge + picker */}
               {(() => {

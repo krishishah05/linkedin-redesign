@@ -11,6 +11,22 @@ function NetworkPage() {
   const { data: users, loading: usersLoading } = useFetch(API.getUsers, []);
   const [tab, setTab] = React.useState('suggestions');
   const [showAllInvitations, setShowAllInvitations] = React.useState(false);
+  const [searchQuery, setSearchQuery] = React.useState('');
+  const [searchResults, setSearchResults] = React.useState(null);
+  const [searching, setSearching] = React.useState(false);
+  const searchTimeoutRef = React.useRef(null);
+
+  function handleSearchChange(val) {
+    setSearchQuery(val);
+    clearTimeout(searchTimeoutRef.current);
+    if (!val.trim()) { setSearchResults(null); return; }
+    setSearching(true);
+    searchTimeoutRef.current = setTimeout(() => {
+      API.search(val)
+        .then(res => { setSearchResults(res.users || []); setSearching(false); })
+        .catch(() => setSearching(false));
+    }, 300);
+  }
 
   React.useEffect(() => { refreshInvitations && refreshInvitations(); }, []);
 
@@ -49,6 +65,59 @@ function NetworkPage() {
 
   return (
     <div className="li-page-inner">
+      {/* People search */}
+      <div className="li-card" style={{ padding: '12px 16px', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 10 }}>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style={{ color: 'var(--text-3)', flexShrink: 0 }}>
+          <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+        </svg>
+        <input
+          type="text"
+          placeholder="Search people by name or role..."
+          value={searchQuery}
+          onChange={e => handleSearchChange(e.target.value)}
+          style={{ flex: 1, border: 'none', outline: 'none', fontSize: 14, background: 'transparent', color: 'var(--text)' }}
+        />
+        {searchQuery && (
+          <button onClick={() => { setSearchQuery(''); setSearchResults(null); }}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-3)', fontSize: 18, lineHeight: 1 }}>×</button>
+        )}
+      </div>
+
+      {/* Search results */}
+      {searchQuery && (
+        <div className="li-card" style={{ padding: '16px 24px', marginBottom: 16 }}>
+          {searching ? (
+            <div style={{ fontSize: 14, color: 'var(--text-2)', padding: '8px 0' }}>Searching...</div>
+          ) : searchResults && searchResults.length === 0 ? (
+            <div style={{ fontSize: 14, color: 'var(--text-2)', padding: '8px 0' }}>No people found for "{searchQuery}"</div>
+          ) : (searchResults || []).map((user, idx) => {
+            const iConnected = connections.has(String(user.id));
+            const isPending = pendingConnections.has(String(user.id));
+            return (
+              <div key={user.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0', borderBottom: idx < searchResults.length - 1 ? '1px solid var(--border)' : 'none' }}>
+                <div style={{ flexShrink: 0, cursor: 'pointer' }} onClick={() => navigate(`profile?id=${user.id}`)}>
+                  <Avatar name={user.name} size={48} photo={user.photo} />
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, cursor: 'pointer' }} onClick={() => navigate(`profile?id=${user.id}`)}>{user.name}</div>
+                  <div style={{ fontSize: 13, color: 'var(--text-2)' }}>{user.headline}</div>
+                  {user.location && <div style={{ fontSize: 12, color: 'var(--text-3)' }}>{user.location}</div>}
+                </div>
+                {iConnected ? (
+                  <span style={{ fontSize: 13, color: 'var(--text-2)', whiteSpace: 'nowrap' }}>Connected</span>
+                ) : (
+                  <button
+                    className={isPending ? 'li-btn li-btn--ghost li-btn--sm' : 'li-btn li-btn--outline li-btn--sm'}
+                    disabled={isPending}
+                    onClick={() => { if (!isPending) { connect(user.id); showToast(`Invitation sent to ${user.name}`); } }}
+                  >{isPending ? 'Pending' : '+ Connect'}</button>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
       <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start' }}>
         {/* Main content */}
         <div style={{ flex: 1, minWidth: 0 }}>

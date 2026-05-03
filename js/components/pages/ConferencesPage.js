@@ -12,7 +12,6 @@ function ConferencesPage() {
   const [conferences, setConferences] = React.useState([]);
   const [selectedId, setSelectedId] = React.useState(null);
   const [searching, setSearching] = React.useState(false);
-  const [registeredIds, setRegisteredIds] = React.useState(new Set());
   const [stories, setStories] = React.useState([]);
   const [showStoryForm, setShowStoryForm] = React.useState(false);
   const [viewingStoryIdx, setViewingStoryIdx] = React.useState(null); // index into stories[]
@@ -267,7 +266,6 @@ function ConferencesPage() {
             )}
             {conferences.map(conf => {
               const isActive = String(conf.id) === String(selectedId);
-              const isRegistered = registeredIds.has(String(conf.id));
               return (
                 <button key={conf.id} type="button"
                   onClick={() => setSelectedId(id => String(id) === String(conf.id) ? null : conf.id)}
@@ -288,7 +286,6 @@ function ConferencesPage() {
                     {(conf.tags || []).slice(0, 3).map(tag => (
                       <span key={tag} style={{ fontSize: 11, background: 'var(--bg-2)', padding: '2px 6px', borderRadius: 6, color: 'var(--text-2)' }}>{tag}</span>
                     ))}
-                    {isRegistered && <span style={{ fontSize: 11, color: 'var(--open-to-work-text, #4ade80)', fontWeight: 750, marginLeft: 'auto' }}>✓ Registered</span>}
                   </div>
                 </button>
               );
@@ -329,18 +326,6 @@ function ConferencesPage() {
                 )}
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
-                {registeredIds.has(String(selectedConf.id)) ? (
-                  <div style={{ flex: 1, textAlign: 'center', padding: '9px 0', color: 'var(--open-to-work-text, #4ade80)', fontWeight: 750, fontSize: 13, background: 'var(--open-to-work-bg, rgba(5,118,66,0.15))', borderRadius: 8 }}>
-                    ✓ Registered
-                  </div>
-                ) : (
-                  <button className="li-btn li-btn--primary" style={{ flex: 1, fontSize: 13 }} onClick={() => {
-                    setRegisteredIds(prev => new Set([...prev, String(selectedConf.id)]));
-                    showToast(`Registered for ${selectedConf.name}!`, 'success');
-                  }}>
-                    Register
-                  </button>
-                )}
                 {selectedConfUrl && (
                   <button className="li-btn li-btn--ghost" style={{ flex: 1, fontSize: 13 }} onClick={() => window.open(selectedConfUrl, '_blank', 'noopener,noreferrer')}>
                     View event

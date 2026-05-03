@@ -21,6 +21,7 @@ function SettingsPage() {
     { key: 'display',   label: 'Display' },
     { key: 'security',  label: 'Security' },
     { key: 'recruiter', label: 'Recruiter Mode' },
+    { key: 'delete',    label: 'Delete Account' },
   ];
 
   function Toggle({ label, desc, value, onChange }) {
@@ -179,22 +180,6 @@ function SettingsPage() {
                 <Toggle label="Dark mode" desc="Use a darker color scheme"
                   value={darkMode}
                   onChange={v => { setDarkMode(v); showToast('Dark mode ' + (v ? 'enabled' : 'disabled')); }} />
-                <div style={{ paddingTop: 20 }}>
-                  <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 4 }}>Language</h3>
-                  <p style={{ fontSize: 13, color: 'var(--text-2)', marginBottom: 10 }}>
-                    Changing language updates navigation and interface text across the entire app.
-                  </p>
-                  <select
-                    className="li-settings-input"
-                    style={{ width: 240 }}
-                    value={language}
-                    onChange={e => { setLanguage(e.target.value); showToast('Language updated — UI text will reflect your choice'); }}
-                  >
-                    {langOptions.map(o => (
-                      <option key={o.value} value={o.value}>{o.label}</option>
-                    ))}
-                  </select>
-                </div>
               </div>
             )}
 
@@ -249,23 +234,12 @@ function SettingsPage() {
                   AI outreach templates, and pipeline management.
                 </p>
 
-                {userStatus !== 'recruiting' && (
-                  <div style={{ padding: 14, background: 'rgba(231,165,0,0.12)', borderRadius: 8, marginBottom: 20, border: '1px solid rgba(231,165,0,0.4)' }}>
-                    <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 4 }}>⚠️ Recruiting status required</div>
-                    <div style={{ fontSize: 13, color: 'var(--text-2)' }}>
-                      Set your status to "Recruiting" on your profile to unlock Recruiter Mode.
-                    </div>
-                  </div>
-                )}
-
                 <Toggle
                   label="Enable Recruiter Mode"
-                  desc={userStatus === 'recruiting'
-                    ? 'Access hiring tools, candidate pipeline, and outreach templates'
-                    : 'Requires "Recruiting" status on your profile'}
-                  value={!!(recruiterMode && userStatus === 'recruiting')}
+                  desc="Access hiring tools, candidate pipeline, and outreach templates"
+                  value={!!recruiterMode}
                   onChange={() => {
-                    if (userStatus !== 'recruiting') { showToast('Set your status to Recruiting on your profile first', 'error'); return; }
+                    if (!recruiterMode) setUserStatus('recruiting');
                     toggleRecruiterMode();
                     showToast('Recruiter Mode ' + (recruiterMode ? 'disabled' : 'enabled'));
                   }}
@@ -276,10 +250,46 @@ function SettingsPage() {
                   {recruiterFeatures.map(f => (
                     <div key={f} style={{
                       fontSize: 13, padding: '10px 0', borderBottom: '1px solid var(--border)',
-                      color: recruiterMode && userStatus === 'recruiting' ? 'var(--text)' : 'var(--text-3)',
+                      color: recruiterMode ? 'var(--text)' : 'var(--text-3)',
                     }}>{f}</div>
                   ))}
                 </div>
+
+              </div>
+            )}
+
+            {/* ── Delete Account ── */}
+            {tab === 'delete' && (
+              <div>
+                <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 8 }}>Delete Account</h2>
+                <p style={{ fontSize: 13, color: 'var(--text-2)', marginBottom: 24, lineHeight: 1.5 }}>
+                  Permanently delete your account and all associated data. This action cannot be undone.
+                </p>
+                <button
+                  type="button"
+                  style={{
+                    padding: '9px 20px',
+                    borderRadius: 6,
+                    border: '1.5px solid #b91c1c',
+                    background: 'transparent',
+                    color: '#b91c1c',
+                    fontSize: 14,
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.background = '#b91c1c'; e.currentTarget.style.color = '#fff'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#b91c1c'; }}
+                  onClick={() => {
+                    if (!window.confirm('Are you sure you want to permanently delete your account? This cannot be undone.')) return;
+                    ['nx-token','nx-uid','li-liked-posts','li-saved-jobs','li-connections','li-following',
+                     'li-pending-conn','li-dismissed-inv','li-applied-jobs','li-joined-groups',
+                     'li-settings','li-language','li-user-status','li-recruiter-mode'].forEach(k => localStorage.removeItem(k));
+                    showToast('Account deleted. Redirecting…', 'error');
+                    setTimeout(() => { window.location.href = 'index.html'; }, 1500);
+                  }}
+                >
+                  Delete Account
+                </button>
               </div>
             )}
 
