@@ -2847,7 +2847,7 @@ body.dark-mode .li-app-item:hover,
 body.dark-mode .li-job-card__save:hover { background: rgba(255,255,255,0.07) !important; }
 
 /* ── Borders using rgba(0,0,0,...) → flip to white-tint ── */
-body.dark-mode .li-msg-list-item,
+body.dark-mode .li-msg-conv,
 body.dark-mode .li-notif-item { border-bottom-color: var(--border) !important; }
 
 /* ── Bar track backgrounds ── */
@@ -4039,6 +4039,9 @@ body.dark-mode .li-msg-guide__tone-badge {
 
 /* ── Design token upgrades ── */
 :root {
+  --color-primary:  #0A66C2;
+  --bp-tablet:      900px;
+  --bp-mobile:      600px;
   --blue:           #0F5DBD;
   --blue-hover:     #0A4A9E;
   --gradient-brand: linear-gradient(135deg, #0F5DBD 0%, #2E87F0 100%);

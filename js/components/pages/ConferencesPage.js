@@ -386,6 +386,9 @@ function SnapStoryViewer({ stories, initialIdx, onClose }) {
   const [paused, setPaused] = React.useState(false);
   const [liked, setLiked] = React.useState(new Set());
   const intervalRef = React.useRef(null);
+  const wrapperRef = React.useRef(null);
+
+  React.useEffect(() => { wrapperRef.current?.focus(); }, []);
   const DURATION = 7000; // ms per story
   const TICK = 50;
 
@@ -429,6 +432,7 @@ function SnapStoryViewer({ stories, initialIdx, onClose }) {
 
   return (
     <div
+      ref={wrapperRef}
       style={{
         position: 'fixed', inset: 0, zIndex: 9500,
         background: '#000',
@@ -558,8 +562,11 @@ function SnapStoryViewer({ stories, initialIdx, onClose }) {
 
 /* ── Story share form ──────────────────────────────────────── */
 function ConferenceStoryForm({ conferences, storyForm, setStoryForm, submitting, onSubmit, onClose }) {
+  const formWrapperRef = React.useRef(null);
+  React.useEffect(() => { formWrapperRef.current?.focus(); }, []);
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 9000, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+    <div ref={formWrapperRef} tabIndex={-1} onKeyDown={e => { if (e.key === 'Escape') onClose(); }}
+      style={{ position: 'fixed', inset: 0, zIndex: 9000, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', outline: 'none' }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div style={{ background: 'var(--white)', borderRadius: 12, padding: 28, width: 500, maxWidth: '95vw', boxShadow: '0 20px 60px rgba(0,0,0,0.35)', maxHeight: '90vh', overflowY: 'auto' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
