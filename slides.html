@@ -1,0 +1,1725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nexus — CS485 Final Presentation</title>
+  <style>
+    /* ─────────────────────────────────────────────
+       DESIGN TOKENS  (edit these to restyle everything)
+    ───────────────────────────────────────────── */
+    :root {
+      --blue:       #0F5DBD;
+      --blue-dark:  #0a4a9a;
+      --blue-light: #e8f0fb;
+      --accent:     #057642;
+      --gold:       #c8a000;
+      --text:       #1a1a2e;
+      --text-2:     #444;
+      --text-3:     #666;
+      --white:      #ffffff;
+      --border:     #dde3ef;
+      --bg:         #f4f6fa;
+      --slide-w:    1280px;
+      --slide-h:    720px;
+      --radius:     12px;
+    }
+
+    /* ─────────────────────────────────────────────
+       RESET
+    ───────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #1c1c1c;
+      color: var(--text);
+    }
+
+    /* ─────────────────────────────────────────────
+       SLIDE CONTAINER  —  each .slide is one page
+       To edit a slide: find the matching <section id="slideN">
+    ───────────────────────────────────────────── */
+    .slide {
+      width: var(--slide-w);
+      height: var(--slide-h);
+      margin: 24px auto;
+      background: var(--white);
+      border-radius: var(--radius);
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.35);
+    }
+
+    /* slide number badge */
+    .slide::after {
+      content: attr(data-n);
+      position: absolute;
+      bottom: 14px;
+      right: 20px;
+      font-size: 12px;
+      color: rgba(0,0,0,0.25);
+      font-weight: 600;
+    }
+
+    /* ─────────────────────────────────────────────
+       COMMON LAYOUT HELPERS
+    ───────────────────────────────────────────── */
+    .slide-header {
+      background: var(--blue);
+      color: var(--white);
+      padding: 18px 48px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-shrink: 0;
+    }
+    .slide-header .icon { font-size: 26px; }
+    .slide-header h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.3px; }
+    .slide-header .tag {
+      margin-left: auto;
+      background: rgba(255,255,255,0.2);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
+    .slide-body {
+      flex: 1;
+      padding: 28px 48px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 28px;
+      height: 100%;
+      align-items: start;
+    }
+    .three-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 22px;
+    }
+
+    /* ─────────────────────────────────────────────
+       CARD / BOX COMPONENTS
+    ───────────────────────────────────────────── */
+    .card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px 20px;
+    }
+    .card h3 {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+      color: var(--blue);
+      margin-bottom: 10px;
+    }
+    .card p, .card li {
+      font-size: 14px;
+      color: var(--text-2);
+      line-height: 1.6;
+    }
+    .card ul { list-style: none; }
+    .card ul li::before { content: "▸ "; color: var(--blue); font-size: 11px; }
+
+    .pill {
+      display: inline-block;
+      background: var(--blue-light);
+      color: var(--blue-dark);
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      margin: 3px 2px;
+    }
+    .pill.green { background: #e6f4ee; color: var(--accent); }
+    .pill.gold  { background: #fdf8e7; color: var(--gold); }
+    .pill.gray  { background: #f0f0f0; color: #555; }
+
+    .stat-box {
+      background: var(--blue);
+      color: var(--white);
+      border-radius: 10px;
+      padding: 16px 18px;
+      text-align: center;
+    }
+    .stat-box .num { font-size: 32px; font-weight: 800; line-height: 1; }
+    .stat-box .lbl { font-size: 11px; margin-top: 4px; opacity: 0.85; letter-spacing: 0.3px; }
+
+    .stat-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    /* ─────────────────────────────────────────────
+       TIMELINE / STEPS
+    ───────────────────────────────────────────── */
+    .steps { display: flex; flex-direction: column; gap: 10px; }
+    .step {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+    }
+    .step .num {
+      width: 28px; height: 28px;
+      background: var(--blue);
+      color: var(--white);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 700;
+      flex-shrink: 0;
+    }
+    .step .content h4 { font-size: 14px; font-weight: 700; color: var(--text); }
+    .step .content p  { font-size: 13px; color: var(--text-3); margin-top: 1px; }
+
+    /* ─────────────────────────────────────────────
+       CI/CD FLOW DIAGRAM
+    ───────────────────────────────────────────── */
+    .flow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      flex-wrap: nowrap;
+    }
+    .flow-box {
+      background: var(--blue-light);
+      border: 2px solid var(--blue);
+      border-radius: 8px;
+      padding: 10px 14px;
+      text-align: center;
+      min-width: 110px;
+    }
+    .flow-box .fb-icon { font-size: 20px; }
+    .flow-box .fb-title { font-size: 12px; font-weight: 700; color: var(--blue-dark); margin-top: 4px; line-height: 1.3; }
+    .flow-box .fb-sub   { font-size: 10px; color: var(--text-3); margin-top: 2px; }
+    .flow-arrow {
+      font-size: 20px;
+      color: var(--blue);
+      padding: 0 4px;
+      flex-shrink: 0;
+    }
+    .flow-box.green-box {
+      background: #e6f4ee;
+      border-color: var(--accent);
+    }
+    .flow-box.green-box .fb-title { color: var(--accent); }
+
+    /* ─────────────────────────────────────────────
+       WORKFLOW TABLE
+    ───────────────────────────────────────────── */
+    .wf-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .wf-table th {
+      background: var(--blue);
+      color: var(--white);
+      padding: 9px 14px;
+      text-align: left;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.4px;
+    }
+    .wf-table th:first-child { border-radius: 8px 0 0 0; }
+    .wf-table th:last-child  { border-radius: 0 8px 0 0; }
+    .wf-table td {
+      padding: 9px 14px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-2);
+      vertical-align: top;
+    }
+    .wf-table tr:nth-child(even) td { background: var(--bg); }
+    .wf-table td code {
+      font-size: 11px;
+      background: #e8eaf0;
+      border-radius: 4px;
+      padding: 1px 5px;
+      font-family: "SF Mono", "Fira Code", monospace;
+      color: var(--blue-dark);
+    }
+
+    /* ─────────────────────────────────────────────
+       POSTMORTEM ITEMS
+    ───────────────────────────────────────────── */
+    .pm-list { display: flex; flex-direction: column; gap: 11px; }
+    .pm-item {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      background: var(--bg);
+      border-radius: 8px;
+      padding: 12px 16px;
+      border-left: 4px solid var(--blue);
+    }
+    .pm-item.fail  { border-left-color: #cc1016; }
+    .pm-item.warn  { border-left-color: var(--gold); }
+    .pm-item.good  { border-left-color: var(--accent); }
+    .pm-item .pm-icon { font-size: 20px; flex-shrink: 0; }
+    .pm-item h4 { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+    .pm-item p  { font-size: 13px; color: var(--text-3); line-height: 1.5; }
+
+    /* ─────────────────────────────────────────────
+       LESSON / FUTURE ITEM
+    ───────────────────────────────────────────── */
+    .lesson-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .lesson {
+      background: var(--bg);
+      border-radius: 10px;
+      padding: 14px 18px;
+      border-top: 3px solid var(--blue);
+    }
+    .lesson.gold-top { border-top-color: var(--gold); }
+    .lesson.green-top { border-top-color: var(--accent); }
+    .lesson h4 { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+    .lesson p  { font-size: 12.5px; color: var(--text-3); line-height: 1.55; }
+
+    /* ─────────────────────────────────────────────
+       KEYBOARD NAV (browser only, hidden in print)
+    ───────────────────────────────────────────── */
+    #nav {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 10px;
+      z-index: 999;
+    }
+    #nav button {
+      background: var(--blue);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 22px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    #nav button:hover { background: var(--blue-dark); }
+    #nav span {
+      background: rgba(255,255,255,0.15);
+      color: white;
+      border-radius: 8px;
+      padding: 10px 18px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    /* ─────────────────────────────────────────────
+       PRINT / PDF  —  each .slide = one landscape page
+    ───────────────────────────────────────────── */
+    @media print {
+      @page { size: 1280px 720px; margin: 0; }
+      body { background: white; }
+      #nav { display: none; }
+      .slide {
+        width: 1280px;
+        height: 720px;
+        margin: 0;
+        border-radius: 0;
+        box-shadow: none;
+        page-break-after: always;
+        break-after: page;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 1 — TITLE
+     Edit: team members, date, tagline
+════════════════════════════════════════════════════════════ -->
+<section class="slide" id="slide1" data-n="1 / 18">
+  <div style="
+    background: linear-gradient(135deg, #0F5DBD 0%, #0a3d7a 60%, #0d2a55 100%);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 48px;
+    position: relative;
+    overflow: hidden;
+  ">
+    <!-- decorative circles -->
+    <div style="position:absolute;top:-80px;right:-80px;width:320px;height:320px;
+      border-radius:50%;background:rgba(255,255,255,0.05);"></div>
+    <div style="position:absolute;bottom:-60px;left:-60px;width:240px;height:240px;
+      border-radius:50%;background:rgba(255,255,255,0.05);"></div>
+
+    <!-- logo wordmark -->
+    <div style="
+      background: white;
+      color: #0F5DBD;
+      font-size: 48px;
+      font-weight: 900;
+      width: 84px; height: 84px;
+      border-radius: 18px;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 24px;
+      letter-spacing: -2px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+    ">N</div>
+
+    <h1 style="font-size: 54px; font-weight: 900; color: white; letter-spacing: -1px; line-height: 1.1;">
+      Nexus
+    </h1>
+    <p style="font-size: 18px; color: rgba(255,255,255,0.7); margin-top: 8px; font-style: italic;">
+      Professional Networking, Redesigned
+    </p>
+
+    <div style="
+      margin-top: 32px;
+      background: rgba(255,255,255,0.12);
+      border-radius: 12px;
+      padding: 16px 36px;
+      display: flex;
+      gap: 40px;
+    ">
+      <div style="text-align:center;">
+        <div style="font-size:11px;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:1px;">Course</div>
+        <div style="font-size:14px;color:white;font-weight:600;margin-top:3px;">CS485 — Spring 2026</div>
+      </div>
+      <div style="width:1px;background:rgba(255,255,255,0.2);"></div>
+      <div style="text-align:center;">
+        <div style="font-size:11px;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:1px;">Team</div>
+        <div style="font-size:14px;color:white;font-weight:600;margin-top:3px;">
+          Krishi Shah &nbsp;·&nbsp; Dhyani Soni &nbsp;·&nbsp; Saanvi Elaty &nbsp;·&nbsp; Victor Jimenez
+        </div>
+      </div>
+      <div style="width:1px;background:rgba(255,255,255,0.2);"></div>
+      <div style="text-align:center;">
+        <div style="font-size:11px;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:1px;">Deployed</div>
+        <div style="font-size:13px;color:#7ec8ff;font-weight:600;margin-top:3px;">linkedin-redesign-z364.onrender.com</div>
+      </div>
+    </div>
+
+    <div style="
+      margin-top: 24px;
+      display: flex; gap: 14px;
+    ">
+      <span style="background:rgba(255,255,255,0.15);color:white;border-radius:20px;padding:5px 16px;font-size:12px;font-weight:600;">React 18</span>
+      <span style="background:rgba(255,255,255,0.15);color:white;border-radius:20px;padding:5px 16px;font-size:12px;font-weight:600;">Flask + SQLite</span>
+      <span style="background:rgba(255,255,255,0.15);color:white;border-radius:20px;padding:5px 16px;font-size:12px;font-weight:600;">Render</span>
+      <span style="background:rgba(255,255,255,0.15);color:white;border-radius:20px;padding:5px 16px;font-size:12px;font-weight:600;">GitHub Actions CI/CD</span>
+      <span style="background:rgba(255,255,255,0.15);color:white;border-radius:20px;padding:5px 16px;font-size:12px;font-weight:600;">245 Commits</span>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 2 — APP OVERVIEW
+     Edit: problem bullets, target user description
+════════════════════════════════════════════════════════════ -->
+<section class="slide" id="slide2" data-n="2 / 18">
+  <div class="slide-header">
+    <span class="icon">🎯</span>
+    <h2>App Overview</h2>
+    <span class="tag">PROBLEM + SOLUTION</span>
+  </div>
+  <div class="slide-body">
+    <div class="two-col" style="align-items: stretch;">
+
+      <div style="display:flex;flex-direction:column;gap:16px;">
+        <div class="card" style="border-left: 4px solid #cc1016;">
+          <h3>The Problem</h3>
+          <ul style="list-style:none;">
+            <li style="padding:5px 0;font-size:14px;color:var(--text-2);">▸ LinkedIn's interface is cluttered and overwhelming for new professionals</li>
+            <li style="padding:5px 0;font-size:14px;color:var(--text-2);">▸ Reaching out to connections is intimidating with no guidance on message quality</li>
+            <li style="padding:5px 0;font-size:14px;color:var(--text-2);">▸ No feedback on whether a profile is "ready" to start networking</li>
+            <li style="padding:5px 0;font-size:14px;color:var(--text-2);">▸ Cold-start problem: new users don't know where to begin</li>
+          </ul>
+        </div>
+        <div class="card" style="border-left: 4px solid var(--accent);">
+          <h3>Our Solution — Nexus</h3>
+          <ul style="list-style:none;">
+            <li style="padding:5px 0;font-size:14px;color:var(--text-2);">▸ Clean, modern SPA with familiar LinkedIn-like experience</li>
+            <li style="padding:5px 0;font-size:14px;color:var(--text-2);">▸ AI Outreach assistant that drafts tailored connection messages</li>
+            <li style="padding:5px 0;font-size:14px;color:var(--text-2);">▸ Profile readiness scoring (9-criterion weighted, 0–100) before reaching out</li>
+            <li style="padding:5px 0;font-size:14px;color:var(--text-2);">▸ Full networking workflow: posts, connections, messaging, jobs</li>
+          </ul>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:16px;">
+        <div class="card" style="border-left: 4px solid var(--blue);">
+          <h3>Target Users</h3>
+          <div style="display:flex;flex-direction:column;gap:10px;margin-top:4px;">
+            <div style="display:flex;align-items:center;gap:12px;">
+              <span style="font-size:26px;">🎓</span>
+              <div>
+                <div style="font-size:14px;font-weight:700;">Students &amp; New Graduates</div>
+                <div style="font-size:12.5px;color:var(--text-3);">Building their first professional network; unsure how to start</div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;">
+              <span style="font-size:26px;">💼</span>
+              <div>
+                <div style="font-size:14px;font-weight:700;">Early-Career Professionals</div>
+                <div style="font-size:12.5px;color:var(--text-3);">Actively job hunting, looking to make meaningful connections</div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;">
+              <span style="font-size:26px;">🔍</span>
+              <div>
+                <div style="font-size:14px;font-weight:700;">Career Changers</div>
+                <div style="font-size:12.5px;color:var(--text-3);">Entering new industries and needing guided outreach help</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Key Differentiator</h3>
+          <p style="font-size:14px;color:var(--text-2);line-height:1.6;">
+            Nexus is the only LinkedIn-style app with a built-in <strong>Outreach Readiness Score</strong>
+            and an <strong>AI message drafting assistant</strong>. Users get actionable feedback before
+            sending a single connection request.
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 3 — DEMO ROADMAP
+     Edit: step titles and descriptions
+════════════════════════════════════════════════════════════ -->
+<section class="slide" id="slide3" data-n="3 / 18">
+  <div class="slide-header">
+    <span class="icon">🗺️</span>
+    <h2>Demo Roadmap</h2>
+    <span class="tag">LIVE DEMO WALKTHROUGH</span>
+  </div>
+  <div class="slide-body">
+    <div class="two-col" style="align-items:start;">
+
+      <div class="steps">
+        <div class="step">
+          <div class="num">1</div>
+          <div class="content">
+            <h4>Authentication Flow</h4>
+            <p>Register a new account or log in with <code style="font-size:11px;background:#e8eaf0;padding:1px 5px;border-radius:3px;">alex.johnson@gmail.com / password123</code> — JWT token issued and stored in localStorage</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="num">2</div>
+          <div class="content">
+            <h4>Feed &amp; Post Interactions</h4>
+            <p>Browse the live feed, create a post, like and comment — changes persist in SQLite via the Flask API</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="num">3</div>
+          <div class="content">
+            <h4>Profile — View &amp; Edit</h4>
+            <p>Edit headline, about, experience, education, skills — <code style="font-size:11px;background:#e8eaf0;padding:1px 5px;border-radius:3px;">PUT /api/me</code> persists changes immediately</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="num">4</div>
+          <div class="content">
+            <h4>Jobs — Browse, Save, Apply</h4>
+            <p>Search and filter job listings, apply with a cover letter modal, track saved jobs — all state in AppContext + backend</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="steps">
+        <div class="step">
+          <div class="num">5</div>
+          <div class="content">
+            <h4>Network — Connections</h4>
+            <p>Send, accept, and withdraw connection requests; browse "People You May Know" suggestions</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="num">6</div>
+          <div class="content">
+            <h4>Messaging — Conversations</h4>
+            <p>Real-time-style conversation threads via <code style="font-size:11px;background:#e8eaf0;padding:1px 5px;border-radius:3px;">GET/POST /api/conversations/:id/messages</code></p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="num">7</div>
+          <div class="content">
+            <h4>AI Outreach — Readiness Score</h4>
+            <p>Show 9-criterion weighted profile score (0–100), get level: Ready / Almost Ready / Not Ready, unlock outreach at ≥ 60</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="num">8</div>
+          <div class="content">
+            <h4>AI Outreach — Message Draft</h4>
+            <p>Select tone (professional / friendly / formal) and goal, generate a tailored draft with tips and alternatives</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 4 — ARCHITECTURE OVERVIEW
+     Edit: layer descriptions, add/remove components
+════════════════════════════════════════════════════════════ -->
+<section class="slide" id="slide4" data-n="4 / 18">
+  <div class="slide-header">
+    <span class="icon">🏗️</span>
+    <h2>Architecture Overview</h2>
+    <span class="tag">FULL-STACK SPA</span>
+  </div>
+  <div class="slide-body" style="justify-content:flex-start;padding-top:20px;">
+
+    <!-- architecture diagram -->
+    <div style="display:grid;grid-template-columns:1fr 60px 1fr 60px 1fr 60px 1fr;align-items:center;gap:0;margin-bottom:22px;">
+
+      <div style="background:var(--blue-light);border:2px solid var(--blue);border-radius:10px;padding:14px;text-align:center;">
+        <div style="font-size:22px;">🌐</div>
+        <div style="font-weight:700;font-size:13px;color:var(--blue-dark);margin-top:4px;">Browser</div>
+        <div style="font-size:11px;color:var(--text-3);margin-top:4px;">React 18 (CDN Babel)<br/>Hash-based Router<br/>AppContext state</div>
+      </div>
+      <div style="text-align:center;font-size:22px;color:var(--blue);">→</div>
+      <div style="background:var(--blue-light);border:2px solid var(--blue);border-radius:10px;padding:14px;text-align:center;">
+        <div style="font-size:22px;">📡</div>
+        <div style="font-weight:700;font-size:13px;color:var(--blue-dark);margin-top:4px;">js/api.js</div>
+        <div style="font-size:11px;color:var(--text-3);margin-top:4px;">window.API.*<br/>Bearer token auth<br/>Fetch wrappers</div>
+      </div>
+      <div style="text-align:center;font-size:22px;color:var(--blue);">→</div>
+      <div style="background:#e6f4ee;border:2px solid var(--accent);border-radius:10px;padding:14px;text-align:center;">
+        <div style="font-size:22px;">🐍</div>
+        <div style="font-weight:700;font-size:13px;color:var(--accent);margin-top:4px;">Flask API</div>
+        <div style="font-size:11px;color:var(--text-3);margin-top:4px;">app.py (915 lines)<br/>30+ REST routes<br/>Gunicorn (Render)</div>
+      </div>
+      <div style="text-align:center;font-size:22px;color:var(--accent);">→</div>
+      <div style="background:#e6f4ee;border:2px solid var(--accent);border-radius:10px;padding:14px;text-align:center;">
+        <div style="font-size:22px;">🗄️</div>
+        <div style="font-weight:700;font-size:13px;color:var(--accent);margin-top:4px;">SQLite</div>
+        <div style="font-size:11px;color:var(--text-3);margin-top:4px;">database.py (1326 lines)<br/>Users, Posts, Jobs<br/>Convs, Notifs</div>
+      </div>
+
+    </div>
+
+    <!-- bottom row: frontend detail + backend detail -->
+    <div class="two-col" style="align-items:start;">
+
+      <div class="card">
+        <h3>Frontend Components (React)</h3>
+        <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;">
+          <span class="pill">App.js</span>
+          <span class="pill">AppContext.js</span>
+          <span class="pill">NavBar.js</span>
+          <span class="pill">MobileNav.js</span>
+          <span class="pill gray">14 Page Components</span>
+          <span class="pill gray">12 Modal Components</span>
+          <span class="pill gray">Avatar, LoadingSpinner</span>
+          <span class="pill gray">ToastContainer</span>
+        </div>
+        <div style="margin-top:10px;font-size:12.5px;color:var(--text-3);">
+          State: React Context + useState + localStorage persistence. No Redux.
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Backend Modules (Flask)</h3>
+        <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;">
+          <span class="pill green">app.py — Routes</span>
+          <span class="pill green">database.py — SQLite layer</span>
+          <span class="pill green">outreach.py — AI feature</span>
+          <span class="pill gray">data/ — 9 seed modules</span>
+          <span class="pill gray">CORS (flask-cors)</span>
+          <span class="pill gray">JWT sessions</span>
+        </div>
+        <div style="margin-top:10px;font-size:12.5px;color:var(--text-3);">
+          Gunicorn serves both the API (<code style="font-size:11px;">/api/*</code>) and frontend static files from a single Render Web Service.
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 5 — FEATURE SHOWCASE (CORE)
+     Edit: feature names, icons, descriptions
+════════════════════════════════════════════════════════════ -->
+<section class="slide" id="slide5" data-n="5 / 18">
+  <div class="slide-header">
+    <span class="icon">✨</span>
+    <h2>Feature Showcase</h2>
+    <span class="tag">14 PAGES · 12 MODALS</span>
+  </div>
+  <div class="slide-body" style="padding-top:20px;">
+
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;">
+
+      <div class="card" style="border-top:3px solid var(--blue);">
+        <div style="font-size:22px;margin-bottom:6px;">📰</div>
+        <h3>Feed</h3>
+        <p>Create, like, comment, share and delete posts. Real-time toast feedback. Post media support.</p>
+      </div>
+
+      <div class="card" style="border-top:3px solid var(--blue);">
+        <div style="font-size:22px;margin-bottom:6px;">👤</div>
+        <h3>Profile</h3>
+        <p>Edit bio, headline, experience, education, and skills. Avatar auto-generated from initials.</p>
+      </div>
+
+      <div class="card" style="border-top:3px solid var(--blue);">
+        <div style="font-size:22px;margin-bottom:6px;">🤝</div>
+        <h3>Network</h3>
+        <p>Send &amp; accept connection requests, manage pending invitations, view connection suggestions.</p>
+      </div>
+
+      <div class="card" style="border-top:3px solid var(--blue);">
+        <div style="font-size:22px;margin-bottom:6px;">💼</div>
+        <h3>Jobs</h3>
+        <p>Browse &amp; filter listings, save for later, apply with cover letter. Track applied status.</p>
+      </div>
+
+      <div class="card" style="border-top:3px solid var(--accent);">
+        <div style="font-size:22px;margin-bottom:6px;">💬</div>
+        <h3>Messaging</h3>
+        <p>Full conversation threads. Send messages to connections via <code style="font-size:11px;">POST /api/conversations/:id/messages</code>.</p>
+      </div>
+
+      <div class="card" style="border-top:3px solid var(--accent);">
+        <div style="font-size:22px;margin-bottom:6px;">🔔</div>
+        <h3>Notifications</h3>
+        <p>Per-item read / unread state. Mark all read. Badge count in NavBar.</p>
+      </div>
+
+      <div class="card" style="border-top:3px solid var(--accent);">
+        <div style="font-size:22px;margin-bottom:6px;">🔍</div>
+        <h3>Search</h3>
+        <p>Cross-entity search (users, jobs, posts, groups). Debounced via <code style="font-size:11px;">GET /api/search?q=</code>.</p>
+      </div>
+
+      <div class="card" style="border-top:3px solid var(--accent);">
+        <div style="font-size:22px;margin-bottom:6px;">🏢</div>
+        <h3>Company / Groups / Events</h3>
+        <p>Company profiles, join groups, RSVP to events. Create new events with modal wizard.</p>
+      </div>
+
+    </div>
+
+    <div style="margin-top:14px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;">
+      <span style="font-size:12px;color:var(--text-3);font-weight:600;">Also includes:</span>
+      <span class="pill">Learning / Courses</span>
+      <span class="pill">Premium Page</span>
+      <span class="pill">Settings + Dark Mode</span>
+      <span class="pill">Article Page</span>
+      <span class="pill gray">XSS prevention (escapeHtml)</span>
+      <span class="pill gray">Responsive (900px / 600px breakpoints)</span>
+      <span class="pill gray">Mobile bottom nav</span>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 6 — AI OUTREACH FEATURE
+     Edit: criteria list, score thresholds, tone/goal options
+════════════════════════════════════════════════════════════ -->
+<section class="slide" id="slide6" data-n="6 / 18">
+  <div class="slide-header" style="background: linear-gradient(90deg, #0F5DBD, #057642);">
+    <span class="icon">🤖</span>
+    <h2>AI Outreach Feature</h2>
+    <span class="tag">STORIES #1 &amp; #7</span>
+  </div>
+  <div class="slide-body">
+    <div class="two-col" style="align-items:stretch;">
+
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div class="card" style="border-left:4px solid var(--accent);">
+          <h3>Story #7 — Outreach Readiness Check  <code style="font-size:10px;background:#e8eaf0;padding:1px 5px;border-radius:3px;font-family:monospace;">GET /api/outreach/readiness</code></h3>
+          <p style="font-size:13px;color:var(--text-3);margin-bottom:8px;">9-criterion weighted scoring system (max 100 pts)</p>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;">
+            <div style="font-size:12px;color:var(--text-2);">▸ Has at least one role (20 pts)</div>
+            <div style="font-size:12px;color:var(--text-2);">▸ Has education entry (15 pts)</div>
+            <div style="font-size:12px;color:var(--text-2);">▸ Has skills listed (15 pts)</div>
+            <div style="font-size:12px;color:var(--text-2);">▸ Bio / About section filled (10 pts)</div>
+            <div style="font-size:12px;color:var(--text-2);">▸ Profile photo present (10 pts)</div>
+            <div style="font-size:12px;color:var(--text-2);">▸ Has connections (10 pts)</div>
+            <div style="font-size:12px;color:var(--text-2);">▸ Has made posts (8 pts)</div>
+            <div style="font-size:12px;color:var(--text-2);">▸ Headline filled (7 pts)</div>
+            <div style="font-size:12px;color:var(--text-2);">▸ Location set (5 pts)</div>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:10px;">
+            <span class="pill green">≥ 80 → Ready ✅</span>
+            <span class="pill gold">60–79 → Almost Ready ⚠️</span>
+            <span style="background:#fdecea;color:#cc1016;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:600;">&lt; 60 → Not Ready ❌</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div class="card" style="border-left:4px solid var(--blue);">
+          <h3>Story #1 — Message Guidance  <code style="font-size:10px;background:#e8eaf0;padding:1px 5px;border-radius:3px;font-family:monospace;">POST /api/outreach/generate</code></h3>
+          <p style="font-size:13px;color:var(--text-3);margin-bottom:8px;">Template-based draft generation (swap <code style="font-size:11px;">_call_ai()</code> for Bedrock in P5)</p>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <div>
+              <div style="font-size:11px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Tone Options</div>
+              <div style="font-size:12.5px;color:var(--text-2);">🎩 Professional</div>
+              <div style="font-size:12.5px;color:var(--text-2);">😊 Friendly</div>
+              <div style="font-size:12.5px;color:var(--text-2);">📜 Formal</div>
+            </div>
+            <div>
+              <div style="font-size:11px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Goal Options</div>
+              <div style="font-size:12.5px;color:var(--text-2);">🔍 Job Inquiry</div>
+              <div style="font-size:12.5px;color:var(--text-2);">🌐 Networking</div>
+              <div style="font-size:12.5px;color:var(--text-2);">💡 Advice / Collab</div>
+            </div>
+          </div>
+          <div style="margin-top:10px;font-size:12.5px;color:var(--text-3);">
+            Returns: tailored <strong>draft</strong> (≤500 chars), 3 <strong>tips</strong>, 3 <strong>alternative</strong> openings. Gated: score ≥ 60 required to send.
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Architecture Design</h3>
+          <p style="font-size:13px;color:var(--text-3);">
+            <code style="font-size:11px;background:#e8eaf0;padding:1px 5px;border-radius:3px;">outreach.py</code> is a clean module separate from <code style="font-size:11px;background:#e8eaf0;padding:1px 5px;border-radius:3px;">app.py</code>. The <code style="font-size:11px;background:#e8eaf0;padding:1px 5px;border-radius:3px;">_call_ai()</code> function is an explicit swap point — wiring in AWS Bedrock requires changing only that one function.
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 7 — TESTING STRATEGY OVERVIEW
+     Edit: test counts, coverage threshold, tools used
+════════════════════════════════════════════════════════════ -->
+<section class="slide" id="slide7" data-n="7 / 18">
+  <div class="slide-header">
+    <span class="icon">🧪</span>
+    <h2>Testing Strategy</h2>
+    <span class="tag">MULTI-LAYER APPROACH</span>
+  </div>
+  <div class="slide-body" style="padding-top:20px;">
+
+    <div class="stat-row">
+      <div class="stat-box"><div class="num">101</div><div class="lbl">Backend Unit Tests (app.py)</div></div>
+      <div class="stat-box"><div class="num">115</div><div class="lbl">Database Unit Tests</div></div>
+      <div class="stat-box"><div class="num">62</div><div class="lbl">Integration Tests</div></div>
+      <div class="stat-box" style="background:var(--accent);"><div class="num">257+</div><div class="lbl">Frontend Jest Tests</div></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;">
+
+      <div class="card" style="border-top:3px solid var(--blue);">
+        <h3>Backend Unit Tests</h3>
+        <p style="margin-bottom:6px;">pytest · Coverage ≥ 80% enforced in CI</p>
+        <ul>
+          <li><code style="font-size:11px;background:#e8eaf0;padding:1px 4px;border-radius:3px;">test_app.py</code> — 101 route tests</li>
+          <li><code style="font-size:11px;background:#e8eaf0;padding:1px 4px;border-radius:3px;">test_database.py</code> — 115 DB layer tests</li>
+          <li><code style="font-size:11px;background:#e8eaf0;padding:1px 4px;border-radius:3px;">test_comprehensive.py</code> — 2,704 lines of edge-case coverage</li>
+          <li><code style="font-size:11px;background:#e8eaf0;padding:1px 4px;border-radius:3px;">test_frontend_contract.py</code> — API contract tests</li>
+          <li>Mutation testing via <strong>mutmut</strong></li>
+        </ul>
+      </div>
+
+      <div class="card" style="border-top:3px solid var(--accent);">
+        <h3>Frontend Unit Tests</h3>
+        <p style="margin-bottom:6px;">Jest + React Testing Library</p>
+        <ul>
+          <li><code style="font-size:11px;background:#e8eaf0;padding:1px 4px;border-radius:3px;">FeedPage.test.js</code> — 257 test cases</li>
+          <li><code style="font-size:11px;background:#e8eaf0;padding:1px 4px;border-radius:3px;">MessagingPage.test.js</code></li>
+          <li><code style="font-size:11px;background:#e8eaf0;padding:1px 4px;border-radius:3px;">ArticlePage.test.js</code></li>
+          <li>Coverage artifact uploaded on every CI run</li>
+          <li>In-browser Babel (CDN React) tested via jsdom</li>
+        </ul>
+      </div>
+
+      <div class="card" style="border-top:3px solid var(--gold);">
+        <h3>Integration &amp; Smoke Tests</h3>
+        <p style="margin-bottom:6px;">Against real backend + live Render service</p>
+        <ul>
+          <li><code style="font-size:11px;background:#e8eaf0;padding:1px 4px;border-radius:3px;">test_integration.py</code> — 62 tests, local backend spun up in CI</li>
+          <li>Smoke test: cold-start wait → public endpoints → auth login → create+delete post</li>
+          <li>Tests all major user flows end-to-end</li>
+          <li>Validates API contract between frontend &amp; backend</li>
+        </ul>
+      </div>
+
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 8 — CI/CD PIPELINE (DIAGRAM)
+     Edit: workflow names, trigger conditions, steps
+════════════════════════════════════════════════════════════ -->
+<section class="slide" id="slide8" data-n="8 / 18">
+  <div class="slide-header">
+    <span class="icon">⚙️</span>
+    <h2>CI/CD Pipeline</h2>
+    <span class="tag">5 GITHUB ACTIONS WORKFLOWS</span>
+  </div>
+  <div class="slide-body" style="padding-top:16px;">
+
+    <!-- top-level flow -->
+    <div class="flow" style="margin-bottom:20px;">
+      <div class="flow-box">
+        <div class="fb-icon">👨‍💻</div>
+        <div class="fb-title">Developer Push</div>
+        <div class="fb-sub">Any branch or PR</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box">
+        <div class="fb-icon">🐙</div>
+        <div class="fb-title">GitHub</div>
+        <div class="fb-sub">Triggers Actions</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box" style="min-width:160px;">
+        <div class="fb-icon">🔄</div>
+        <div class="fb-title">All 5 Workflows</div>
+        <div class="fb-sub">Run in parallel</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box green-box">
+        <div class="fb-icon">✅</div>
+        <div class="fb-title">All Pass</div>
+        <div class="fb-sub">PR merge allowed</div>
+      </div>
+      <div class="flow-arrow" style="color:var(--accent);">→</div>
+      <div class="flow-box green-box" style="min-width:130px;">
+        <div class="fb-icon">🚀</div>
+        <div class="fb-title">Auto-Deploy</div>
+        <div class="fb-sub">main + backend/** only</div>
+      </div>
+      <div class="flow-arrow" style="color:var(--accent);">→</div>
+      <div class="flow-box green-box">
+        <div class="fb-icon">🌐</div>
+        <div class="fb-title">Render Live</div>
+        <div class="fb-sub">~90s deploy</div>
+      </div>
+    </div>
+
+    <!-- 5 workflow cards -->
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;">
+
+      <div class="card" style="border-top:3px solid var(--blue);">
+        <h3 style="font-size:10px;">run-backend-tests</h3>
+        <p style="font-size:11.5px;">pytest unit tests on <code style="font-size:10px;background:#e8eaf0;padding:1px 3px;border-radius:2px;">test_app.py</code> + <code style="font-size:10px;background:#e8eaf0;padding:1px 3px;border-radius:2px;">test_database.py</code><br/>Coverage ≥ 80% enforced<br/>Mutation tests via mutmut</p>
+        <div style="margin-top:6px;"><span class="pill" style="font-size:10px;padding:2px 8px;">All branches + PRs</span></div>
+      </div>
+
+      <div class="card" style="border-top:3px solid var(--blue);">
+        <h3 style="font-size:10px;">run-frontend-tests</h3>
+        <p style="font-size:11.5px;">npm ci → Jest + coverage<br/>Coverage artifact uploaded<br/>Node.js 20, watchAll=false</p>
+        <div style="margin-top:6px;"><span class="pill" style="font-size:10px;padding:2px 8px;">All branches + PRs</span></div>
+      </div>
+
+      <div class="card" style="border-top:3px solid var(--gold);">
+        <h3 style="font-size:10px;">run-integration-tests</h3>
+        <p style="font-size:11.5px;">Spins up local Flask backend → 62 integration tests against localhost:5000<br/>Tests full user flows</p>
+        <div style="margin-top:6px;"><span class="pill" style="font-size:10px;padding:2px 8px;">All branches + PRs</span></div>
+      </div>
+
+      <div class="card" style="border-top:3px solid var(--gold);">
+        <h3 style="font-size:10px;">render-smoke-test</h3>
+        <p style="font-size:11.5px;">Wakes Render (cold start), checks 6 public endpoints + auth login + create/delete post on live URL</p>
+        <div style="margin-top:6px;"><span class="pill" style="font-size:10px;padding:2px 8px;">All branches + PRs</span></div>
+      </div>
+
+      <div class="card" style="border-top:3px solid var(--accent);">
+        <h3 style="font-size:10px;">deploy-render-backend</h3>
+        <p style="font-size:11.5px;">Triggers Render deploy webhook (secret) on push to main — only when <code style="font-size:10px;background:#e8eaf0;padding:1px 3px;border-radius:2px;">backend/**</code> changes</p>
+        <div style="margin-top:6px;"><span class="pill green" style="font-size:10px;padding:2px 8px;">main only</span></div>
+      </div>
+
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 9 — DEPLOYMENT ARCHITECTURE
+     Edit: service URL, deploy steps, cold-start info
+════════════════════════════════════════════════════════════ -->
+<section class="slide" id="slide9" data-n="9 / 18">
+  <div class="slide-header">
+    <span class="icon">🚀</span>
+    <h2>Deployment Architecture</h2>
+    <span class="tag">RENDER WEB SERVICE</span>
+  </div>
+  <div class="slide-body">
+    <div class="two-col" style="align-items:stretch;">
+
+      <div style="display:flex;flex-direction:column;gap:14px;">
+
+        <div class="card" style="border-left:4px solid var(--blue);">
+          <h3>Live Deployment</h3>
+          <div style="background:#e8f0fb;border-radius:8px;padding:10px 14px;margin-top:6px;">
+            <div style="font-size:13px;font-weight:700;color:var(--blue-dark);">🌐 https://linkedin-redesign-z364.onrender.com</div>
+            <div style="font-size:12px;color:var(--text-3);margin-top:3px;">Single Render Web Service — serves frontend + API</div>
+          </div>
+          <div style="margin-top:10px;font-size:13px;color:var(--text-2);">
+            <div style="margin-bottom:4px;"><strong>Runtime:</strong> Python 3 (Gunicorn)</div>
+            <div style="margin-bottom:4px;"><strong>Build cmd:</strong> <code style="font-size:11px;background:#e8eaf0;padding:1px 5px;border-radius:3px;">pip install -r backend/requirements.txt</code></div>
+            <div style="margin-bottom:4px;"><strong>Start cmd:</strong> <code style="font-size:11px;background:#e8eaf0;padding:1px 5px;border-radius:3px;">gunicorn --chdir backend app:app</code></div>
+            <div><strong>Health check:</strong> <code style="font-size:11px;background:#e8eaf0;padding:1px 5px;border-radius:3px;">GET /api/health</code> → 200 OK</div>
+          </div>
+        </div>
+
+        <div class="card" style="border-left:4px solid var(--gold);">
+          <h3>Free Tier Considerations</h3>
+          <ul>
+            <li>Cold start: ~30 sec after 15 min idle (free tier)</li>
+            <li>Smoke test handles this: retries for 3 min before failing</li>
+            <li>SQLite persists on Render disk (no external DB needed for demo)</li>
+            <li>Database reseeds automatically if <code style="font-size:11px;">nexus.db</code> is empty</li>
+          </ul>
+        </div>
+
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:14px;">
+
+        <div class="card" style="border-left:4px solid var(--accent);">
+          <h3>Continuous Deployment Flow</h3>
+          <div class="steps" style="gap:8px;">
+            <div class="step">
+              <div class="num" style="width:22px;height:22px;font-size:11px;">1</div>
+              <div class="content">
+                <h4 style="font-size:13px;">Push to main (backend/** changed)</h4>
+                <p style="font-size:12px;">GitHub detects path filter match</p>
+              </div>
+            </div>
+            <div class="step">
+              <div class="num" style="width:22px;height:22px;font-size:11px;">2</div>
+              <div class="content">
+                <h4 style="font-size:13px;">GitHub Actions fires deploy-render-backend.yml</h4>
+                <p style="font-size:12px;">curl to RENDER_BACKEND_DEPLOY_HOOK (secret)</p>
+              </div>
+            </div>
+            <div class="step">
+              <div class="num" style="width:22px;height:22px;font-size:11px;">3</div>
+              <div class="content">
+                <h4 style="font-size:13px;">Render builds + deploys</h4>
+                <p style="font-size:12px;">pip install → gunicorn start → health check passes</p>
+              </div>
+            </div>
+            <div class="step">
+              <div class="num" style="width:22px;height:22px;font-size:11px;">4</div>
+              <div class="content">
+                <h4 style="font-size:13px;">Live in ~90 seconds</h4>
+                <p style="font-size:12px;">Zero-downtime swap once health check passes</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Frontend Delivery</h3>
+          <p style="font-size:13px;color:var(--text-2);">
+            Flask serves <code style="font-size:11px;background:#e8eaf0;padding:1px 5px;border-radius:3px;">app.html</code> / <code style="font-size:11px;background:#e8eaf0;padding:1px 5px;border-radius:3px;">index.html</code> as static files from the repo root.
+            React 18 loads via CDN (no build step). Babel transpiles JSX in-browser.
+            No Amplify, no S3 — same origin as the API eliminates CORS friction.
+          </p>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 10 — SECRETS & PERMISSIONS
+     Edit: secret names, auth mechanism details
+════════════════════════════════════════════════════════════ -->
+<section class="slide" id="slide10" data-n="10 / 18">
+  <div class="slide-header">
+    <span class="icon">🔐</span>
+    <h2>Secrets &amp; Permissions</h2>
+    <span class="tag">SECURITY MODEL</span>
+  </div>
+  <div class="slide-body">
+    <div class="two-col" style="align-items:stretch;">
+
+      <div style="display:flex;flex-direction:column;gap:14px;">
+
+        <div class="card" style="border-left:4px solid var(--blue);">
+          <h3>GitHub Secrets</h3>
+          <table style="width:100%;font-size:13px;border-collapse:collapse;">
+            <tr style="background:var(--blue-light);">
+              <th style="text-align:left;padding:6px 10px;font-size:11px;color:var(--blue-dark);">Secret</th>
+              <th style="text-align:left;padding:6px 10px;font-size:11px;color:var(--blue-dark);">Used by</th>
+              <th style="text-align:left;padding:6px 10px;font-size:11px;color:var(--blue-dark);">Purpose</th>
+            </tr>
+            <tr>
+              <td style="padding:7px 10px;border-bottom:1px solid var(--border);"><code style="font-size:11px;background:#e8eaf0;padding:1px 5px;border-radius:3px;">RENDER_BACKEND_DEPLOY_HOOK</code></td>
+              <td style="padding:7px 10px;border-bottom:1px solid var(--border);font-size:12px;">deploy-render-backend.yml</td>
+              <td style="padding:7px 10px;border-bottom:1px solid var(--border);font-size:12px;">Trigger Render redeploy via webhook URL</td>
+            </tr>
+          </table>
+          <p style="font-size:12px;color:var(--text-3);margin-top:8px;">
+            No AWS keys. No database credentials. Deploy hook is revocable from the Render dashboard at any time.
+          </p>
+        </div>
+
+        <div class="card" style="border-left:4px solid var(--accent);">
+          <h3>API Authentication</h3>
+          <ul>
+            <li><strong>Login/register</strong> in <code style="font-size:11px;">index.html</code> — plain JS, no React</li>
+            <li>Server returns a <strong>session token</strong> (stored in <code style="font-size:11px;">localStorage['nx-token']</code>)</li>
+            <li>All API calls send <code style="font-size:11px;">Authorization: Bearer &lt;token&gt;</code></li>
+            <li><code style="font-size:11px;">app.html</code> auth guard redirects to <code style="font-size:11px;">index.html</code> if no token</li>
+            <li>Backend <code style="font-size:11px;">_require_auth_user()</code> aborts with 401 on invalid/missing token</li>
+          </ul>
+        </div>
+
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:14px;">
+
+        <div class="card" style="border-left:4px solid var(--gold);">
+          <h3>Security Hardening (Added During P5)</h3>
+          <ul>
+            <li>SRI hashes on all CDN <code style="font-size:11px;">&lt;script&gt;</code> tags — prevents CDN tampering</li>
+            <li>All mutation routes guarded by <code style="font-size:11px;">_require_auth_user()</code></li>
+            <li>Thread-safety lock on <code style="font-size:11px;">add_education</code> / <code style="font-size:11px;">add_skill</code></li>
+            <li><code style="font-size:11px;">escapeHtml()</code> used everywhere user content is injected into DOM</li>
+            <li>JSON body guard: non-dict payloads silently return <code style="font-size:11px;">{}</code></li>
+            <li>Input validation: tone, goal, and custom note length all validated at API boundary</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h3>Permissions Model (GitHub Actions)</h3>
+          <ul>
+            <li>All test workflows use default read-only permissions</li>
+            <li>Deploy workflow only needs outbound HTTP (curl) — no repo write access</li>
+            <li>No third-party Actions with write permissions</li>
+            <li>Coverage artifact upload uses <code style="font-size:11px;">actions/upload-artifact@v4</code> (official)</li>
+          </ul>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 11 — HOW INTEGRATION TESTS RUN IN CI
+     Edit: BASE_URL, test credentials, failure behavior
+════════════════════════════════════════════════════════════ -->
+<section class="slide" id="slide11" data-n="11 / 18">
+  <div class="slide-header">
+    <span class="icon">🔗</span>
+    <h2>Integration Testing in CI</h2>
+    <span class="tag">HOW FAILURES IMPACT DEPLOYMENT</span>
+  </div>
+  <div class="slide-body">
+    <div class="two-col" style="align-items:stretch;">
+
+      <div style="display:flex;flex-direction:column;gap:14px;">
+
+        <div class="card" style="border-left:4px solid var(--blue);">
+          <h3>How Integration Tests Run</h3>
+          <div class="steps" style="gap:8px;">
+            <div class="step">
+              <div class="num" style="width:22px;height:22px;font-size:11px;">1</div>
+              <div class="content">
+                <h4 style="font-size:13px;">Checkout + install deps</h4>
+                <p style="font-size:12px;"><code style="font-size:10px;">pip install -r backend/requirements.txt requests</code></p>
+              </div>
+            </div>
+            <div class="step">
+              <div class="num" style="width:22px;height:22px;font-size:11px;">2</div>
+              <div class="content">
+                <h4 style="font-size:13px;">Start local Flask backend</h4>
+                <p style="font-size:12px;"><code style="font-size:10px;">python app.py &amp;</code> — retries until <code style="font-size:10px;">/api/jobs</code> returns 200 (up to 60 sec)</p>
+              </div>
+            </div>
+            <div class="step">
+              <div class="num" style="width:22px;height:22px;font-size:11px;">3</div>
+              <div class="content">
+                <h4 style="font-size:13px;">Run 62 integration tests</h4>
+                <p style="font-size:12px;"><code style="font-size:10px;">BASE_URL=http://localhost:5000/api pytest test_integration.py -v</code></p>
+              </div>
+            </div>
+            <div class="step">
+              <div class="num" style="width:22px;height:22px;font-size:11px;">4</div>
+              <div class="content">
+                <h4 style="font-size:13px;">Pass / fail reported to GitHub</h4>
+                <p style="font-size:12px;">Non-zero exit blocks PR merge; status check shown on PR page</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:14px;">
+
+        <div class="card" style="border-left:4px solid #cc1016;">
+          <h3>How Failures Impact Deployment</h3>
+          <ul>
+            <li><strong>Any test failure</strong> → workflow exits non-zero → GitHub marks check as failed</li>
+            <li>PRs to <code style="font-size:11px;">main</code> cannot merge while checks are red (branch protection)</li>
+            <li><code style="font-size:11px;">deploy-render-backend.yml</code> only runs on push to <code style="font-size:11px;">main</code> — broken code never reaches it</li>
+            <li>Coverage below 80% → CI fails before any deploy step is reached</li>
+            <li>Smoke test failure = live service issue — alerts team immediately via GitHub</li>
+          </ul>
+        </div>
+
+        <div class="card" style="border-left:4px solid var(--accent);">
+          <h3>What Integration Tests Cover</h3>
+          <ul>
+            <li>Auth: register, login, bad credentials, duplicate email</li>
+            <li>Feed: create, like, comment, delete, pagination</li>
+            <li>Profile: GET /me, PUT /me, experience, education, skills</li>
+            <li>Jobs: browse, filter by keyword/location, apply</li>
+            <li>Messaging: list conversations, send message, read thread</li>
+            <li>Outreach: readiness score, message generation, validation</li>
+            <li>Network: send/accept/withdraw connections</li>
+          </ul>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 12 — POSTMORTEM: SUCCESSES
+     Edit: success items, icons, descriptions
+════════════════════════════════════════════════════════════ -->
+<section class="slide" id="slide12" data-n="12 / 18">
+  <div class="slide-header" style="background: var(--accent);">
+    <span class="icon">🏆</span>
+    <h2>Postmortem — What Went Well</h2>
+    <span class="tag">SUCCESSES</span>
+  </div>
+  <div class="slide-body" style="padding-top:20px;">
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+
+      <div class="pm-item good">
+        <span class="pm-icon">⚛️</span>
+        <div>
+          <h4>React Migration Was Clean</h4>
+          <p>The refactor from vanilla JS monolith (~1,800-line app.js) to a full React 18 component architecture went smoothly. AppContext centralized all state without Redux overhead.</p>
+        </div>
+      </div>
+
+      <div class="pm-item good">
+        <span class="pm-icon">⚙️</span>
+        <div>
+          <h4>Fully Automated CI/CD From Day One</h4>
+          <p>All 5 GitHub Actions workflows were wired before the first feature PRs. Every commit was tested automatically — no manual deploy steps ever needed.</p>
+        </div>
+      </div>
+
+      <div class="pm-item good">
+        <span class="pm-icon">🧪</span>
+        <div>
+          <h4>Strong Test Coverage</h4>
+          <p>278+ backend tests across unit, integration, and contract layers. 257+ Jest tests on the frontend. Coverage gate at ≥80% caught regressions before they reached main.</p>
+        </div>
+      </div>
+
+      <div class="pm-item good">
+        <span class="pm-icon">🤖</span>
+        <div>
+          <h4>LLM-Driven Development Was Effective</h4>
+          <p>Claude accelerated component generation, test writing, CI config, and security reviews. ~245 commits in one semester would not have been feasible without AI assistance.</p>
+        </div>
+      </div>
+
+      <div class="pm-item good">
+        <span class="pm-icon">🌿</span>
+        <div>
+          <h4>Feature-Branch Workflow Worked Smoothly</h4>
+          <p>PR-based development with CodeRabbit + Copilot review caught logic bugs and style issues before merge. Iterative review rounds (up to 6 per PR) raised code quality significantly.</p>
+        </div>
+      </div>
+
+      <div class="pm-item good">
+        <span class="pm-icon">🚀</span>
+        <div>
+          <h4>Single-Service Deploy Eliminated Complexity</h4>
+          <p>Serving frontend + API from one Render Web Service meant zero CORS issues, no S3/Amplify setup, and a single deploy hook. Simple and reliable.</p>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 13 — POSTMORTEM: FAILURES & SURPRISES
+     Edit: failure items, root causes, what you learned
+════════════════════════════════════════════════════════════ -->
+<section class="slide" id="slide13" data-n="13 / 18">
+  <div class="slide-header" style="background: #8b1a1a;">
+    <span class="icon">⚠️</span>
+    <h2>Postmortem — Failures &amp; Surprises</h2>
+    <span class="tag">WHAT BROKE · WHAT SURPRISED US</span>
+  </div>
+  <div class="slide-body" style="padding-top:20px;">
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+
+      <div class="pm-item fail">
+        <span class="pm-icon">🔒</span>
+        <div>
+          <h4>Security Gaps Discovered Late</h4>
+          <p>Multiple routes lacked auth guards — found during P5 security review. <code style="font-size:11px;">_require_auth_user()</code> had to be retroactively applied to ~15 routes. Should have been part of the initial route template.</p>
+        </div>
+      </div>
+
+      <div class="pm-item fail">
+        <span class="pm-icon">🔘</span>
+        <div>
+          <h4>Stub Actions Were Underestimated</h4>
+          <p>A large number of UI buttons were initially "coming soon" stubs. Wiring every action to real backend logic took several full PRs and far more time than expected — it wasn't just "filling in" code.</p>
+        </div>
+      </div>
+
+      <div class="pm-item warn">
+        <span class="pm-icon">❄️</span>
+        <div>
+          <h4>Render Free-Tier Cold Starts</h4>
+          <p>The smoke test CI job failed repeatedly because the 30-second cold start exceeded initial timeout limits. We had to extend the timeout to 3 minutes and add retry loops — a known Render free-tier limitation we didn't plan for.</p>
+        </div>
+      </div>
+
+      <div class="pm-item warn">
+        <span class="pm-icon">📦</span>
+        <div>
+          <h4>JSON Body Edge Cases in Flask</h4>
+          <p>Non-dict JSON payloads (arrays, null) caused unhandled exceptions on several routes. Required a <code style="font-size:11px;">_get_body()</code> guard helper to be added defensively everywhere — not a hard problem but caught us off guard.</p>
+        </div>
+      </div>
+
+      <div class="pm-item warn">
+        <span class="pm-icon">🔄</span>
+        <div>
+          <h4>PR Review Iteration Took Longer Than Expected</h4>
+          <p>CodeRabbit and Copilot reviews generated 5–6 rounds of comments per PR. While this improved quality, we didn't budget time for it — some PRs took 2–3× as long as estimated to land.</p>
+        </div>
+      </div>
+
+      <div class="pm-item warn">
+        <span class="pm-icon">🗄️</span>
+        <div>
+          <h4>SQLite on Render Resets on Redeploy</h4>
+          <p>Render's free tier does not persist disk between deploys by default. The database reseeds correctly from <code style="font-size:11px;">data/*.py</code>, but user-created data (posts, accounts) is lost on each deploy — a limitation for long-term demo use.</p>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 14 — LLM USAGE ANALYSIS
+     Edit: tool names, task categories, iteration counts
+════════════════════════════════════════════════════════════ -->
+<section class="slide" id="slide14" data-n="14 / 18">
+  <div class="slide-header">
+    <span class="icon">🤖</span>
+    <h2>LLM Usage Analysis</h2>
+    <span class="tag">HOW AI SHAPED DEVELOPMENT</span>
+  </div>
+  <div class="slide-body" style="padding-top:16px;">
+
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:16px;">
+
+      <div class="card" style="border-top:3px solid var(--blue);">
+        <h3>Primary Tools Used</h3>
+        <ul>
+          <li><strong>Claude (Anthropic)</strong> — architecture decisions, full component generation, debugging, CI config, security review</li>
+          <li><strong>GitHub Copilot</strong> — inline autocomplete, PR review comments</li>
+          <li><strong>CodeRabbit</strong> — automated PR review, style enforcement</li>
+        </ul>
+      </div>
+
+      <div class="card" style="border-top:3px solid var(--accent);">
+        <h3>Where LLMs Were Most Effective</h3>
+        <ul>
+          <li>Generating boilerplate React components (14 pages, 12 modals)</li>
+          <li>Writing comprehensive pytest test suites (2,700+ line test file)</li>
+          <li>Configuring GitHub Actions workflows from scratch</li>
+          <li>Identifying security vulnerabilities (auth gaps, XSS risks)</li>
+          <li>Debugging tricky Flask/React integration issues</li>
+        </ul>
+      </div>
+
+      <div class="card" style="border-top:3px solid var(--gold);">
+        <h3>Challenges &amp; Prompt Iteration</h3>
+        <ul>
+          <li>Complex components (MessagingPage, ProfilePage) needed 4–6 prompt rounds to get right</li>
+          <li>LLM-generated tests needed manual review — some tested the wrong behavior</li>
+          <li>CI/CD config required iteration to handle Render cold-start edge case</li>
+          <li>Needed to provide full file context to avoid hallucinated imports</li>
+        </ul>
+      </div>
+
+    </div>
+
+    <div class="two-col" style="align-items:stretch;">
+      <div class="card" style="background:#f0f7ff;border:1px solid var(--blue);">
+        <h3>How We Improved Confusing Outputs</h3>
+        <p style="font-size:13px;color:var(--text-2);line-height:1.6;">
+          When LLM output was incorrect: (1) provided the full file for context, (2) described the exact failure mode, (3) asked for explanation before code. This reduced wasted iterations significantly. For CI issues, attaching the raw workflow error log was the single most effective debugging prompt.
+        </p>
+      </div>
+      <div class="card" style="background:#f0f9f4;border:1px solid var(--accent);">
+        <h3>Net Assessment</h3>
+        <p style="font-size:13px;color:var(--text-2);line-height:1.6;">
+          LLMs were a force multiplier — not a replacement for engineering judgment. The team still had to understand every line generated, catch hallucinated APIs, and make architectural decisions. The biggest gain was in speed: tasks that would take hours (writing 100 test cases, setting up CI) took minutes with AI assistance.
+        </p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 15 — LESSONS LEARNED
+     Edit: lesson text, categories
+════════════════════════════════════════════════════════════ -->
+<section class="slide" id="slide15" data-n="15 / 18">
+  <div class="slide-header">
+    <span class="icon">📚</span>
+    <h2>Lessons Learned</h2>
+    <span class="tag">WHAT WE'D DO DIFFERENTLY</span>
+  </div>
+  <div class="slide-body" style="padding-top:20px;">
+
+    <div class="lesson-grid">
+
+      <div class="lesson">
+        <h4>🔐 Security Review Must Be Day 1</h4>
+        <p>Auth guards, input validation, and XSS prevention should be designed into route templates from the start — retrofitting security after the fact is expensive and error-prone.</p>
+      </div>
+
+      <div class="lesson gold-top">
+        <h4>⏱️ Budget Time for PR Review Iterations</h4>
+        <p>Automated code review (Copilot, CodeRabbit) generates real, actionable feedback. Each PR should have 2× the estimated time to account for review rounds — it's worth it, but it's not free.</p>
+      </div>
+
+      <div class="lesson green-top">
+        <h4>🏗️ Define API Contract Before Building Frontend</h4>
+        <p>Several frontend components had to be rewritten when the backend API shape changed. A simple OpenAPI schema agreed on in Week 1 would have prevented most of this churn.</p>
+      </div>
+
+      <div class="lesson">
+        <h4>🧪 Write Integration Tests Alongside Features</h4>
+        <p>Integration tests written after the fact were harder to scope and missed edge cases. Writing them in the same PR as the feature would have caught issues earlier and made the code easier to reason about.</p>
+      </div>
+
+      <div class="lesson gold-top">
+        <h4>🗄️ Choose a Persistent DB for Production</h4>
+        <p>SQLite on Render resets on redeploy. For a real app, we'd use PostgreSQL (Render offers a managed free tier). Switching from SQLite to Postgres is a one-day migration — we'd do it in week 2 next time.</p>
+      </div>
+
+      <div class="lesson green-top">
+        <h4>🤖 Scope LLM Prompts to Single Responsibilities</h4>
+        <p>Large, vague prompts ("build the messaging feature") produced large, incorrect outputs. Small, precise prompts ("add a DELETE /api/feed/:id route that checks ownership") were dramatically more reliable and faster to review.</p>
+      </div>
+
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 16 — TEAM PROCESS & COLLABORATION
+     Edit: branching strategy, communication tools, division of labor
+════════════════════════════════════════════════════════════ -->
+<section class="slide" id="slide16" data-n="16 / 18">
+  <div class="slide-header">
+    <span class="icon">👥</span>
+    <h2>Team Process &amp; Collaboration</h2>
+    <span class="tag">BRANCHING · COMMUNICATION · DIVISION OF LABOR</span>
+  </div>
+  <div class="slide-body">
+    <div class="three-col" style="align-items:start;">
+
+      <div class="card" style="border-top:3px solid var(--blue);">
+        <h3>Branching Strategy</h3>
+        <ul>
+          <li>Feature branches off <code style="font-size:11px;">main</code> per story / bug fix</li>
+          <li>PR required to merge — no direct pushes to main</li>
+          <li>Branch protection: CI checks must pass</li>
+          <li>Naming: <code style="font-size:11px;">fix-&lt;topic&gt;</code>, <code style="font-size:11px;">feat-&lt;topic&gt;</code></li>
+          <li>245 commits across 30+ merged PRs</li>
+        </ul>
+      </div>
+
+      <div class="card" style="border-top:3px solid var(--accent);">
+        <h3>Communication</h3>
+        <ul>
+          <li>Discord for async coordination</li>
+          <li>GitHub Issues for bug tracking</li>
+          <li>PR comments for code-level discussion</li>
+          <li>Weekly sync to review open PRs and plan next sprint</li>
+          <li>AI review bots (CodeRabbit, Copilot) as async reviewers</li>
+        </ul>
+      </div>
+
+      <div class="card" style="border-top:3px solid var(--gold);">
+        <h3>Division of Labor</h3>
+        <ul>
+          <li><strong>Krishi Shah</strong> — Backend architecture, Flask API, CI/CD, security, testing infrastructure</li>
+          <li><strong>Dhyani Soni</strong> — Frontend React components, AppContext state design</li>
+          <li><strong>Saanvi Elaty</strong> — Profile/Network/Jobs pages, modal system</li>
+          <li><strong>Victor Jimenez</strong> — Feed, Messaging, Notifications, Outreach feature</li>
+        </ul>
+      </div>
+
+    </div>
+
+    <div style="margin-top:16px;display:grid;grid-template-columns:repeat(4,1fr);gap:14px;">
+      <div class="stat-box"><div class="num">245</div><div class="lbl">Total Commits</div></div>
+      <div class="stat-box"><div class="num">30+</div><div class="lbl">Merged PRs</div></div>
+      <div class="stat-box" style="background:var(--accent);"><div class="num">5</div><div class="lbl">CI/CD Workflows</div></div>
+      <div class="stat-box" style="background:var(--accent);"><div class="num">P1→P6</div><div class="lbl">All Sprints Completed</div></div>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 17 — FUTURE WORK
+     Edit: feature names, descriptions (need 3–5 per rubric)
+════════════════════════════════════════════════════════════ -->
+<section class="slide" id="slide17" data-n="17 / 18">
+  <div class="slide-header">
+    <span class="icon">🔭</span>
+    <h2>Future Work</h2>
+    <span class="tag">ROADMAP — NEXT 5 FEATURES</span>
+  </div>
+  <div class="slide-body" style="padding-top:20px;">
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+
+      <div class="pm-item" style="border-left-color: var(--blue);">
+        <span class="pm-icon">🧠</span>
+        <div>
+          <h4>Real AI Integration (AWS Bedrock)</h4>
+          <p>The <code style="font-size:11px;">_call_ai()</code> function in <code style="font-size:11px;">outreach.py</code> is already the designated swap point. Wiring in Bedrock (Claude or Titan) would make outreach drafts genuinely personalized — reading the recipient's profile to generate highly targeted messages.</p>
+        </div>
+      </div>
+
+      <div class="pm-item" style="border-left-color: var(--accent);">
+        <span class="pm-icon">⚡</span>
+        <div>
+          <h4>Real-Time Messaging (WebSockets)</h4>
+          <p>Current messaging uses polling. Replacing with Flask-SocketIO + a client-side WebSocket would give true real-time delivery. This is the single highest-impact UX improvement possible without changing the feature set.</p>
+        </div>
+      </div>
+
+      <div class="pm-item" style="border-left-color: var(--gold);">
+        <span class="pm-icon">🗄️</span>
+        <div>
+          <h4>PostgreSQL Migration</h4>
+          <p>SQLite resets on Render redeploy and doesn't support concurrent writes at scale. Migrating to Render's managed PostgreSQL (free tier available) would give persistent data and production-grade reliability with minimal code change thanks to the clean <code style="font-size:11px;">database.py</code> abstraction layer.</p>
+        </div>
+      </div>
+
+      <div class="pm-item" style="border-left-color: var(--blue);">
+        <span class="pm-icon">📱</span>
+        <div>
+          <h4>Progressive Web App (PWA)</h4>
+          <p>Adding a service worker and web app manifest would allow Nexus to be "installed" on mobile devices, work offline for cached content, and send push notifications for connection requests — all without a native app.</p>
+        </div>
+      </div>
+
+    </div>
+
+    <div style="margin-top:14px;">
+      <div class="pm-item" style="border-left-color: var(--accent);">
+        <span class="pm-icon">📊</span>
+        <div>
+          <h4>Analytics Dashboard + Connection Recommendations (ML)</h4>
+          <p>Profile view counts, post engagement metrics, and a recommendation engine ("people similar to your network") using collaborative filtering on the connection graph. This would close the loop on the Outreach Readiness feature — showing users how their profile quality correlates with actual engagement.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 18 — CLOSING / THANK YOU
+     Edit: live URL, GitHub repo link, demo credentials
+════════════════════════════════════════════════════════════ -->
+<section class="slide" id="slide18" data-n="18 / 18">
+  <div style="
+    background: linear-gradient(135deg, #0F5DBD 0%, #0a3d7a 60%, #0d2a55 100%);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 48px;
+    position: relative;
+    overflow: hidden;
+  ">
+    <div style="position:absolute;top:-80px;left:-80px;width:280px;height:280px;border-radius:50%;background:rgba(255,255,255,0.05);"></div>
+    <div style="position:absolute;bottom:-60px;right:-60px;width:220px;height:220px;border-radius:50%;background:rgba(255,255,255,0.05);"></div>
+
+    <div style="font-size:48px;margin-bottom:16px;">🙏</div>
+    <h1 style="font-size:42px;font-weight:900;color:white;letter-spacing:-1px;">Thank You</h1>
+    <p style="font-size:18px;color:rgba(255,255,255,0.7);margin-top:6px;">Questions &amp; Live Demo</p>
+
+    <div style="
+      margin-top:36px;
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:16px;
+      width:100%;
+      max-width:700px;
+    ">
+      <div style="background:rgba(255,255,255,0.12);border-radius:12px;padding:20px 24px;text-align:left;">
+        <div style="font-size:11px;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">🌐 Live App</div>
+        <div style="font-size:14px;color:#7ec8ff;font-weight:700;word-break:break-all;">https://linkedin-redesign-z364.onrender.com</div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-top:6px;">May take ~30s to wake on first visit (free tier)</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.12);border-radius:12px;padding:20px 24px;text-align:left;">
+        <div style="font-size:11px;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">🔑 Demo Account</div>
+        <div style="font-size:13px;color:white;font-weight:600;">alex.johnson@gmail.com</div>
+        <div style="font-size:13px;color:rgba(255,255,255,0.8);">password123</div>
+      </div>
+    </div>
+
+    <div style="
+      margin-top:28px;
+      background:rgba(255,255,255,0.1);
+      border-radius:10px;
+      padding:14px 32px;
+      display:flex;
+      gap:36px;
+      align-items:center;
+    ">
+      <div style="text-align:center;">
+        <div style="font-size:22px;font-weight:800;color:white;">245</div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.6);">Commits</div>
+      </div>
+      <div style="width:1px;background:rgba(255,255,255,0.2);height:36px;"></div>
+      <div style="text-align:center;">
+        <div style="font-size:22px;font-weight:800;color:white;">30+</div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.6);">Merged PRs</div>
+      </div>
+      <div style="width:1px;background:rgba(255,255,255,0.2);height:36px;"></div>
+      <div style="text-align:center;">
+        <div style="font-size:22px;font-weight:800;color:white;">535+</div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.6);">Total Tests</div>
+      </div>
+      <div style="width:1px;background:rgba(255,255,255,0.2);height:36px;"></div>
+      <div style="text-align:center;">
+        <div style="font-size:22px;font-weight:800;color:white;">5</div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.6);">CI Workflows</div>
+      </div>
+      <div style="width:1px;background:rgba(255,255,255,0.2);height:36px;"></div>
+      <div style="text-align:center;">
+        <div style="font-size:22px;font-weight:800;color:white;">P1–P6</div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.6);">Sprints Done</div>
+      </div>
+    </div>
+
+    <p style="margin-top:24px;font-size:13px;color:rgba(255,255,255,0.5);">
+      CS485 AI-Assisted Software Engineering · Spring 2026 ·
+      Krishi Shah &nbsp;·&nbsp; Dhyani Soni &nbsp;·&nbsp; Saanvi Elaty &nbsp;·&nbsp; Victor Jimenez
+    </p>
+  </div>
+</section>
+
+
+<!-- ─────────────────────────────────────────────
+     KEYBOARD NAV (browser preview only — hidden in print/PDF)
+     Arrow keys or click buttons to flip slides
+───────────────────────────────────────────── -->
+<div id="nav">
+  <button onclick="prev()">← Prev</button>
+  <span id="counter">1 / 18</span>
+  <button onclick="next()">Next →</button>
+</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const total  = slides.length;
+  let current  = 0;
+
+  function show(n) {
+    slides.forEach((s, i) => {
+      s.style.display = i === n ? 'flex' : 'none';
+    });
+    document.getElementById('counter').textContent = (n + 1) + ' / ' + total;
+    current = n;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function next() { show(Math.min(current + 1, total - 1)); }
+  function prev() { show(Math.max(current - 1, 0)); }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown')  next();
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')    prev();
+  });
+
+  // Only activate slide mode when NOT printing
+  if (!window.matchMedia('print').matches) {
+    show(0);
+  }
+
+  // On print: show all slides
+  window.matchMedia('print').addListener(mq => {
+    if (mq.matches) {
+      slides.forEach(s => s.style.display = 'flex');
+      document.getElementById('nav').style.display = 'none';
+    }
+  });
+</script>
+
+</body>
+</html>
