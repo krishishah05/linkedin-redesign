@@ -186,15 +186,7 @@ def _conference_cache_key(location, field):
 
 
 def _conference_response(location, field, conferences, source, raw=None):
-    return {
-        "location": location,
-        "field": field,
-        "source": source,
-        "conferences": conferences,
-        # Keep the old frontend path working while exposing the normalized list.
-        "events_results": conferences,
-        "raw": raw or {},
-    }
+    return conferences
 
 
 def _stringify_address(value):
@@ -238,8 +230,9 @@ def _normalize_serpapi_conferences(data, location, field):
         venue = event.get("venue")
         venue_name = venue.get("name") if isinstance(venue, dict) else ""
         address = _stringify_address(event.get("address")) or _stringify_address(venue) or location
-        lat = _coerce_float(event.get("latitude") or event.get("lat"), None)
-        lng = _coerce_float(event.get("longitude") or event.get("lng"), None)
+        gps_coordinates = event.get("gps_coordinates") if isinstance(event.get("gps_coordinates"), dict) else {}
+        lat = _coerce_float(event.get("latitude") or event.get("lat") or gps_coordinates.get("latitude"), None)
+        lng = _coerce_float(event.get("longitude") or event.get("lng") or gps_coordinates.get("longitude"), None)
         if lat is None or lng is None:
             dlat, dlng = offsets[index % len(offsets)]
             lat = fallback_lat + dlat

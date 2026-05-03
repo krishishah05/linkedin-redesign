@@ -75,7 +75,9 @@ function ConferencesPage() {
 
       // 2. Call the backend; it calls SerpAPI, normalizes results, and falls back if needed.
       const data = await API.searchConferences(location, field);
-      const events = Array.isArray(data.conferences) ? data.conferences : (data.events_results || []);
+      const events = Array.isArray(data)
+        ? data
+        : (Array.isArray(data.conferences) ? data.conferences : (data.events_results || []));
 
       // 3. Use backend-normalized conference data. Geocode only if an older response lacks coordinates.
       const cleaned = await Promise.all(
