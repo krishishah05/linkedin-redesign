@@ -94,7 +94,7 @@ function ConferencesPage() {
             id: event.id || i + 1,
             name: event.name || event.title,
             category: event.category || field,
-            date: event.date || event.date?.start_date || "TBD",
+            date: typeof event.date === 'string' ? event.date : (event.date?.start_date || "TBD"),
             venue: event.venue || "",
             address: event.address || "Unknown",
             description: event.description || "",
@@ -135,7 +135,9 @@ function ConferencesPage() {
       const conf = conferences.find(c => {
         const sn = String(story.conferenceName || '').toLowerCase();
         const cn = String(c.name || '').toLowerCase();
-        return sn && (cn.includes(sn) || sn.includes(cn.split(' ')[0]));
+        if (!sn || !cn) return false;
+        const firstWord = cn.split(/\s+/)[0];
+        return cn.includes(sn) || (firstWord && sn.includes(firstWord));
       });
       if (!conf) return [];
       const offsets = [0.003, -0.003, 0.002, -0.002, 0.004];
@@ -519,7 +521,7 @@ function SnapStoryViewer({ stories, initialIdx, onClose }) {
               <span style={{ fontSize: 20 }}>{liked.has(story.id) ? '❤️' : '🤍'}</span>
               {liked.has(story.id) ? 'Liked' : 'Like'}
             </button>
-            <button onClick={e => { e.stopPropagation(); navigator.clipboard?.writeText(window.location.href).then(() => { /* no-op */ }); showToast && window.dispatchEvent(new CustomEvent('nexus-toast', { detail: { message: 'Link copied!' } })); }}
+            <button onClick={async e => { e.stopPropagation(); try { await navigator.clipboard.writeText(window.location.href); createToast('Link copied!', 'success'); } catch (_) { createToast('Failed to copy link.', 'error'); } }}
               style={{ background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: 20, padding: '8px 16px', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer', backdropFilter: 'blur(4px)' }}>
               Share ↗
             </button>

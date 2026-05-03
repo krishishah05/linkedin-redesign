@@ -15,7 +15,7 @@ function _latLngToTile(lat, lng, z) {
   return { x, y };
 }
 
-function LightMap({ centerLat = 37.7749, centerLng = -122.4194, zoom = 11, markers = [], onMarkerClick }) {
+function LightMap({ centerLat = 37.7749, centerLng = -122.4194, zoom = 11, markers = [], onMarkerClick = () => {} }) {
   const containerRef = React.useRef(null);
   const [size, setSize] = React.useState({ w: 800, h: 500 });
   const [drag, setDrag] = React.useState({ px: 0, py: 0 }); // accumulated pixel offset from drags
@@ -150,6 +150,8 @@ function LightMap({ centerLat = 37.7749, centerLng = -122.4194, zoom = 11, marke
         <img
           key={tile.key}
           src={tile.url}
+          alt=""
+          aria-hidden="true"
           draggable={false}
           style={{
             position: 'absolute',

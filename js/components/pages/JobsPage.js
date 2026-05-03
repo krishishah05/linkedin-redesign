@@ -48,7 +48,7 @@ function JobsPage({ selectedJobId }) {
       return;
     }
     if (!filtered.some(j => j.id === selectedId)) setSelectedId(filtered[0].id);
-  }, [viewMode, searchQ, jobs, selectedId]);
+  }, [viewMode, searchQ, jobs, selectedId, savedJobs]);
 
   // Early returns are safe here: all hooks have already been called above.
   if (loading) return <LoadingSpinner text="Loading jobs..." />;
