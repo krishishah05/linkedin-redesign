@@ -81,6 +81,12 @@ def _create_schema(db_path: str):
             user_id    INTEGER NOT NULL,
             PRIMARY KEY (event_id, event_src, user_id)
         );
+        CREATE TABLE IF NOT EXISTS event_interest (
+            event_id   INTEGER NOT NULL,
+            event_src  TEXT NOT NULL DEFAULT 'static',
+            user_id    INTEGER NOT NULL,
+            PRIMARY KEY (event_id, event_src, user_id)
+        );
         CREATE TABLE IF NOT EXISTS conference_stories (
             id         INTEGER PRIMARY KEY AUTOINCREMENT,
             author_id  INTEGER NOT NULL,
