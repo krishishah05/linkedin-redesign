@@ -184,13 +184,8 @@ function ProfilePage({ userId }) {
               {/* Avatar */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 12 }}>
                 <div style={{ marginTop: -50 }}>
-                  <div style={{
-                    width: 120, height: 120, borderRadius: '50%', border: '4px solid var(--white)',
-                    background: user.avatarColor || '#0F5DBD',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 44, fontWeight: 700, color: '#fff',
-                  }}>
-                    {getInitials(user.name)}
+                  <div style={{ borderRadius: '50%', border: '4px solid var(--white)', display: 'inline-block', lineHeight: 0 }}>
+                    <Avatar name={user.name} size={120} photo={user.photo} colorOverride={user.avatarColor} />
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: 8 }}>

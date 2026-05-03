@@ -95,8 +95,8 @@ function NavBar() {
 
           <div className="li-nav__divider" />
 
-          {/* Recruiter shortlist badge — only visible when status is Recruiting + mode ON */}
-          {(shortlisted.size > 0 || (userStatus === 'recruiting' && recruiterMode)) && (
+          {/* Recruiter shortlist badge — only visible when recruiter mode is ON and has candidates */}
+          {recruiterMode && shortlisted.size > 0 && (
             <button
               type="button"
               className="li-nav__item"

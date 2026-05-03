@@ -117,14 +117,8 @@ function NetworkPage() {
           )}
           {showShortlist && recruiterMode && (
             <button
-              className="li-btn li-btn--sm"
-              style={{
-                fontSize: 12, padding: '3px 10px',
-                background: inPipeline ? '#E6F4EA' : 'transparent',
-                border: `1px solid ${inPipeline ? '#057642' : 'var(--border)'}`,
-                color: inPipeline ? '#057642' : 'var(--text-2)',
-                borderRadius: 14, cursor: 'pointer', whiteSpace: 'nowrap',
-              }}
+              className="li-btn li-btn--outline li-btn--sm"
+              style={inPipeline ? { color: '#057642', borderColor: '#057642', background: '#E6F4EA' } : {}}
               onClick={() => {
                 if (inPipeline) { removeFromShortlist(user.id); showToast(`Removed ${user.name} from shortlist`); }
                 else { addToShortlist(user); showToast(`${user.name} added to shortlist`); }
@@ -137,7 +131,8 @@ function NetworkPage() {
   }
 
   return (
-    <div className="li-page-inner" style={{ maxWidth: 700 }}>
+    <div className="li-page-inner">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 0, maxWidth: 700, width: '100%' }}>
 
       {/* Invitations */}
       {totalRequests > 0 && (
@@ -253,6 +248,7 @@ function NetworkPage() {
             ))
           ) : null}
         </div>
+      </div>
       </div>
     </div>
   );

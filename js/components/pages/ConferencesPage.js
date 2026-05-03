@@ -509,11 +509,6 @@ function SnapStoryViewer({ stories, initialIdx, onClose }) {
               <span style={{ fontSize: 20 }}>{liked.has(story.id) ? '❤️' : '🤍'}</span>
               {liked.has(story.id) ? 'Liked' : 'Like'}
             </button>
-            <button onClick={async e => { e.stopPropagation(); try { await navigator.clipboard.writeText(window.location.href); createToast('Link copied!', 'success'); } catch (_) { createToast('Failed to copy link.', 'error'); } }}
-              style={{ background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: 20, padding: '8px 16px', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer', backdropFilter: 'blur(4px)' }}>
-              Share ↗
-            </button>
-
             {/* Story count indicator */}
             <div style={{ marginLeft: 'auto', fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>
               {idx + 1} / {stories.length}
