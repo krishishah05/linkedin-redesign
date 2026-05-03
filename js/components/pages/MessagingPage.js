@@ -121,6 +121,8 @@ function MessagingPage() {
     setDraft('');
     setSending(true);
 
+    const previousConversations = localConversations;
+
     // Optimistic update
     const newMsg = {
       id: Date.now(),
@@ -137,6 +139,7 @@ function MessagingPage() {
 
     API.sendMessage(selectedId, text)
       .catch(() => {
+        setLocalConversations(previousConversations);
         setMessages(prev => prev.filter(m => m.id !== newMsg.id));
         setDraft(text);
         showToast('Failed to send message', 'error');

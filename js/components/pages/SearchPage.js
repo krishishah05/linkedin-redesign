@@ -87,8 +87,10 @@ function SearchPage({ query }) {
               <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 16 }}>Companies</h2>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 {companies.map(co => (
-                  <div key={co.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 0', borderBottom: '1px solid var(--border)', cursor: 'pointer' }}
-                    onClick={() => navigate(`company?id=${co.id}`)}>
+                  <div key={co.id} role="button" tabIndex={0}
+                    style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 0', borderBottom: '1px solid var(--border)', cursor: 'pointer' }}
+                    onClick={() => navigate(`company?id=${co.id}`)}
+                    onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') navigate(`company?id=${co.id}`); }}>
                     <div style={{ width: 48, height: 48, borderRadius: 8, background: 'var(--bg-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0 }}>
                       {co.logo || '🏢'}
                     </div>
@@ -108,8 +110,10 @@ function SearchPage({ query }) {
               <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 16 }}>Jobs</h2>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 {jobs.map(job => (
-                  <div key={job.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '8px 0', borderBottom: '1px solid var(--border)', cursor: 'pointer' }}
-                    onClick={() => navigate(`jobs?id=${job.id}`)}>
+                  <div key={job.id} role="button" tabIndex={0}
+                    style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '8px 0', borderBottom: '1px solid var(--border)', cursor: 'pointer' }}
+                    onClick={() => navigate(`jobs?id=${job.id}`)}
+                    onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') navigate(`jobs?id=${job.id}`); }}>
                     <div style={{ width: 48, height: 48, borderRadius: 8, background: 'var(--bg-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0 }}>
                       💼
                     </div>

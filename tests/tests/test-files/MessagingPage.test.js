@@ -1752,7 +1752,10 @@ describe('MessagingPage Component Tests', () => {
         goBtns.forEach(btn => {
             fireEvent.click(btn);
         });
-        expect(global.navigate).toHaveBeenCalledWith('profile');
+        expect(global.navigate).toHaveBeenCalledTimes(goBtns.length);
+        global.navigate.mock.calls.forEach(call => {
+            expect(call[0]).toBe('profile');
+        });
     });
 });
 

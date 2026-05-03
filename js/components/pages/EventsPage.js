@@ -146,7 +146,15 @@ function EventsPage() {
                         try { localStorage.setItem('li-interested-events', JSON.stringify([...next])); } catch (_) {}
                         return next;
                       });
-                      API.interestEvent(event.id).catch(() => showToast('Failed to update interest', 'error'));
+                      API.interestEvent(event.id).catch(() => {
+                        setInterested(prev => {
+                          const next = new Set(prev);
+                          if (next.has(key)) { next.delete(key); } else { next.add(key); }
+                          try { localStorage.setItem('li-interested-events', JSON.stringify([...next])); } catch (_) {}
+                          return next;
+                        });
+                        showToast('Failed to update interest', 'error');
+                      });
                     }}
                   >
                     {interested.has(String(event.id)) ? '★ Interested' : '☆ Interested'}

@@ -1307,6 +1307,7 @@ def get_all_events_with_attendance(user_id: int):
     from data.events import get_events as _get_static_events
 
     conn    = _connect()
+    _ensure_event_interest_table(conn)
     attended  = set()
     interested = set()
     if user_id is not None:
@@ -1382,9 +1383,22 @@ def toggle_event_attend(event_id, event_src: str, user_id: int):
     return {"attending": attending}
 
 
+def _ensure_event_interest_table(conn):
+    _execute(conn, """
+        CREATE TABLE IF NOT EXISTS event_interest (
+            id        INTEGER PRIMARY KEY AUTOINCREMENT,
+            event_id  INTEGER NOT NULL,
+            event_src TEXT    NOT NULL DEFAULT 'static',
+            user_id   INTEGER NOT NULL,
+            UNIQUE(event_id, event_src, user_id)
+        )
+    """)
+
+
 def toggle_event_interest(event_id, event_src: str, user_id: int):
     raw_id   = int(str(event_id).lstrip("u"))
     conn     = _connect()
+    _ensure_event_interest_table(conn)
     existing = _execute(conn,
         "SELECT 1 FROM event_interest WHERE event_id=%s AND event_src=%s AND user_id=%s",
         (raw_id, event_src, int(user_id))

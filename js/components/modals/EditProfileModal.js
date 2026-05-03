@@ -74,6 +74,7 @@ function EditProfileModal() {
   }
   function onCropTouchMove(e) {
     if (!draggingRef.current) return;
+    e.preventDefault();
     const dx = e.touches[0].clientX - lastPosRef.current.x;
     const dy = e.touches[0].clientY - lastPosRef.current.y;
     lastPosRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
@@ -165,6 +166,7 @@ function EditProfileModal() {
                 background: '#000',
                 border: '3px solid var(--blue)',
                 userSelect: 'none',
+                touchAction: 'none',
               }}
               onMouseDown={onCropMouseDown}
               onMouseMove={onCropMouseMove}

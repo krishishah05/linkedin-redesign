@@ -60,7 +60,7 @@ function FeedPage() {
     };
     setLocalPosts(prev => [newPost, ...(prev || [])]);
     setFeedSort('Recent');
-    API.createPost(commentText || '', null, null)
+    API.createPost(commentText || null, null, null)
       .then(savedPost => {
         setLocalPosts(prev => (prev || []).map(p =>
           p.id === newPost.id ? { ...p, id: savedPost.id } : p

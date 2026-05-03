@@ -175,9 +175,10 @@ function SettingsPage() {
                   value={darkMode}
                   onChange={v => { setDarkMode(v); showToast('Dark mode ' + (v ? 'enabled' : 'disabled')); }} />
                 <div style={{ paddingTop: 14, borderTop: '1px solid var(--border)', marginTop: 4 }}>
-                  <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 4 }}>Language</div>
+                  <label htmlFor="language-select" style={{ fontSize: 14, fontWeight: 600, marginBottom: 4, display: 'block' }}>Language</label>
                   <div style={{ fontSize: 13, color: 'var(--text-2)', marginBottom: 8 }}>Choose your preferred display language</div>
                   <select
+                    id="language-select"
                     className="li-settings-input"
                     style={{ width: 240 }}
                     value={language}
