@@ -68,7 +68,7 @@ function SettingsPage() {
   ];
 
   return (
-    <div className="li-page-inner" style={{ maxWidth: 860 }}>
+    <div className="li-page-inner" style={{ maxWidth: 860, flexDirection: 'column' }}>
       <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 16 }}>Settings</h1>
 
       <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start' }}>

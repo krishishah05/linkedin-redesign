@@ -74,7 +74,7 @@ function NotificationsPage() {
   };
 
   return (
-    <div className="li-page-inner" style={{ maxWidth: 660 }}>
+    <div className="li-page-inner" style={{ maxWidth: 660, flexDirection: 'column' }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
         <div>

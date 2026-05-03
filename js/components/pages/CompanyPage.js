@@ -20,7 +20,7 @@ function CompanyPage({ companyId }) {
   });
 
   return (
-    <div className="li-page-inner" style={{ maxWidth: 900 }}>
+    <div className="li-page-inner" style={{ maxWidth: 900, flexDirection: 'column' }}>
       {/* Hero */}
       <div className="li-card" style={{ padding: 0, marginBottom: 16, overflow: 'hidden' }}>
         {/* Cover */}
