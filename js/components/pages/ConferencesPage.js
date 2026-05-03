@@ -328,18 +328,6 @@ function conferenceIcon(conf, active) {
                 <span>{selectedConf.attendees ? `${Number(selectedConf.attendees).toLocaleString()} expected | ` : ''}<strong>{selectedConf.price || 'See event'}</strong></span>
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
-                {registeredIds.has(String(selectedConf.id)) ? (
-                  <div style={{ flex: 1, textAlign: 'center', padding: '9px 0', color: '#057642', fontWeight: 750, fontSize: 13, background: '#E6F4EA', borderRadius: 8 }}>
-                    Registered
-                  </div>
-                ) : (
-                  <button className="li-btn li-btn--primary" style={{ flex: 1, fontSize: 13, padding: '9px 16px' }} onClick={() => {
-                    setRegisteredIds(prev => new Set([...prev, String(selectedConf.id)]));
-                    showToast(`Registered for ${selectedConf.name}.`, 'success');
-                  }}>
-                    Register
-                  </button>
-                )}
                 {selectedConfUrl && (
                   <button className="li-btn li-btn--ghost" style={{ flex: 1, fontSize: 13, padding: '9px 16px' }} onClick={() => window.open(selectedConfUrl, '_blank', 'noopener,noreferrer')}>
                     View event

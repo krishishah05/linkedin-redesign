@@ -52,7 +52,6 @@ function SearchPage({ query }) {
             fontSize: 14, outline: 'none', background: 'var(--white)', color: 'var(--text)',
           }}
         />
-        <button className="li-btn li-btn--primary" onClick={() => doSearch(localQuery)}>Search</button>
       </div>
 
       {/* Tabs */}

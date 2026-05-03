@@ -350,7 +350,7 @@ function NavBar() {
 
                 <div className="li-dropdown__divider" />
 
-                <button
+<button
                   type="button"
                   className="li-dropdown__item"
                   role="menuitem"

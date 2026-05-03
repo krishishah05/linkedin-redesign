@@ -277,11 +277,14 @@ function ProfilePage({ userId }) {
               {/* Location + connections */}
               <div style={{ display: 'flex', gap: 16, fontSize: 14, color: 'var(--text-2)', flexWrap: 'wrap', marginBottom: 12 }}>
                 {user.location && <span>{user.location}</span>}
-                {user.connections > 0 && (
-                  <span style={{ color: 'var(--blue)', cursor: 'pointer', fontWeight: 600 }}>
-                    {user.connections >= 500 ? '500+' : user.connections} connections
-                  </span>
-                )}
+                {(() => {
+                  const count = isOwnProfile ? connections.size : (user.connections || 0);
+                  return (
+                    <span style={{ color: 'var(--blue)', cursor: 'pointer', fontWeight: 600 }}>
+                      {count >= 500 ? '500+' : count} connections
+                    </span>
+                  );
+                })()}
               </div>
 
               {/* Status badge + picker */}

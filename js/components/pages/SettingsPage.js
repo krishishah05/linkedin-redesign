@@ -152,6 +152,32 @@ function SettingsPage() {
                   }}>
                   {savingAccount ? 'Saving…' : 'Save changes'}
                 </button>
+
+                <div style={{ borderTop: '1px solid var(--border)', marginTop: 32, paddingTop: 24 }}>
+                  <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 4, color: '#b91c1c' }}>Danger zone</h3>
+                  <p style={{ fontSize: 13, color: 'var(--text-2)', marginBottom: 16 }}>
+                    Permanently delete your account and all associated data. This cannot be undone.
+                  </p>
+                  <button
+                    style={{
+                      background: 'none', border: '1.5px solid #b91c1c', color: '#b91c1c',
+                      borderRadius: 20, padding: '8px 20px', fontSize: 14, fontWeight: 600,
+                      cursor: 'pointer',
+                    }}
+                    onClick={() => {
+                      if (!window.confirm('Are you sure you want to delete your account? This action cannot be undone.')) return;
+                      const statusKey = currentUser?.id ? `li-user-status-${currentUser.id}` : null;
+                      localStorage.removeItem('nx-token'); localStorage.removeItem('nx-uid');
+                      ['li-liked-posts','li-saved-jobs','li-connections','li-following','li-pending-conn',
+                       'li-dismissed-inv','li-applied-jobs','li-joined-groups','li-settings',
+                       'li-language','li-user-status','li-recruiter-mode'].forEach(k => localStorage.removeItem(k));
+                      if (statusKey) localStorage.removeItem(statusKey);
+                      window.location.href = 'index.html';
+                    }}
+                  >
+                    Delete Account
+                  </button>
+                </div>
               </div>
             )}
 
