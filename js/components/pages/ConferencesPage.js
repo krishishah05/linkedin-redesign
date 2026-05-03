@@ -4,6 +4,7 @@
    ============================================================ */
 
 function ConferencesPage() {
+  const { showToast } = React.useContext(AppContext);
   const [locationQ, setLocationQ] = React.useState('');
   const [fieldQ, setFieldQ] = React.useState('technology');
   const [searchCenter, setSearchCenter] = React.useState(null); // geocoded center for searched location
@@ -110,7 +111,7 @@ function ConferencesPage() {
       setSelectedId(cleaned[0]?.id || null);
 
     } catch (err) {
-      createToast("Failed to fetch conferences", "error");
+      showToast("Failed to fetch conferences", "error");
     } finally {
       setSearching(false);
     }
@@ -167,7 +168,7 @@ function ConferencesPage() {
   function handleStorySubmit(e) {
     e.preventDefault();
     if (!storyForm.conferenceName.trim() || !storyForm.tagline.trim() || !storyForm.description.trim()) {
-      createToast('Conference name, headline, and takeaways are required.', 'error');
+      showToast('Conference name, headline, and takeaways are required.', 'error');
       return;
     }
     setStorySubmitting(true);
@@ -182,9 +183,9 @@ function ConferencesPage() {
         setStories(prev => [story, ...prev]);
         setShowStoryForm(false);
         setStoryForm({ conferenceName: '', tagline: '', description: '', photoUrl: '', companyLogoUrl: '' });
-        createToast('Conference experience shared!', 'success');
+        showToast('Conference experience shared!', 'success');
       })
-      .catch(() => createToast('Failed to share story.', 'error'))
+      .catch(() => showToast('Failed to share story.', 'error'))
       .finally(() => setStorySubmitting(false));
   }
 
