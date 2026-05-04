@@ -59,14 +59,8 @@ function AppProvider({ children }) {
     } else {
       setUserStatusState(null);
     }
-    if (currentUser.isRecruiter) {
-      try { setRecruiterModeState(localStorage.getItem('li-recruiter-mode') === '1'); }
-      catch (_) { setRecruiterModeState(false); }
-    } else {
-      setRecruiterModeState(false);
-      setRecruiterPanelOpen(false);
-      try { localStorage.removeItem('li-recruiter-mode'); } catch (_) {}
-    }
+    try { setRecruiterModeState(localStorage.getItem('li-recruiter-mode') === '1'); }
+    catch (_) { setRecruiterModeState(false); }
   }, [currentUser]);
 
   // Clear recruiter mode when status changes away from 'recruiting'
@@ -92,12 +86,6 @@ function AppProvider({ children }) {
   }
 
   function toggleRecruiterMode() {
-    if (!currentUser?.isRecruiter) {
-      setRecruiterModeState(false);
-      setRecruiterPanelOpen(false);
-      try { localStorage.removeItem('li-recruiter-mode'); } catch (_) {}
-      return;
-    }
     setRecruiterModeState(prev => {
       const next = !prev;
       try { localStorage.setItem('li-recruiter-mode', next ? '1' : '0'); } catch (_) {}

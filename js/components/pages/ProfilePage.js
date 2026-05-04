@@ -212,7 +212,7 @@ function ProfilePage({ userId }) {
                       >
                         {isFollowing ? 'Following' : 'Follow'}
                       </button>
-                      {currentUser?.isRecruiter && userStatus === 'recruiting' && recruiterMode && (() => {
+                      {userStatus === 'recruiting' && recruiterMode && (() => {
                         const inPipeline = shortlisted.has(String(user.id));
                         return (
                           <button
@@ -291,7 +291,7 @@ function ProfilePage({ userId }) {
                         <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', padding: '4px 10px 8px', textTransform: 'uppercase', letterSpacing: 0.5 }}>
                           Your availability
                         </div>
-                        {STATUS_OPTIONS.filter(o => !o.recruiterOnly || currentUser?.isRecruiter).map(o => {
+                        {STATUS_OPTIONS.map(o => {
                           const current = userStatus || (user.openToWork ? 'open_to_work' : null);
                           const isActive = current === o.key;
                           return (
