@@ -1,7 +1,7 @@
 # Development Specification — Outreach Feature
 ## CS485 · Nexus LinkedIn Redesign · Sprint P4
 
-**Author:** Dhyani Soni (Story #1) + Victor Jimenez (Story #7)  
+**Author:** Dhyani Soni (Story #1) + Victor Jimenez (Story #2)  
 **Date:** March 3, 2026  
 **Backend:** Single Flask backend ([backend/app.py](file:///c:/Users/dhyan/OneDrive/Desktop/linkedin-redesign/backend/app.py)), shared by both stories  
 
@@ -34,7 +34,7 @@ The Nexus app is a LinkedIn-redesign SPA built with **vanilla HTML/JS/CSS** on t
 | 7 | Outreach Readiness Check | Victor Jimenez |
 
 **Story #1 GitHub Issue:** https://github.com/dhy-ani/linkedin-clone/issues/2 *(GitHub issue #2 — not Story #2)*
-**Story #7 GitHub Issue:** https://github.com/dhy-ani/linkedin-clone/issues/3 *(GitHub issue #3 — not Story #3)*
+**Story #2 GitHub Issue:** https://github.com/dhy-ani/linkedin-clone/issues/3 *(GitHub issue #3 — not Story #3)*
 
 ---
 
@@ -206,13 +206,13 @@ Output: { draft, char_count, tone, tips, alternatives }
 
 ---
 
-## 4. Story #7 — Outreach Readiness Check
+## 4. Story #2 — Outreach Readiness Check
 
 ### 4.1 User Story
 > *As a job seeker, I want feedback on my profile before messaging someone so that I present myself professionally.*
 
 ### 4.2 Dependency
-Story #7 depends on Story #1: the readiness check is shown to the user **before** they invoke the message generator. If `can_message` is `false`, the frontend should warn the user.
+Story #2 depends on Story #1: the readiness check is shown to the user **before** they invoke the message generator. If `can_message` is `false`, the frontend should warn the user.
 
 ### 4.3 Acceptance Criteria
 
