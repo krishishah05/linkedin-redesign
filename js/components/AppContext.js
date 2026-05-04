@@ -30,7 +30,6 @@ function AppProvider({ children }) {
   const [dismissedInvitations, setDismissedInvitations] = React.useState(() => new Set());
   const [appliedJobs, setAppliedJobs] = React.useState(() => new Set());
   const [unreadMessages, setUnreadMessages] = React.useState(0);
-  const [unreadNotifications, setUnreadNotifications] = React.useState(0);
   const [pendingInvitations, setPendingInvitations] = React.useState([]);
 
   const [darkMode, setDarkMode] = React.useState(
@@ -271,13 +270,10 @@ function AppProvider({ children }) {
   React.useEffect(() => {
     Promise.all([
       API.getConversations().catch(() => []),
-      API.getNotifications().catch(() => []),
       API.getInvitations().catch(() => []),
-    ]).then(([convs, notifs, invs]) => {
+    ]).then(([convs, invs]) => {
       const msgs = convs.reduce((sum, c) => sum + (c.unreadCount || 0), 0);
-      const unreadNotifs = notifs.filter(n => !n.isRead).length;
       setUnreadMessages(msgs);
-      setUnreadNotifications(unreadNotifs);
       setPendingInvitations(invs || []);
     });
   }, []);
@@ -437,7 +433,6 @@ function AppProvider({ children }) {
     following,
     pendingConnections,
     unreadMessages,
-    unreadNotifications,
     darkMode,
     settings,
     // Modal
@@ -473,7 +468,6 @@ function AppProvider({ children }) {
     removeFromShortlist,
     clearShortlist,
     setUnreadMessages,
-    setUnreadNotifications,
     openModal,
     closeModal,
     showToast,

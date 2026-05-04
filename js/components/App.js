@@ -35,7 +35,6 @@ function Router() {
     'network':       <NetworkPage />,
     'jobs':          <JobsPage selectedJobId={params.id} />,
     'messaging':     <MessagingPage />,
-    'notifications': <NotificationsPage />,
     'search':        <SearchPage query={params.q || ''} />,
     'company':       <CompanyPage companyId={params.id} />,
     'events':        <EventsPage />,
