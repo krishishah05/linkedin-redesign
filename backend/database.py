@@ -424,6 +424,13 @@ def init_db():  # pragma: no cover
         for _tbl in ('users', 'posts', 'conversations'):
             _pg_reset_sequence(conn, _tbl)
 
+    # Remove test/temp/demo users created by automated tests (id > 21 with generic names)
+    _execute(conn, """
+        DELETE FROM users
+        WHERE id > 21
+          AND (name LIKE %s OR name LIKE %s OR name LIKE %s)
+    """, ('Test User%', 'Temp User%', 'Demo User%'))
+
     conn.commit()
     conn.close()
 

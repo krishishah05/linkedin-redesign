@@ -222,8 +222,6 @@ function JobListItem({ job, active, isSaved, isApplied, isLast, onSelect, onSave
 }
 
 function JobDetailPanel({ job, descLoading, savedJobs, toggleSaveJob, openModal, showToast, isApplied, applyJob }) {
-  const [pendingApply, setPendingApply] = React.useState(false);
-  React.useEffect(() => { setPendingApply(false); }, [job.id]);
 
   const sections = parseJobDescription(job.description || job.summary || '');
 
@@ -259,23 +257,14 @@ function JobDetailPanel({ job, descLoading, savedJobs, toggleSaveJob, openModal,
         ))}
       </div>
 
-      <div style={{ display: 'flex', gap: 8, marginBottom: pendingApply ? 8 : 24 }}>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
         <button
           className="li-btn li-btn--primary"
           onClick={() => {
             if (isApplied(job.id)) return;
-            let urlValid = false;
-            try {
-              const parsed = new URL(job.url || '');
-              urlValid = parsed.protocol === 'http:' || parsed.protocol === 'https:';
-            } catch (_) {}
-            if (urlValid) {
-              const win = window.open(job.url, '_blank', 'noopener,noreferrer');
-              if (win && !win.closed) setPendingApply(true);
-              else openModal('apply', { jobTitle: job.title, job, onApply: () => applyJob(job.id) });
-            } else {
-              openModal('apply', { jobTitle: job.title, job, onApply: () => applyJob(job.id) });
-            }
+            applyJob(job.id)
+              .then(() => showToast('Application submitted!', 'success'))
+              .catch(() => showToast('Failed to submit application', 'error'));
           }}
           style={{ flex: 1, opacity: isApplied(job.id) ? 0.7 : 1 }}
           disabled={isApplied(job.id)}
@@ -294,21 +283,6 @@ function JobDetailPanel({ job, descLoading, savedJobs, toggleSaveJob, openModal,
         </button>
       </div>
 
-      {pendingApply && (
-        <div style={{
-          background: '#EAF4FF', border: '1px solid var(--blue)', borderRadius: 6,
-          padding: '10px 14px', marginBottom: 20,
-          display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap',
-        }}>
-          <span style={{ fontSize: 13, flex: 1 }}>Did you complete your application?</span>
-          <button className="li-btn li-btn--primary li-btn--sm" onClick={() => { applyJob(job.id); setPendingApply(false); showToast('Marked as applied', 'success'); }}>
-            Yes, I applied
-          </button>
-          <button className="li-btn li-btn--ghost li-btn--sm" onClick={() => setPendingApply(false)}>
-            Not yet
-          </button>
-        </div>
-      )}
 
       <div style={{ borderTop: '1px solid var(--border)', paddingTop: 20 }}>
         <h3 style={{ fontSize: 16, fontWeight: 750, marginBottom: 12 }}>About the job</h3>

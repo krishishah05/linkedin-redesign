@@ -212,7 +212,7 @@ function ProfilePage({ userId }) {
                       >
                         {isFollowing ? 'Following' : 'Follow'}
                       </button>
-                      {currentUser?.isRecruiter && userStatus === 'recruiting' && recruiterMode && (() => {
+                      {userStatus === 'recruiting' && recruiterMode && (() => {
                         const inPipeline = shortlisted.has(String(user.id));
                         return (
                           <button
@@ -291,7 +291,7 @@ function ProfilePage({ userId }) {
                         <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', padding: '4px 10px 8px', textTransform: 'uppercase', letterSpacing: 0.5 }}>
                           Your availability
                         </div>
-                        {STATUS_OPTIONS.filter(o => !o.recruiterOnly || currentUser?.isRecruiter).map(o => {
+                        {STATUS_OPTIONS.map(o => {
                           const current = userStatus || (user.openToWork ? 'open_to_work' : null);
                           const isActive = current === o.key;
                           return (
@@ -379,13 +379,39 @@ function ProfilePage({ userId }) {
                     {isOwnProfile ? 'Share an article, photo, or idea - your posts will appear here.' : `${user.name} hasn't posted recently.`}
                   </p>
                 ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 12 }}>
-                    {userPosts.map(post => (
-                      <div key={post.id} style={{ padding: '12px 0', borderBottom: '1px solid var(--border)', fontSize: 14, color: 'var(--text)', lineHeight: 1.5 }}>
-                        <p style={{ margin: '0 0 4px' }}>{(post.content || '').slice(0, 200)}{(post.content || '').length > 200 ? '...' : ''}</p>
-                        <span style={{ fontSize: 12, color: 'var(--text-3)' }}>{formatTime(post.timestamp || post.createdAt)}</span>
-                      </div>
-                    ))}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 0, marginTop: 12 }}>
+                    {userPosts.map((post, idx) => {
+                      const authorId = post.authorId || post.author?.id || user.id;
+                      const authorName = post.author?.name || post.authorName || user.name;
+                      const authorColor = post.author?.avatarColor || user.avatarColor;
+                      const authorPhoto = post.author?.photo || user.photo;
+                      const likes = post.likeCount || post.totalReactions || 0;
+                      const comments = post.commentCount || (Array.isArray(post.comments) ? post.comments.length : 0) || 0;
+                      return (
+                        <div key={post.id} style={{ padding: '14px 0', borderBottom: idx < userPosts.length - 1 ? '1px solid var(--border)' : 'none' }}>
+                          {/* Author row */}
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8, cursor: 'pointer' }}
+                            onClick={() => navigate(`profile?id=${authorId}`)}>
+                            <Avatar name={authorName} size={36} photo={authorPhoto} colorOverride={authorColor} />
+                            <div>
+                              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>{authorName}</div>
+                              <div style={{ fontSize: 12, color: 'var(--text-3)' }}>{formatTime(post.timestamp || post.createdAt)} · Post</div>
+                            </div>
+                          </div>
+                          {/* Content */}
+                          <p style={{ margin: '0 0 8px', fontSize: 14, color: 'var(--text)', lineHeight: 1.5 }}>
+                            {(post.content || '').slice(0, 200)}{(post.content || '').length > 200 ? '…' : ''}
+                          </p>
+                          {/* Engagement */}
+                          {(likes > 0 || comments > 0) && (
+                            <div style={{ display: 'flex', gap: 12, fontSize: 12, color: 'var(--text-3)' }}>
+                              {likes > 0 && <span>👍 {likes}</span>}
+                              {comments > 0 && <span>💬 {comments} comments</span>}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>

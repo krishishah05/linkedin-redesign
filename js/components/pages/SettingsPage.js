@@ -3,7 +3,7 @@
    ============================================================ */
 function SettingsPage() {
   const { settings, setSettings, darkMode, setDarkMode, showToast, currentUser, setCurrentUser,
-          language, setLanguage, recruiterMode, toggleRecruiterMode, userStatus, setUserStatus } = React.useContext(AppContext);
+          recruiterMode, toggleRecruiterMode, userStatus, setUserStatus } = React.useContext(AppContext);
   const [tab, setTab] = React.useState('account');
   const [savingAccount, setSavingAccount] = React.useState(false);
   const [updatingPw, setUpdatingPw] = React.useState(false);
@@ -50,14 +50,6 @@ function SettingsPage() {
       </div>
     );
   }
-
-  const langOptions = [
-    { value: 'en', label: 'English' },
-    { value: 'es', label: 'Spanish — Español' },
-    { value: 'fr', label: 'French — Français' },
-    { value: 'de', label: 'German — Deutsch' },
-    { value: 'ja', label: 'Japanese — 日本語' },
-  ];
 
   const recruiterFeatures = [
     '📋 Candidate Shortlist panel in navigation',
@@ -175,21 +167,6 @@ function SettingsPage() {
                 <Toggle label="Dark mode" desc="Use a darker color scheme"
                   value={darkMode}
                   onChange={v => { setDarkMode(v); showToast('Dark mode ' + (v ? 'enabled' : 'disabled')); }} />
-                <div style={{ paddingTop: 14, borderTop: '1px solid var(--border)', marginTop: 4 }}>
-                  <label htmlFor="language-select" style={{ fontSize: 14, fontWeight: 600, marginBottom: 4, display: 'block' }}>Language</label>
-                  <div style={{ fontSize: 13, color: 'var(--text-2)', marginBottom: 8 }}>Choose your preferred display language</div>
-                  <select
-                    id="language-select"
-                    className="li-settings-input"
-                    style={{ width: 240 }}
-                    value={language}
-                    onChange={e => { setLanguage(e.target.value); showToast('Language updated'); }}
-                  >
-                    {langOptions.map(opt => (
-                      <option key={opt.value} value={opt.value}>{opt.label}</option>
-                    ))}
-                  </select>
-                </div>
               </div>
             )}
 
@@ -255,10 +232,6 @@ function SettingsPage() {
                   desc="Access hiring tools, candidate pipeline, and outreach templates"
                   value={!!recruiterMode}
                   onChange={() => {
-                    if (!currentUser?.isRecruiter) {
-                      showToast('Recruiter Mode is only available for recruiter accounts', 'error');
-                      return;
-                    }
                     if (!recruiterMode && userStatus !== 'recruiting') setUserStatus('recruiting');
                     toggleRecruiterMode();
                     showToast('Recruiter Mode ' + (recruiterMode ? 'disabled' : 'enabled'));

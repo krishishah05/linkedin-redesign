@@ -126,8 +126,8 @@ function FeedPage() {
           {u.name && (
             <>
               <div className="li-profile-card__banner" style={{ background: u.coverGradient || 'linear-gradient(135deg,#2E87F0 0%,#0F5DBD 60%,#764ba2 100%)' }}>
-                <div className="li-profile-card__photo" style={{ cursor: 'pointer' }} onClick={() => navigate(`profile?id=${u.id}`)}>
-                  {getInitials(u.name)}
+                <div className="li-profile-card__photo" style={{ cursor: 'pointer', padding: 0 }} onClick={() => navigate(`profile?id=${u.id}`)}>
+                  <Avatar name={u.name} size={72} photo={u.photo} colorOverride={u.avatarColor} />
                 </div>
               </div>
               <div className="li-profile-card__info">
@@ -375,7 +375,7 @@ function PostCreator({ user, onPost, openModal, showToast }) {
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
           <button onClick={() => setShowArticleTemplates(false)}
             style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-2)', fontSize: 22, lineHeight: 1, padding: '0 4px' }}>?</button>
-          <span style={{ fontWeight: 700, fontSize: 16 }}>{t('chooseTemplate')}</span>
+          <span style={{ fontWeight: 700, fontSize: 16 }}>Choose a template</span>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
           {ARTICLE_TEMPLATES.map(tmpl => (
@@ -403,9 +403,7 @@ function PostCreator({ user, onPost, openModal, showToast }) {
       <input ref={videoInputRef} type="file" accept="video/*" style={{ display: 'none' }} onChange={handleVideoUpload} />
 
       <div className="li-post-creator__top">
-        <div style={{ width: 48, height: 48, borderRadius: '50%', background: user.avatarColor || 'var(--blue)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: 18, flexShrink: 0 }}>
-          {getInitials(user.name || 'Me')}
-        </div>
+        <Avatar name={user.name || 'Me'} size={48} photo={user.photo} colorOverride={user.avatarColor} />
         {!expanded ? (
           <button className="li-post-creator__trigger" onClick={() => setExpanded(true)}>
             {t('startPost')}
@@ -414,14 +412,14 @@ function PostCreator({ user, onPost, openModal, showToast }) {
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
             {isArticle && (
               <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--blue)', background: 'rgba(10,102,194,0.12)', padding: '2px 8px', borderRadius: 10, alignSelf: 'flex-start' }}>
-                {t('article')}
+                Article
               </span>
             )}
             <textarea
               autoFocus
               value={draft}
               onChange={e => setDraft(e.target.value)}
-              placeholder={isArticle ? t('editTemplate') : t('whatToTalk')}
+              placeholder={isArticle ? 'Edit your article template…' : t('whatToTalk')}
               maxLength={MAX}
               style={{
                 flex: 1, border: '1px solid var(--border)', borderRadius: 8,
@@ -450,7 +448,7 @@ function PostCreator({ user, onPost, openModal, showToast }) {
         <input
           value={mediaInputType === 'video' ? videoUrl : imageUrl}
           onChange={e => mediaInputType === 'video' ? setVideoUrl(e.target.value) : setImageUrl(e.target.value)}
-          placeholder={mediaInputType === 'video' ? t('uploadVideoUrl') : t('pasteImageUrl')}
+          placeholder={mediaInputType === 'video' ? 'Paste video URL here…' : 'Paste image URL here…'}
           style={{
             width: '100%',
             marginTop: 8,
@@ -482,12 +480,12 @@ function PostCreator({ user, onPost, openModal, showToast }) {
               <svg width="16" height="16" viewBox="0 0 24 24" fill="#5F9B41"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/></svg>
               <span>{t('video')}</span>
             </button>
-            <button title={t('writeArticle')} onClick={activateArticle}
+            <button title="Article" onClick={activateArticle}
               style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '6px 8px', borderRadius: 6, display: 'flex', alignItems: 'center', gap: 4, fontSize: 13, fontWeight: 600, color: 'var(--text-2)' }}
               onMouseEnter={e => e.currentTarget.style.background = 'var(--bg)'}
               onMouseLeave={e => e.currentTarget.style.background = 'none'}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="#E06847"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
-              <span>{t('writeArticle')}</span>
+              <span>Article</span>
             </button>
           </div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
@@ -514,7 +512,7 @@ function PostCreator({ user, onPost, openModal, showToast }) {
           {[
             { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="#378FE9"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>, label: t('photo'), action: activatePhoto },
             { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="#5F9B41"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/></svg>, label: t('video'), action: activateVideo },
-            { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="#E06847"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>, label: t('writeArticle'), action: activateArticle },
+            { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="#E06847"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>, label: 'Article', action: activateArticle },
           ].map(item => (
             <button key={item.label} className="li-post-creator__action" onClick={item.action}>
               {item.icon}
@@ -675,40 +673,27 @@ function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, followi
               + Follow
             </button>
           )}
-          <div style={{ position: 'relative' }}>
-            <button className="li-post__options" onClick={() => setMenuOpen(v => !v)}>
-              <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-                <circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/>
-              </svg>
-            </button>
-            {menuOpen && (
-              <div className="li-dropdown" style={{ display: 'block', position: 'absolute', top: '100%', right: 0, minWidth: 200, zIndex: 100 }}>
-                {[
-                  ...(currentUser && (post.authorId === currentUser.id || post.authorId === String(currentUser.id)) ? ['Delete post'] : []),
-                  savedPostIds && savedPostIds.has(String(post.id)) ? 'Unsave post' : 'Save post',
-                  'Copy link to post', 'Not interested'
-                ].map(label => (
-                  <div key={label} className="li-dropdown__item"
-                    style={label === 'Delete post' ? { color: 'var(--red)' } : {}}
+          {currentUser && String(authorId) === String(currentUser.id) && (
+            <div style={{ position: 'relative' }}>
+              <button className="li-post__options" onClick={() => setMenuOpen(v => !v)}>
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                  <circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/>
+                </svg>
+              </button>
+              {menuOpen && (
+                <div className="li-dropdown" style={{ display: 'block', position: 'absolute', top: '100%', right: 0, minWidth: 200, zIndex: 100 }}>
+                  <div className="li-dropdown__item" style={{ color: 'var(--red)' }}
                     onClick={() => {
-                      setMenuOpen(false);
-                      if (label === 'Delete post') { onDelete && onDelete(post.id); showToast('Post deleted'); }
-                      else if (label === 'Copy link to post') {
-                        copyLink(`${window.location.origin}${window.location.pathname}#post-${post.id}`, showToast);
-                      }
-                      else if (label === 'Save post' || label === 'Unsave post') {
-                        onSave && onSave(post.id);
-                        showToast(label === 'Save post' ? 'Post saved' : 'Post unsaved');
-                      }
-                      else if (label === 'Not interested') { onHide && onHide(post.id); }
-                      else showToast(label);
+                      API.deletePost(post.id)
+                        .then(() => { setMenuOpen(false); onDelete && onDelete(post.id); showToast('Post deleted'); })
+                        .catch(() => showToast('Failed to delete post', 'error'));
                     }}>
-                    {label}
+                    Delete post
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
@@ -826,13 +811,6 @@ function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, followi
             <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
           <span>{t('comment')}</span>
-        </button>
-
-        <button className="li-post__action" onClick={() => openModal('share', { post, onRepost })} style={{ flex: 1 }}>
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <path d="M17 1l4 4-4 4M3 11V9a4 4 0 014-4h14M7 23l-4-4 4-4M21 13v2a4 4 0 01-4 4H3" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-          <span>{t('repost')}</span>
         </button>
 
         <button className="li-post__action" onClick={() => copyLink(`${window.location.origin}${window.location.pathname}#post-${post.id}`, showToast)} style={{ flex: 1 }}>

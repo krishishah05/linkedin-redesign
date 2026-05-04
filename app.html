@@ -52,12 +52,12 @@
 
 <!-- jsPDF - PDF export for Cover Letter generator -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"
-  integrity="sha512-qZvrmS2ekKPF2mSznTQsxqPgnpkI4DNTlrdUmTzrDgektczlKNRRhy5X5AAOnx5S09ydFYWUNSfcEqDTTHgtNA=="
+  integrity="sha384-JcnsjUPPylna1s1fvi1u12X5qjY5OL56iySh75FdtrwhO/SWXgMjoVqcKyIIWOLk"
   crossorigin="anonymous"></script>
 
 <!-- PDF.js - read uploaded PDF cover letters -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"
-  integrity="sha512-q+4IiFWdPC/bNAnUpZx6aXDx/h77yEQtN4I1sIHydcbZK34hLaR3CAeYSJshoXlOq3mjEf7XJE8YWIUHMhfoCQ=="
+  integrity="sha384-/1qUCSGwTur9vjf/z9lmu/eCUYbpOTgSjmpbMQZ1/CtX2v/WcAIKqRv+U1DUCG6e"
   crossorigin="anonymous"></script>
 <script>
   if (window.pdfjsLib) {
@@ -72,7 +72,7 @@
   crossorigin="anonymous"></script>
 
 <!-- API utility (plain JS, no JSX) -->
-<script src="js/api.js?v=10"></script>
+<script src="js/api.js?v=11"></script>
 
 <!-- Auth guard: redirect to login if no session token stored -->
 <script>
@@ -93,27 +93,26 @@
 
 <!-- -- Shared utilities & context ---------------------------- -->
 <script type="text/babel" src="js/components/utils.js?v=9"></script>
-<script type="text/babel" src="js/components/AppContext.js?v=12"></script>
+<script type="text/babel" src="js/components/AppContext.js?v=15"></script>
 
 <!-- -- Shared UI components ---------------------------------- -->
 <script type="text/babel" src="js/components/shared/Avatar.js?v=10"></script>
 <script type="text/babel" src="js/components/shared/LoadingSpinner.js?v=10"></script>
-<script type="text/babel" src="js/components/shared/ShortlistPanel.js?v=10"></script>
+<script type="text/babel" src="js/components/shared/ShortlistPanel.js?v=11"></script>
 <script type="text/babel" src="js/components/ToastContainer.js?v=10"></script>
 
 <!-- -- Page components --------------------------------------- -->
-<script type="text/babel" src="js/components/pages/FeedPage.js?v=16"></script>
-<script type="text/babel" src="js/components/pages/ProfilePage.js?v=12"></script>
-<script type="text/babel" src="js/components/pages/NetworkPage.js?v=14"></script>
-<script type="text/babel" src="js/components/pages/JobsPage.js?v=12"></script>
-<script type="text/babel" src="js/components/pages/MessagingPage.js?v=14"></script>
-<script type="text/babel" src="js/components/pages/NotificationsPage.js?v=13"></script>
-<script type="text/babel" src="js/components/pages/SearchPage.js?v=12"></script>
+<script type="text/babel" src="js/components/pages/FeedPage.js?v=21"></script>
+<script type="text/babel" src="js/components/pages/ProfilePage.js?v=16"></script>
+<script type="text/babel" src="js/components/pages/NetworkPage.js?v=15"></script>
+<script type="text/babel" src="js/components/pages/JobsPage.js?v=14"></script>
+<script type="text/babel" src="js/components/pages/MessagingPage.js?v=15"></script>
+<script type="text/babel" src="js/components/pages/SearchPage.js?v=13"></script>
 <script type="text/babel" src="js/components/pages/CompanyPage.js?v=11"></script>
-<script type="text/babel" src="js/components/pages/EventsPage.js?v=14"></script>
-<script type="text/babel" src="js/components/pages/SettingsPage.js?v=17"></script>
+<script type="text/babel" src="js/components/pages/EventsPage.js?v=15"></script>
+<script type="text/babel" src="js/components/pages/SettingsPage.js?v=18"></script>
 <script type="text/babel" src="js/components/shared/LightMap.js?v=2"></script>
-<script type="text/babel" src="js/components/pages/ConferencesPage.js?v=13"></script>
+<script type="text/babel" src="js/components/pages/ConferencesPage.js?v=15"></script>
 <script type="text/babel" src="js/components/pages/CoverLetterPage.js?v=11"></script>
 
 <!-- -- Modal components -------------------------------------- -->
@@ -133,8 +132,8 @@
 <script type="text/babel" src="js/components/modals/ModalContainer.js?v=12"></script>
 
 <!-- -- Navigation components --------------------------------- -->
-<script type="text/babel" src="js/components/NavBar.js?v=18"></script>
-<script type="text/babel" src="js/components/MobileNav.js?v=12"></script>
+<script type="text/babel" src="js/components/NavBar.js?v=21"></script>
+<script type="text/babel" src="js/components/MobileNav.js?v=14"></script>
 
 <!-- -- Root - mounts React app (must be last) ---------------- -->
 <script type="text/babel" src="js/components/App.js?v=13"></script>

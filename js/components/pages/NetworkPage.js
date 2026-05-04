@@ -99,9 +99,6 @@ function NetworkPage() {
             {user.headline ? user.headline.slice(0, 60) + (user.headline.length > 60 ? '…' : '') : ''}
           </div>
           {user.location && <div style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 2 }}>{user.location}</div>}
-          {!iConnected && user.mutualConnections > 0 && (
-            <div style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 2 }}>{user.mutualConnections} mutual connections</div>
-          )}
         </div>
         <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-end' }}>
           {iConnected ? (
@@ -164,8 +161,7 @@ function NetworkPage() {
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 14, fontWeight: 600 }}>{invName}</div>
                     <div style={{ fontSize: 13, color: 'var(--text-2)' }}>{invHeadline}</div>
-                    <div style={{ fontSize: 12, color: 'var(--text-3)' }}>{inv.mutualCount || inv.mutualConnections || 0} mutual connections</div>
-                  </div>
+                    </div>
                   <div style={{ display: 'flex', gap: 8 }}>
                     <button className="li-btn li-btn--ghost li-btn--sm" onClick={() => { dismissInvitation(String(invUser.id || '')); showToast('Invitation declined'); }}>Decline</button>
                     <button className="li-btn li-btn--outline li-btn--sm" onClick={() => { dismissInvitation(String(invUser.id || '')); acceptConnection(invUser.id); showToast(`Connected with ${invName}!`); }}>Accept</button>

@@ -943,12 +943,12 @@ function computeGuidePreview(state) {
    Outreach guide templates (from your old app.js)
    ───────────────────────────────────────────────────────────── */
 const _OUTREACH_GOALS = [
-  { key: 'advice', icon: '', label: 'Ask for Advice', desc: 'Career guidance from a pro' },
-  { key: 'job', icon: '', label: 'Job / Internship', desc: 'Express interest in a role' },
-  { key: 'network', icon: '', label: 'Build Network', desc: 'Connect in your field' },
-  { key: 'mentor', icon: '', label: 'Find a Mentor', desc: 'Request ongoing guidance' },
-  { key: 'followup', icon: '', label: 'Follow Up', desc: 'After meeting or applying' },
-  { key: 'referral', icon: '', label: 'Ask for Referral', desc: 'Request a job referral' },
+  { key: 'advice', icon: '💡', label: 'Ask for Advice', desc: 'Career guidance from a pro' },
+  { key: 'job', icon: '💼', label: 'Job / Internship', desc: 'Express interest in a role' },
+  { key: 'network', icon: '🤝', label: 'Build Network', desc: 'Connect in your field' },
+  { key: 'mentor', icon: '🎓', label: 'Find a Mentor', desc: 'Request ongoing guidance' },
+  { key: 'followup', icon: '📩', label: 'Follow Up', desc: 'After meeting or applying' },
+  { key: 'referral', icon: '⭐', label: 'Ask for Referral', desc: 'Request a job referral' },
 ];
 
 const _OUTREACH_TIPS = {

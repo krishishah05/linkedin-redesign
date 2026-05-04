@@ -30,7 +30,6 @@ function AppProvider({ children }) {
   const [dismissedInvitations, setDismissedInvitations] = React.useState(() => new Set());
   const [appliedJobs, setAppliedJobs] = React.useState(() => new Set());
   const [unreadMessages, setUnreadMessages] = React.useState(0);
-  const [unreadNotifications, setUnreadNotifications] = React.useState(0);
   const [pendingInvitations, setPendingInvitations] = React.useState([]);
 
   const [darkMode, setDarkMode] = React.useState(
@@ -59,14 +58,9 @@ function AppProvider({ children }) {
     } else {
       setUserStatusState(null);
     }
-    if (currentUser.isRecruiter) {
-      try { setRecruiterModeState(localStorage.getItem('li-recruiter-mode') === '1'); }
-      catch (_) { setRecruiterModeState(false); }
-    } else {
-      setRecruiterModeState(false);
-      setRecruiterPanelOpen(false);
-      try { localStorage.removeItem('li-recruiter-mode'); } catch (_) {}
-    }
+    const recruiterKey = `li-recruiter-mode-${currentUser.id}`;
+    try { setRecruiterModeState(localStorage.getItem(recruiterKey) === '1'); }
+    catch (_) { setRecruiterModeState(false); }
   }, [currentUser]);
 
   // Clear recruiter mode when status changes away from 'recruiting'
@@ -74,7 +68,8 @@ function AppProvider({ children }) {
     if (userStatus !== null && userStatus !== 'recruiting' && recruiterMode) {
       setRecruiterModeState(false);
       setRecruiterPanelOpen(false);
-      try { localStorage.removeItem('li-recruiter-mode'); } catch (_) {}
+      const uid = currentUser?.id || userIdRef.current;
+      if (uid) { try { localStorage.removeItem(`li-recruiter-mode-${uid}`); } catch (_) {} }
     }
   }, [userStatus, recruiterMode]);
 
@@ -92,15 +87,10 @@ function AppProvider({ children }) {
   }
 
   function toggleRecruiterMode() {
-    if (!currentUser?.isRecruiter) {
-      setRecruiterModeState(false);
-      setRecruiterPanelOpen(false);
-      try { localStorage.removeItem('li-recruiter-mode'); } catch (_) {}
-      return;
-    }
+    const uid = currentUser?.id || userIdRef.current;
     setRecruiterModeState(prev => {
       const next = !prev;
-      try { localStorage.setItem('li-recruiter-mode', next ? '1' : '0'); } catch (_) {}
+      if (uid) { try { localStorage.setItem(`li-recruiter-mode-${uid}`, next ? '1' : '0'); } catch (_) {} }
       if (!next) setRecruiterPanelOpen(false);
       return next;
     });
@@ -280,13 +270,10 @@ function AppProvider({ children }) {
   React.useEffect(() => {
     Promise.all([
       API.getConversations().catch(() => []),
-      API.getNotifications().catch(() => []),
       API.getInvitations().catch(() => []),
-    ]).then(([convs, notifs, invs]) => {
+    ]).then(([convs, invs]) => {
       const msgs = convs.reduce((sum, c) => sum + (c.unreadCount || 0), 0);
-      const unreadNotifs = notifs.filter(n => !n.isRead).length;
       setUnreadMessages(msgs);
-      setUnreadNotifications(unreadNotifs);
       setPendingInvitations(invs || []);
     });
   }, []);
@@ -385,12 +372,21 @@ function AppProvider({ children }) {
   }
 
   function applyJob(jobId) {
+    const key = String(jobId);
     setAppliedJobs(prev => {
-      const next = new Set([...prev, String(jobId)]);
+      const next = new Set([...prev, key]);
       _save('li-applied-jobs', next);
       return next;
     });
-    API.applyToJob(jobId).catch(() => {});
+    return API.applyToJob(jobId).catch(err => {
+      setAppliedJobs(prev => {
+        const next = new Set(prev);
+        next.delete(key);
+        _save('li-applied-jobs', next);
+        return next;
+      });
+      throw err;
+    });
   }
 
   function follow(userId) {
@@ -437,7 +433,6 @@ function AppProvider({ children }) {
     following,
     pendingConnections,
     unreadMessages,
-    unreadNotifications,
     darkMode,
     settings,
     // Modal
@@ -473,7 +468,6 @@ function AppProvider({ children }) {
     removeFromShortlist,
     clearShortlist,
     setUnreadMessages,
-    setUnreadNotifications,
     openModal,
     closeModal,
     showToast,
