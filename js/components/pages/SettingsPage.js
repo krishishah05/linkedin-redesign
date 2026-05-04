@@ -304,10 +304,21 @@ function SettingsPage() {
                     API.deleteUser(currentUser.id)
                       .then(() => {
                         const userId = currentUser.id;
-                        ['nx-token','nx-uid','li-liked-posts','li-saved-jobs','li-connections','li-following',
-                         'li-pending-conn','li-dismissed-inv','li-applied-jobs',
-                         'li-settings','li-language','li-user-status','li-recruiter-mode',
-                         `li-user-status-${userId}`, `li-shortlisted-${userId}`].forEach(k => localStorage.removeItem(k));
+                        [
+                          'nx-token','nx-uid',
+                          'li-liked-posts','li-saved-jobs','li-connections','li-following',
+                          'li-pending-conn','li-dismissed-inv','li-applied-jobs',
+                          'li-settings','li-language','li-user-status','li-recruiter-mode',
+                          `li-liked-posts-${userId}`,
+                          `li-saved-jobs-${userId}`,
+                          `li-connections-${userId}`,
+                          `li-following-${userId}`,
+                          `li-pending-conn-${userId}`,
+                          `li-dismissed-inv-${userId}`,
+                          `li-applied-jobs-${userId}`,
+                          `li-user-status-${userId}`,
+                          `li-shortlisted-${userId}`,
+                        ].forEach(k => localStorage.removeItem(k));
                         setCurrentUser(null);
                         showToast('Account deleted. Redirecting…', 'error');
                         window.location.href = 'index.html';
