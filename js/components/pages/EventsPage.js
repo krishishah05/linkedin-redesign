@@ -81,7 +81,7 @@ function EventsPage() {
       {/* Events list */}
       {shown.length === 0 ? (
         <div className="li-card" style={{ padding: 40, textAlign: 'center' }}>
-          <div style={{ fontSize: 40, marginBottom: 12 }}>Events</div>
+          <div style={{ fontSize: 40, marginBottom: 12 }}>📅</div>
           <p style={{ color: 'var(--text-2)', fontSize: 14 }}>No events here yet.</p>
         </div>
       ) : (

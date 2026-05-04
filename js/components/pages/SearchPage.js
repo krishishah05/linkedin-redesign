@@ -55,7 +55,7 @@ function SearchPage({ query }) {
                   const isConnected = connections.has(String(user.id));
                   return (
                     <div key={user.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 0', borderBottom: '1px solid var(--border)' }}>
-                      <Avatar name={user.name} size={48} photo={user.photo} />
+                      <Avatar name={user.name} size={48} photo={user.photo} colorOverride={user.avatarColor} />
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ fontSize: 14, fontWeight: 700, cursor: 'pointer', color: 'var(--text)' }}
                           onClick={() => navigate(`profile?id=${user.id}`)}>

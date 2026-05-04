@@ -1657,7 +1657,7 @@ describe('PostCreator — action buttons', () => {
     });
 
     // URL input should appear with video placeholder
-    expect(screen.getByPlaceholderText('Upload video URL…')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Paste video URL here…')).toBeInTheDocument();
   });
 
   // 45

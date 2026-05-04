@@ -448,7 +448,7 @@ function PostCreator({ user, onPost, openModal, showToast }) {
         <input
           value={mediaInputType === 'video' ? videoUrl : imageUrl}
           onChange={e => mediaInputType === 'video' ? setVideoUrl(e.target.value) : setImageUrl(e.target.value)}
-          placeholder={mediaInputType === 'video' ? t('uploadVideoUrl') : t('pasteImageUrl')}
+          placeholder={mediaInputType === 'video' ? 'Paste video URL here…' : 'Paste image URL here…'}
           style={{
             width: '100%',
             marginTop: 8,
