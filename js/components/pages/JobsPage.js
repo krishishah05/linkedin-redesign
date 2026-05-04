@@ -262,8 +262,9 @@ function JobDetailPanel({ job, descLoading, savedJobs, toggleSaveJob, openModal,
           className="li-btn li-btn--primary"
           onClick={() => {
             if (isApplied(job.id)) return;
-            applyJob(job.id);
-            showToast('Application submitted!', 'success');
+            applyJob(job.id)
+              .then(() => showToast('Application submitted!', 'success'))
+              .catch(() => showToast('Failed to submit application', 'error'));
           }}
           style={{ flex: 1, opacity: isApplied(job.id) ? 0.7 : 1 }}
           disabled={isApplied(job.id)}

@@ -59,7 +59,8 @@ function AppProvider({ children }) {
     } else {
       setUserStatusState(null);
     }
-    try { setRecruiterModeState(localStorage.getItem('li-recruiter-mode') === '1'); }
+    const recruiterKey = `li-recruiter-mode-${currentUser.id}`;
+    try { setRecruiterModeState(localStorage.getItem(recruiterKey) === '1'); }
     catch (_) { setRecruiterModeState(false); }
   }, [currentUser]);
 
@@ -68,7 +69,8 @@ function AppProvider({ children }) {
     if (userStatus !== null && userStatus !== 'recruiting' && recruiterMode) {
       setRecruiterModeState(false);
       setRecruiterPanelOpen(false);
-      try { localStorage.removeItem('li-recruiter-mode'); } catch (_) {}
+      const uid = currentUser?.id || userIdRef.current;
+      if (uid) { try { localStorage.removeItem(`li-recruiter-mode-${uid}`); } catch (_) {} }
     }
   }, [userStatus, recruiterMode]);
 
@@ -86,9 +88,10 @@ function AppProvider({ children }) {
   }
 
   function toggleRecruiterMode() {
+    const uid = currentUser?.id || userIdRef.current;
     setRecruiterModeState(prev => {
       const next = !prev;
-      try { localStorage.setItem('li-recruiter-mode', next ? '1' : '0'); } catch (_) {}
+      if (uid) { try { localStorage.setItem(`li-recruiter-mode-${uid}`, next ? '1' : '0'); } catch (_) {} }
       if (!next) setRecruiterPanelOpen(false);
       return next;
     });
@@ -373,12 +376,21 @@ function AppProvider({ children }) {
   }
 
   function applyJob(jobId) {
+    const key = String(jobId);
     setAppliedJobs(prev => {
-      const next = new Set([...prev, String(jobId)]);
+      const next = new Set([...prev, key]);
       _save('li-applied-jobs', next);
       return next;
     });
-    API.applyToJob(jobId).catch(() => {});
+    return API.applyToJob(jobId).catch(err => {
+      setAppliedJobs(prev => {
+        const next = new Set(prev);
+        next.delete(key);
+        _save('li-applied-jobs', next);
+        return next;
+      });
+      throw err;
+    });
   }
 
   function follow(userId) {

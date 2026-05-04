@@ -673,7 +673,7 @@ function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, followi
               + Follow
             </button>
           )}
-          {currentUser && (post.authorId === currentUser.id || post.authorId === String(currentUser.id)) && (
+          {currentUser && String(authorId) === String(currentUser.id) && (
             <div style={{ position: 'relative' }}>
               <button className="li-post__options" onClick={() => setMenuOpen(v => !v)}>
                 <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
