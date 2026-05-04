@@ -147,8 +147,6 @@ function JobsPage({ selectedJobId }) {
                 toggleSaveJob={toggleSaveJob}
                 openModal={openModal}
                 showToast={showToast}
-                isApplied={isApplied}
-                applyJob={applyJob}
               />
             )}
           </div>
@@ -225,50 +223,13 @@ function JobDetailPanel({ job, descLoading, savedJobs, toggleSaveJob, openModal,
 
   const sections = parseJobDescription(job.description || job.summary || '');
   const applyUrl = getJobApplicationUrl(job);
-  const applied = isApplied(job.id);
-  const [pendingApply, setPendingApply] = React.useState(false);
-
-  React.useEffect(() => {
-    let pending = null;
-    try {
-      pending = JSON.parse(sessionStorage.getItem('nx-pending-job-application') || 'null');
-    } catch (_) {}
-    setPendingApply(Boolean(pending && String(pending.jobId) === String(job.id) && !applied));
-  }, [job.id, applied]);
-
-  function rememberPendingApplication() {
-    try {
-      sessionStorage.setItem('nx-pending-job-application', JSON.stringify({
-        jobId: job.id,
-        savedAt: Date.now(),
-      }));
-    } catch (_) {
-      /* Session storage can be blocked. Navigation should still work. */
-    }
-  }
 
   function handleApply() {
-    if (applied) return;
     if (!applyUrl) {
-      showToast('No external application link is available for this job.', 'error');
+      showToast('No application link available for this job.', 'error');
       return;
     }
-    rememberPendingApplication();
-    window.location.assign(applyUrl);
-  }
-
-  function clearPendingApplication() {
-    try { sessionStorage.removeItem('nx-pending-job-application'); } catch (_) {}
-    setPendingApply(false);
-  }
-
-  function confirmApplied() {
-    applyJob(job.id)
-      .then(() => {
-        clearPendingApplication();
-        showToast('Application submitted!', 'success');
-      })
-      .catch(() => showToast('Failed to submit application', 'error'));
+    window.open(applyUrl, '_blank', 'noopener,noreferrer');
   }
 
   return (
@@ -307,10 +268,9 @@ function JobDetailPanel({ job, descLoading, savedJobs, toggleSaveJob, openModal,
         <button
           className="li-btn li-btn--primary"
           onClick={handleApply}
-          style={{ flex: 1, opacity: applied ? 0.7 : 1 }}
-          disabled={applied}
+          style={{ flex: 1 }}
         >
-          {applied ? 'Applied' : 'Apply now'}
+          Apply now
         </button>
         <button
           className="li-btn li-btn--ghost"
@@ -323,24 +283,6 @@ function JobDetailPanel({ job, descLoading, savedJobs, toggleSaveJob, openModal,
           {savedJobs.has(String(job.id)) ? 'Saved' : 'Save job'}
         </button>
       </div>
-
-      {pendingApply && !applied && (
-        <div style={{
-          background: '#EAF4FF', border: '1px solid var(--blue)', borderRadius: 8,
-          padding: '12px 14px', marginBottom: 20,
-          display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap',
-        }}>
-          <span style={{ fontSize: 13, color: 'var(--text)', flex: '1 1 220px' }}>
-            Did you complete your application on the employer site?
-          </span>
-          <button className="li-btn li-btn--primary li-btn--sm" onClick={confirmApplied}>
-            I applied
-          </button>
-          <button className="li-btn li-btn--ghost li-btn--sm" onClick={clearPendingApplication}>
-            Not yet
-          </button>
-        </div>
-      )}
 
 
       <div style={{ borderTop: '1px solid var(--border)', paddingTop: 20 }}>
