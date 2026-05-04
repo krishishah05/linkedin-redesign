@@ -224,6 +224,29 @@ function JobListItem({ job, active, isSaved, isApplied, isLast, onSelect, onSave
 function JobDetailPanel({ job, descLoading, savedJobs, toggleSaveJob, openModal, showToast, isApplied, applyJob }) {
 
   const sections = parseJobDescription(job.description || job.summary || '');
+  const applyUrl = getJobApplicationUrl(job);
+  const applied = isApplied(job.id);
+
+  function openApplicationSite() {
+    if (!applyUrl) return false;
+    const opened = window.open(applyUrl, '_blank', 'noopener,noreferrer');
+    if (!opened) {
+      showToast('Allow pop-ups to open the application site.', 'error');
+      return false;
+    }
+    return true;
+  }
+
+  function handleApply() {
+    const opened = openApplicationSite();
+    if (applied) {
+      if (opened) showToast('Application site opened.', 'success');
+      return;
+    }
+    applyJob(job.id)
+      .then(() => showToast(opened ? 'Application site opened.' : 'Application submitted!', 'success'))
+      .catch(() => showToast('Failed to submit application', 'error'));
+  }
 
   return (
     <div className="li-card" style={{ padding: 24 }}>
@@ -260,16 +283,11 @@ function JobDetailPanel({ job, descLoading, savedJobs, toggleSaveJob, openModal,
       <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
         <button
           className="li-btn li-btn--primary"
-          onClick={() => {
-            if (isApplied(job.id)) return;
-            applyJob(job.id)
-              .then(() => showToast('Application submitted!', 'success'))
-              .catch(() => showToast('Failed to submit application', 'error'));
-          }}
-          style={{ flex: 1, opacity: isApplied(job.id) ? 0.7 : 1 }}
-          disabled={isApplied(job.id)}
+          onClick={handleApply}
+          style={{ flex: 1, opacity: applied && !applyUrl ? 0.7 : 1 }}
+          disabled={applied && !applyUrl}
         >
-          {isApplied(job.id) ? 'Applied' : 'Apply now'}
+          {applied ? (applyUrl ? 'View application' : 'Applied') : 'Apply now'}
         </button>
         <button
           className="li-btn li-btn--ghost"
@@ -396,6 +414,33 @@ function splitLongParagraph(text) {
     .split('\n')
     .map(s => s.trim())
     .filter(Boolean);
+}
+
+function getJobApplicationUrl(job) {
+  const candidates = [
+    job && job.url,
+    job && job.applyUrl,
+    job && job.applicationUrl,
+    job && job.externalUrl,
+    job && job.link,
+    job && job.refs && job.refs.landing_page,
+  ];
+  for (const candidate of candidates) {
+    const url = normalizeHttpUrl(candidate);
+    if (url) return url;
+  }
+  return '';
+}
+
+function normalizeHttpUrl(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+  try {
+    const url = new URL(/^https?:\/\//i.test(raw) ? raw : `https://${raw}`);
+    return /^https?:$/i.test(url.protocol) ? url.href : '';
+  } catch (_) {
+    return '';
+  }
 }
 
 function htmlToText(html) {
