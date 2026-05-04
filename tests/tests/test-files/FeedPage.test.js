@@ -19,7 +19,7 @@ const mockCreatePost = jest.fn(() => Promise.resolve());
 
 global.React = React;
 // English UI translations used by PostCreator (mirrors AppContext TRANSLATIONS.en)
-const EN_T = { startPost:'Start a post', photo:'Photo', video:'Video', writeArticle:'Write article', post:'Post', publish:'Publish', cancel:'Cancel', whatToTalk:'What do you want to talk about?', editTemplate:'Edit the template, then publish your article…', chooseTemplate:'Choose an article template', uploadVideoUrl:'Upload video URL…', pasteImageUrl:'Paste image URL…', article:'ARTICLE' };
+const EN_T = { startPost:'Start a post', photo:'Photo', video:'Video', writeArticle:'Write article', post:'Post', publish:'Publish', cancel:'Cancel', whatToTalk:'What do you want to talk about?', editTemplate:'Edit the template, then publish your article…', chooseTemplate:'Choose an article template', uploadVideoUrl:'Upload video URL…', pasteImageUrl:'Paste image URL…', article:'ARTICLE', like:'Like', comment:'Comment', repost:'Repost', send:'Send', coverLetter:'Cover Letter', viewProfile:'View Profile', account:'Account', recruiterMode:'Recruiter Mode', notifications:'Notifications', saveJob:'Save', saved:'Saved', apply:'Apply', connect:'Connect', follow:'Follow', following:'Following', message:'Message', connections:'Connections', suggestions:'Suggestions', searchConnections:'Search connections…', noConnections:'No connections yet.', attending:'Attending', interested:'Interested', createPost:'Create a post', save:'Save' };
 global.t = (key) => EN_T[key] || key;
 global.AppContext = React.createContext({ t: global.t });
 global.API = {
@@ -1895,34 +1895,6 @@ describe('FeedPost — render variants and action buttons', () => {
     });
 
     expect(global.navigate).toHaveBeenCalledWith('profile?id=42');
-  });
-
-  // 54
-  // Type: WB
-  // Spec: #54
-  // Exact line: else if (label === 'Report post') openModal('report', { post });
-  // Tests the Report post branch in the options menu calls openModal with 'report'
-  test('Clicking Report post in menu calls openModal with report', async () => {
-    const mockOpenModal = jest.fn();
-
-    render(
-      React.createElement(sandbox.FeedPost, {
-        ...baseProps,
-        openModal: mockOpenModal,
-        post: { id: 1, content: 'Post', comments: [], totalReactions: 0, repostCount: 0, authorId: 99 },
-      })
-    );
-
-    const menuBtn = document.querySelector('.li-post__options');
-    await act(async () => {
-      fireEvent.click(menuBtn);
-    });
-
-    await act(async () => {
-      fireEvent.click(screen.getByText('Report post'));
-    });
-
-    expect(mockOpenModal).toHaveBeenCalledWith('report', expect.objectContaining({ post: expect.any(Object) }));
   });
 
   // 55

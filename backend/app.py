@@ -399,6 +399,34 @@ def register():
     return jsonify({"user": user, "token": token}), 201
 
 
+@app.route("/api/auth/logout", methods=["POST"])
+def logout():
+    """POST /api/auth/logout - invalidate the current session token."""
+    auth = request.headers.get("Authorization", "")
+    token = auth.removeprefix("Bearer ").strip() if auth.startswith("Bearer ") else ""
+    if token:
+        dbl.invalidate_session(token)
+    return jsonify({"message": "Logged out"}), 200
+
+
+@app.route("/api/auth/change-password", methods=["POST"])
+def change_password():
+    """POST /api/auth/change-password - update password for the authenticated user."""
+    user = _require_auth_user()
+    body = _get_body()
+    current = body.get("current") or ""
+    new_pw = body.get("newPassword") or ""
+    if not current or not new_pw:
+        abort(400, description="current and newPassword are required")
+    if len(new_pw) < 8:
+        abort(400, description="password must be at least 8 characters")
+    success = dbl.change_password(user["id"], current, new_pw)
+    if not success:
+        abort(401, description="Current password is incorrect")
+    return jsonify({"message": "Password updated successfully"}), 200
+
+
+
 # â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # User Endpoints
 # â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
@@ -1125,7 +1153,11 @@ def create_conversation():
     participant_id = body.get("participantId")
     if not participant_id:
         abort(400, description="participantId is required")
-    participant = dbl.get_user_by_id(int(participant_id))
+    try:
+        participant_id = int(participant_id)
+    except (ValueError, TypeError):
+        abort(400, description="participantId must be a number")
+    participant = dbl.get_user_by_id(participant_id)
     if not participant:
         abort(404, description="Participant not found")
     conv = dbl.create_conversation(user["id"], participant)
@@ -1232,6 +1264,15 @@ def toggle_event_attend(event_id):
     current_user = _require_auth_user()
     src = "user" if str(event_id).startswith("u") else "static"
     result = dbl.toggle_event_attend(event_id, src, current_user["id"])
+    return jsonify(result)
+
+
+@app.route("/api/events/<event_id>/interest", methods=["POST"])
+def toggle_event_interest(event_id):
+    """POST /api/events/:id/interest - toggle interest."""
+    current_user = _require_auth_user()
+    src = "user" if str(event_id).startswith("u") else "static"
+    result = dbl.toggle_event_interest(event_id, src, current_user["id"])
     return jsonify(result)
 
 

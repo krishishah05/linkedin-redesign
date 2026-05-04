@@ -60,6 +60,17 @@ function FeedPage() {
     };
     setLocalPosts(prev => [newPost, ...(prev || [])]);
     setFeedSort('Recent');
+    API.createPost(commentText || null, null, null)
+      .then(savedPost => {
+        setLocalPosts(prev => (prev || []).map(p =>
+          p.id === newPost.id ? { ...p, id: savedPost.id } : p
+        ));
+        showToast('Reposted!', 'success');
+      })
+      .catch(() => {
+        setLocalPosts(prev => (prev || []).filter(p => p.id !== newPost.id));
+        showToast('Failed to repost. Please try again.', 'error');
+      });
   }
 
   function handleNewPost(content, imageUrl, videoUrl) {
@@ -556,6 +567,7 @@ function SponsoredPost({ ad, showToast, onDismiss }) {
 
 /* ── FeedPost ────────────────────────────────────────────── */
 function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, following, onFollow, openModal, showToast, currentUser, onDelete, onHide, onSave, savedPostIds, onRepost }) {
+  const { t } = React.useContext(AppContext);
   const [menuOpen, setMenuOpen] = React.useState(false);
   const [reactionHover, setReactionHover] = React.useState(false);
   const reactionTimerRef = React.useRef(null);
@@ -674,14 +686,13 @@ function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, followi
                 {[
                   ...(currentUser && (post.authorId === currentUser.id || post.authorId === String(currentUser.id)) ? ['Delete post'] : []),
                   savedPostIds && savedPostIds.has(String(post.id)) ? 'Unsave post' : 'Save post',
-                  'Copy link to post', 'Not interested', 'Report post'
+                  'Copy link to post', 'Not interested'
                 ].map(label => (
                   <div key={label} className="li-dropdown__item"
                     style={label === 'Delete post' ? { color: 'var(--red)' } : {}}
                     onClick={() => {
                       setMenuOpen(false);
                       if (label === 'Delete post') { onDelete && onDelete(post.id); showToast('Post deleted'); }
-                      else if (label === 'Report post') openModal('report', { post });
                       else if (label === 'Copy link to post') {
                         copyLink(`${window.location.origin}${window.location.pathname}#post-${post.id}`, showToast);
                       }
@@ -814,21 +825,21 @@ function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, followi
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.5">
             <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
-          <span>Comment</span>
+          <span>{t('comment')}</span>
         </button>
 
         <button className="li-post__action" onClick={() => openModal('share', { post, onRepost })} style={{ flex: 1 }}>
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.5">
             <path d="M17 1l4 4-4 4M3 11V9a4 4 0 014-4h14M7 23l-4-4 4-4M21 13v2a4 4 0 01-4 4H3" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
-          <span>Repost</span>
+          <span>{t('repost')}</span>
         </button>
 
         <button className="li-post__action" onClick={() => copyLink(`${window.location.origin}${window.location.pathname}#post-${post.id}`, showToast)} style={{ flex: 1 }}>
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.5">
             <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
-          <span>Send</span>
+          <span>{t('send')}</span>
         </button>
       </div>
 

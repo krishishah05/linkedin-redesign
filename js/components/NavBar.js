@@ -3,7 +3,7 @@
    ============================================================ */
 function NavBar() {
   const {
-    currentUser, unreadMessages, pendingInvitations, openModal, showToast, darkMode, setDarkMode,
+    currentUser, unreadMessages, unreadNotifications, pendingInvitations, openModal, showToast, darkMode, setDarkMode,
     recruiterMode, toggleRecruiterMode, shortlisted, recruiterPanelOpen, setRecruiterPanelOpen,
     userStatus, t,
   } = React.useContext(AppContext);
@@ -35,11 +35,12 @@ function NavBar() {
 
   const navItems = [
     { id: 'feed',        label: t('home'),         badge: 0,                         icon: <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/> },
-    { id: 'network',     label: t('myNetwork'),    badge: pendingInvitations.length,  icon: <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/> },
+    { id: 'network',     label: t('myNetwork'),    badge: 0,                         icon: <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/> },
     { id: 'jobs',        label: t('jobs'),         badge: 0,                         icon: <path d="M20 6h-2.18c.07-.44.18-.88.18-1.36C18 2.51 15.49 0 12.36 0c-1.4 0-2.72.56-3.71 1.56L12 4.91l3.35-3.35C15.69 2.65 16 3.32 16 4.07c0 .9-.66 1.65-1.5 1.8L14.18 6H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2z"/> },
-    { id: 'messaging',   label: t('messaging'),    badge: unreadMessages,            icon: <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/> },
-    { id: 'conferences', label: t('conferences'),  badge: 0,                         icon: <path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/> },
-    { id: 'cover-letter', label: 'Cover Letter',  badge: 0,                         icon: <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/> },
+    { id: 'messaging',     label: t('messaging'),      badge: 0,                      icon: <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/> },
+    { id: 'notifications', label: t('notifications'),  badge: unreadNotifications,    icon: <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/> },
+    { id: 'conferences',   label: t('conferences'),    badge: 0,                      icon: <path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/> },
+    { id: 'cover-letter',  label: t('coverLetter'),    badge: 0,                      icon: <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/> },
   ];
 
   return (
@@ -95,8 +96,8 @@ function NavBar() {
 
           <div className="li-nav__divider" />
 
-          {/* Recruiter shortlist badge — only visible when status is Recruiting + mode ON */}
-          {(shortlisted.size > 0 || (userStatus === 'recruiting' && recruiterMode)) && (
+          {/* Recruiter shortlist badge — only visible when recruiter mode is ON and has candidates */}
+          {recruiterMode && shortlisted.size > 0 && (
             <button
               type="button"
               className="li-nav__item"
@@ -179,13 +180,13 @@ function NavBar() {
                     onClick={e => { e.preventDefault(); navigate('profile'); setMeOpen(false); }}
                     role="menuitem"
                   >
-                    View Profile
+                    {t('viewProfile')}
                   </a>
                 </div>
 
                 <div style={{ padding: '4px 0 8px' }}>
                   <div style={{ padding: '6px 16px 4px', fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                    Account
+                    {t('account')}
                   </div>
 
                   <button
@@ -234,9 +235,10 @@ function NavBar() {
                   role="menuitem"
                   onClick={() => {
                     const statusKey = currentUser?.id ? `li-user-status-${currentUser.id}` : null;
+                    API.logout().catch(() => {});
                     localStorage.removeItem('nx-token'); localStorage.removeItem('nx-uid');
                     ['li-liked-posts','li-saved-jobs','li-connections','li-following','li-pending-conn',
-                     'li-dismissed-inv','li-applied-jobs','li-joined-groups','li-settings',
+                     'li-dismissed-inv','li-applied-jobs','li-settings',
                      'li-language','li-user-status','li-recruiter-mode'].forEach(k => localStorage.removeItem(k));
                     if (statusKey) localStorage.removeItem(statusKey);
                     window.location.href = 'index.html';

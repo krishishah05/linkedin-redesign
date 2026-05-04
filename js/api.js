@@ -71,6 +71,7 @@
     getEvents: () => request('GET', '/events'),
     createEvent: (data) => request('POST', '/events', data),
     attendEvent: (id) => request('POST', `/events/${id}/attend`),
+    interestEvent: (id) => request('POST', `/events/${id}/interest`),
 
     // ── Groups ────────────────────────────────────────────────
     getGroups: () => request('GET', '/groups'),
@@ -91,7 +92,6 @@
     addEducation: (entry) => request('POST', '/me/education', entry),
     addExperience: (entry) => request('POST', '/me/experience', entry),
     addSkill: (skill) => request('POST', '/me/skills', { skill }),
-    addExperience: (entry) => request('POST', '/me/experience', entry),
     addProject: (entry) => request('POST', '/me/projects', entry),
     addVolunteering: (entry) => request('POST', '/me/volunteering', entry),
     addHonor: (entry) => request('POST', '/me/honors', entry),
@@ -126,7 +126,6 @@
     acceptConnection: (id) => request('POST', `/me/connections/${id}/accept`),
     toggleFollow: (id) => request('POST', `/me/following/${id}`),
     applyToJob: (id) => request('POST', `/me/applied-jobs/${id}`),
-    toggleGroup: (id) => request('POST', `/me/groups/${id}/toggle`),
     dismissInvitation: (key) => request('POST', '/me/invitations/dismiss', { key }),
 
     // ── Conference Stories ────────────────────────────────────
@@ -149,6 +148,8 @@
       request('POST', '/auth/register', { name, email, password }),
     changePassword: (current, newPassword) =>
       request('POST', '/auth/change-password', { current, newPassword }),
+    logout: () =>
+      request('POST', '/auth/logout'),
     deleteUser: (id) =>
       request('DELETE', `/users/${id}`),
   };

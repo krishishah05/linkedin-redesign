@@ -200,15 +200,6 @@ function ShortlistPanel() {
                             #OPEN
                           </span>
                         )}
-                        {u.isPremium && (
-                          <span style={{
-                            fontSize: 10, fontWeight: 700, padding: '1px 6px', borderRadius: 10,
-                            background: '#fff8e1', color: '#c7910a', border: '1px solid #ffe082',
-                            whiteSpace: 'nowrap',
-                          }}>
-                            ★ Premium
-                          </span>
-                        )}
                       </div>
 
                       {exp0 && (
@@ -257,12 +248,6 @@ function ShortlistPanel() {
                     </button>
                   </div>
 
-                  {/* Connections line */}
-                  {u.connections > 0 && (
-                    <div style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 6, marginLeft: 58 }}>
-                      {u.connections} connections
-                    </div>
-                  )}
                 </div>
               );
             })

@@ -608,8 +608,7 @@ img { max-width: 100%; }
   display: inline-flex; align-items: center; justify-content: center;
   margin-right: -4px;
 }
-.li-post__reaction-count { font-size: 13px; color: var(--text-2); cursor: pointer; }
-.li-post__reaction-count:hover { color: var(--blue); text-decoration: underline; }
+.li-post__reaction-count { font-size: 13px; color: var(--text-2); }
 .li-post__comments-count { font-size: 13px; color: var(--text-2); cursor: pointer; }
 .li-post__comments-count:hover { color: var(--blue); text-decoration: underline; }
 .li-post__meta-right { display: flex; gap: 8px; align-items: center; }

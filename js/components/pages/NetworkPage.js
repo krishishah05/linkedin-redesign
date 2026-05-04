@@ -6,7 +6,7 @@ function NetworkPage() {
     connections, connect, acceptConnection, pendingConnections, showToast,
     pendingInvitations, dismissedInvitations, dismissInvitation,
     recruiterMode, shortlisted, addToShortlist, removeFromShortlist, userStatus,
-    refreshInvitations,
+    refreshInvitations, t,
   } = React.useContext(AppContext);
   const { data: users, loading: usersLoading } = useFetch(API.getUsers, []);
   const [activeTab, setActiveTab] = React.useState('suggestions');
@@ -50,21 +50,19 @@ function NetworkPage() {
   function handleSearchChange(val) {
     setSearchQuery(val);
     clearTimeout(searchTimeoutRef.current);
-    const query = val.trim();
-    const requestId = ++searchRequestRef.current;
+    const query = val.trim().toLowerCase();
     if (!query) { setSearchResults(null); setSearching(false); return; }
     setSearching(true);
     searchTimeoutRef.current = setTimeout(() => {
-      API.search(query)
-        .then(res => {
-          if (requestId !== searchRequestRef.current) return;
-          setSearchResults(res.users || []);
-          setSearching(false);
-        })
-        .catch(() => {
-          if (requestId === searchRequestRef.current) setSearching(false);
-        });
-    }, 300);
+      const pool = (users || []).filter(u =>
+        activeTab === 'connections' ? connections.has(String(u.id)) : true
+      );
+      const results = pool.filter(u =>
+        u.name.toLowerCase().includes(query) || (u.headline || '').toLowerCase().includes(query)
+      );
+      setSearchResults(results);
+      setSearching(false);
+    }, 150);
   }
 
   if (usersLoading) return <LoadingSpinner text="Loading network..." />;
@@ -77,8 +75,8 @@ function NetworkPage() {
   const shortlistedUsers = allUsers.filter(u => shortlisted.has(String(u.id)));
 
   const tabs = [
-    { key: 'suggestions', label: 'Suggestions' },
-    { key: 'connections', label: `Connections${connectedUsers.length ? ` (${connectedUsers.length})` : ''}` },
+    { key: 'suggestions', label: t('suggestions') },
+    { key: 'connections', label: `${t('connections')}${connectedUsers.length ? ` (${connectedUsers.length})` : ''}` },
     ...(recruiterMode ? [{ key: 'shortlisted', label: `Shortlisted${shortlistedUsers.length ? ` (${shortlistedUsers.length})` : ''}` }] : []),
   ];
 
@@ -113,18 +111,12 @@ function NetworkPage() {
               className={isPending ? 'li-btn li-btn--ghost li-btn--sm' : 'li-btn li-btn--outline li-btn--sm'}
               disabled={isPending}
               onClick={() => { if (!isPending) { connect(user.id); showToast(`Invitation sent to ${user.name}`); } }}
-            >{isPending ? 'Pending' : '+ Connect'}</button>
+            >{isPending ? 'Pending' : `+ ${t('connect')}`}</button>
           )}
           {showShortlist && recruiterMode && (
             <button
-              className="li-btn li-btn--sm"
-              style={{
-                fontSize: 12, padding: '3px 10px',
-                background: inPipeline ? '#E6F4EA' : 'transparent',
-                border: `1px solid ${inPipeline ? '#057642' : 'var(--border)'}`,
-                color: inPipeline ? '#057642' : 'var(--text-2)',
-                borderRadius: 14, cursor: 'pointer', whiteSpace: 'nowrap',
-              }}
+              className="li-btn li-btn--outline li-btn--sm"
+              style={inPipeline ? { color: '#057642', borderColor: '#057642', background: '#E6F4EA' } : {}}
               onClick={() => {
                 if (inPipeline) { removeFromShortlist(user.id); showToast(`Removed ${user.name} from shortlist`); }
                 else { addToShortlist(user); showToast(`${user.name} added to shortlist`); }
@@ -137,7 +129,8 @@ function NetworkPage() {
   }
 
   return (
-    <div className="li-page-inner" style={{ maxWidth: 700 }}>
+    <div className="li-page-inner">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 0, maxWidth: 700, width: '100%' }}>
 
       {/* Invitations */}
       {totalRequests > 0 && (
@@ -193,7 +186,7 @@ function NetworkPage() {
         </svg>
         <input
           type="text"
-          placeholder="Search people by name or role..."
+          placeholder={activeTab === 'connections' ? t('searchConnections') : 'Search suggestions…'}
           value={searchQuery}
           onChange={e => handleSearchChange(e.target.value)}
           style={{ flex: 1, border: 'none', outline: 'none', fontSize: 14, background: 'transparent', color: 'var(--text)' }}
@@ -238,7 +231,7 @@ function NetworkPage() {
           ) : activeTab === 'connections' ? (
             connectedUsers.length === 0 ? (
               <div style={{ padding: '32px 0', textAlign: 'center', color: 'var(--text-2)', fontSize: 14 }}>
-                You haven't connected with anyone yet.
+                {t('noConnections')}
               </div>
             ) : connectedUsers.map((user, idx) => (
               <PersonRow key={user.id} user={user} idx={idx} total={connectedUsers.length} showShortlist={recruiterMode} />
@@ -253,6 +246,7 @@ function NetworkPage() {
             ))
           ) : null}
         </div>
+      </div>
       </div>
     </div>
   );

@@ -184,22 +184,14 @@ function ProfilePage({ userId }) {
               {/* Avatar */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 12 }}>
                 <div style={{ marginTop: -50 }}>
-                  <div style={{
-                    width: 120, height: 120, borderRadius: '50%', border: '4px solid var(--white)',
-                    background: user.avatarColor || '#0F5DBD',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 44, fontWeight: 700, color: '#fff',
-                  }}>
-                    {getInitials(user.name)}
+                  <div style={{ borderRadius: '50%', border: '4px solid var(--white)', display: 'inline-block', lineHeight: 0 }}>
+                    <Avatar name={user.name} size={120} photo={user.photo} colorOverride={user.avatarColor} />
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: 8 }}>
                   {isOwnProfile ? (
                     <>
                       <button className="li-btn li-btn--outline li-btn--sm" onClick={() => openModal('edit-profile')}>Edit profile</button>
-                      <button className="li-btn li-btn--ghost li-btn--sm" onClick={() => {
-                        copyLink(getNexusProfileUrl(user), showToast);
-                      }}>Share</button>
                     </>
                   ) : (
                     <>
@@ -220,25 +212,6 @@ function ProfilePage({ userId }) {
                       >
                         {isFollowing ? 'Following' : 'Follow'}
                       </button>
-                      <div style={{ position: 'relative' }}>
-                        <button className="li-btn li-btn--ghost li-btn--sm" onClick={() => setMoreMenuOpen(v => !v)}>...</button>
-                        {moreMenuOpen && (
-                          <div style={{ position: 'absolute', right: 0, top: '100%', marginTop: 4, background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 8, boxShadow: '0 4px 16px rgba(0,0,0,0.12)', zIndex: 200, minWidth: 160, overflow: 'hidden' }}
-                            onMouseLeave={() => setMoreMenuOpen(false)}>
-                            <button style={{ display: 'block', width: '100%', textAlign: 'left', padding: '10px 16px', background: 'none', border: 'none', fontSize: 14, cursor: 'pointer', color: 'var(--text)' }}
-                              onClick={() => { setMoreMenuOpen(false); openModal('report', { targetName: user.name }); }}>
-                              Report
-                            </button>
-                            <button style={{ display: 'block', width: '100%', textAlign: 'left', padding: '10px 16px', background: 'none', border: 'none', fontSize: 14, cursor: 'pointer', color: 'var(--text)' }}
-                              onClick={() => {
-                                setMoreMenuOpen(false);
-                                copyLink(getNexusProfileUrl(user), showToast);
-                              }}>
-                              Copy profile link
-                            </button>
-                          </div>
-                        )}
-                      </div>
                       {currentUser?.isRecruiter && userStatus === 'recruiting' && recruiterMode && (() => {
                         const inPipeline = shortlisted.has(String(user.id));
                         return (

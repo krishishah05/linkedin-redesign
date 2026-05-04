@@ -105,6 +105,7 @@ function MessagingPage() {
     );
     if (existing) {
       selectConversation(existing.id);
+      showToast(`Opening conversation with ${user.name}`);
       return;
     }
     API.createConversation(user.id)
@@ -121,6 +122,8 @@ function MessagingPage() {
     setDraft('');
     setSending(true);
 
+    const previousConversations = localConversations;
+
     // Optimistic update
     const newMsg = {
       id: Date.now(),
@@ -129,9 +132,15 @@ function MessagingPage() {
       timestamp: Date.now(),
     };
     setMessages(prev => [...prev, newMsg]);
+    setLocalConversations(prev =>
+      (prev || []).map(c =>
+        c.id === selectedId ? { ...c, lastMessage: text } : c
+      )
+    );
 
     API.sendMessage(selectedId, text)
       .catch(() => {
+        setLocalConversations(previousConversations);
         setMessages(prev => prev.filter(m => m.id !== newMsg.id));
         setDraft(text);
         showToast('Failed to send message', 'error');
@@ -852,7 +861,7 @@ function ProfileReadinessPanel({ readiness, loading, error, onClose, onRefresh }
                   >
                     {aiLoading ? 'Analyzing…' : aiData ? 'Re-analyze' : '✦ AI Analyze'}
                   </button>
-                  <button className="li-msg-score__btn primary" onClick={() => { window.location.hash = 'profile'; }}>
+                  <button className="li-msg-score__btn primary" onClick={() => navigate('profile')}>
                     Go to profile
                   </button>
                 </div>
@@ -869,7 +878,7 @@ function ProfileReadinessPanel({ readiness, loading, error, onClose, onRefresh }
       </div>
 
       <div className="li-msg-score__footer">
-        <button className="li-msg-score__footer-btn" onClick={() => { window.location.hash = 'profile'; }}>
+        <button className="li-msg-score__footer-btn" onClick={() => navigate('profile')}>
           Go to profile
         </button>
         <div style={{ flex: 1 }} />

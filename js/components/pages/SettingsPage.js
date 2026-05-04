@@ -68,7 +68,7 @@ function SettingsPage() {
   ];
 
   return (
-    <div className="li-page-inner" style={{ maxWidth: 860 }}>
+    <div className="li-page-inner" style={{ maxWidth: 860, flexDirection: 'column' }}>
       <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 16 }}>Settings</h1>
 
       <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start' }}>
@@ -117,12 +117,6 @@ function SettingsPage() {
                         onChange={e => setAccountForm(f => ({ ...f, lastName: e.target.value }))}
                         style={{ width: '100%', boxSizing: 'border-box' }} />
                     </div>
-                    <div>
-                      <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 4 }}>Nexus URL</label>
-                      <input className="li-settings-input" readOnly
-                        value={getNexusProfileUrl(currentUser)}
-                        style={{ width: '100%', boxSizing: 'border-box', color: 'var(--text-2)' }} />
-                    </div>
                   </div>
                 </div>
                 <div style={{ borderTop: '1px solid var(--border)', paddingTop: 20 }}>
@@ -144,6 +138,7 @@ function SettingsPage() {
                   disabled={savingAccount}
                   onClick={() => {
                     if (!accountForm.firstName.trim()) { showToast('First name is required', 'error'); return; }
+                    if (accountForm.email && !accountForm.email.includes('@')) { showToast('Enter a valid email address', 'error'); return; }
                     if (savingAccount) return;
                     setSavingAccount(true);
                     const name = (accountForm.firstName + ' ' + accountForm.lastName).trim();
@@ -180,6 +175,21 @@ function SettingsPage() {
                 <Toggle label="Dark mode" desc="Use a darker color scheme"
                   value={darkMode}
                   onChange={v => { setDarkMode(v); showToast('Dark mode ' + (v ? 'enabled' : 'disabled')); }} />
+                <div style={{ paddingTop: 14, borderTop: '1px solid var(--border)', marginTop: 4 }}>
+                  <label htmlFor="language-select" style={{ fontSize: 14, fontWeight: 600, marginBottom: 4, display: 'block' }}>Language</label>
+                  <div style={{ fontSize: 13, color: 'var(--text-2)', marginBottom: 8 }}>Choose your preferred display language</div>
+                  <select
+                    id="language-select"
+                    className="li-settings-input"
+                    style={{ width: 240 }}
+                    value={language}
+                    onChange={e => { setLanguage(e.target.value); showToast('Language updated'); }}
+                  >
+                    {langOptions.map(opt => (
+                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
             )}
 
@@ -215,7 +225,13 @@ function SettingsPage() {
                         if (updatingPw) return;
                         setUpdatingPw(true);
                         API.changePassword(passwordData.current, passwordData.newPw)
-                          .then(() => { showToast('Password updated successfully!'); setPasswordData({ current: '', newPw: '', confirm: '' }); setUpdatingPw(false); })
+                          .then(() => {
+                            showToast('Password updated — signing you out…');
+                            API.logout().catch(() => {});
+                            localStorage.removeItem('nx-token');
+                            localStorage.removeItem('nx-uid');
+                            setTimeout(() => { window.location.href = 'index.html'; }, 1500);
+                          })
                           .catch(err => { showToast(err.message || 'Failed to update password', 'error'); setUpdatingPw(false); });
                       }}>
                       {updatingPw ? 'Updating…' : 'Update password'}
@@ -288,13 +304,24 @@ function SettingsPage() {
                     API.deleteUser(currentUser.id)
                       .then(() => {
                         const userId = currentUser.id;
-                        ['nx-token','nx-uid','li-liked-posts','li-saved-jobs','li-connections','li-following',
-                         'li-pending-conn','li-dismissed-inv','li-applied-jobs','li-joined-groups',
-                         'li-settings','li-language','li-user-status','li-recruiter-mode',
-                         `li-user-status-${userId}`, `li-shortlisted-${userId}`].forEach(k => localStorage.removeItem(k));
+                        [
+                          'nx-token','nx-uid',
+                          'li-liked-posts','li-saved-jobs','li-connections','li-following',
+                          'li-pending-conn','li-dismissed-inv','li-applied-jobs',
+                          'li-settings','li-language','li-user-status','li-recruiter-mode',
+                          `li-liked-posts-${userId}`,
+                          `li-saved-jobs-${userId}`,
+                          `li-connections-${userId}`,
+                          `li-following-${userId}`,
+                          `li-pending-conn-${userId}`,
+                          `li-dismissed-inv-${userId}`,
+                          `li-applied-jobs-${userId}`,
+                          `li-user-status-${userId}`,
+                          `li-shortlisted-${userId}`,
+                        ].forEach(k => localStorage.removeItem(k));
                         setCurrentUser(null);
                         showToast('Account deleted. Redirecting…', 'error');
-                        setTimeout(() => { window.location.href = 'index.html'; }, 1500);
+                        window.location.href = 'index.html';
                       })
                       .catch(() => showToast('Failed to delete account', 'error'));
                   }}

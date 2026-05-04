@@ -48,6 +48,7 @@ global.API = {
 };
 global.LoadingSpinner = ({ text }) => React.createElement('div', { 'data-testid': 'spinner' }, text);
 global.formatTime = jest.fn((ts) => ts);
+global.navigate = jest.fn();
 
 // jsdom doesn't implement scrollIntoView
 window.HTMLElement.prototype.scrollIntoView = jest.fn();
@@ -376,7 +377,7 @@ describe('MessagingPage Component Tests', () => {
             fireEvent.click(screen.getByText('Send'));
         });
 
-        expect(screen.getByText('Hello')).toBeInTheDocument();
+        expect(screen.getAllByText('Hello').length).toBeGreaterThanOrEqual(1);
         expect(global.API.sendMessage).toHaveBeenCalledTimes(1);
     });
 
@@ -1739,18 +1740,21 @@ describe('MessagingPage Component Tests', () => {
         await waitFor(() => expect(screen.getByText('No score available.')).toBeInTheDocument());
     });
 
-    // M25 — WB: window.location.hash branches
-    test("Exercises window.location.hash branches via 'Go to profile' buttons", async () => {
+    // M25 — WB: 'Go to profile' buttons call navigate('profile')
+    test("'Go to profile' buttons navigate to profile page", async () => {
         global.useFetch.mockReturnValue({ loading: false, data: [{ id: 1, participantName: 'Alice' }] });
         global.API.getProfileReadiness.mockResolvedValue({ score: 70, sections: [], fixes: [] });
+        global.navigate.mockClear();
         await act(async () => render(React.createElement(MessagingPage)));
         await act(async () => fireEvent.click(screen.getByTitle('Profile Readiness')));
 
         const goBtns = screen.getAllByText('Go to profile');
         goBtns.forEach(btn => {
-            window.location.hash = '';
             fireEvent.click(btn);
-            expect(window.location.hash).toBe('#profile');
+        });
+        expect(global.navigate).toHaveBeenCalledTimes(goBtns.length);
+        global.navigate.mock.calls.forEach(call => {
+            expect(call[0]).toBe('profile');
         });
     });
 });

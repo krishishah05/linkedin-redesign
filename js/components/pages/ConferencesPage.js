@@ -4,6 +4,7 @@
    ============================================================ */
 
 function ConferencesPage() {
+  const { showToast } = React.useContext(AppContext);
   const [locationQ, setLocationQ] = React.useState('');
   const [fieldQ, setFieldQ] = React.useState('technology');
   const [searchCenter, setSearchCenter] = React.useState(null); // geocoded center for searched location
@@ -110,8 +111,7 @@ function ConferencesPage() {
       setSelectedId(cleaned[0]?.id || null);
 
     } catch (err) {
-      console.error(err);
-      createToast("Failed to fetch conferences", "error");
+      showToast("Failed to fetch conferences", "error");
     } finally {
       setSearching(false);
     }
@@ -168,7 +168,7 @@ function ConferencesPage() {
   function handleStorySubmit(e) {
     e.preventDefault();
     if (!storyForm.conferenceName.trim() || !storyForm.tagline.trim() || !storyForm.description.trim()) {
-      createToast('Conference name, headline, and takeaways are required.', 'error');
+      showToast('Conference name, headline, and takeaways are required.', 'error');
       return;
     }
     setStorySubmitting(true);
@@ -183,9 +183,9 @@ function ConferencesPage() {
         setStories(prev => [story, ...prev]);
         setShowStoryForm(false);
         setStoryForm({ conferenceName: '', tagline: '', description: '', photoUrl: '', companyLogoUrl: '' });
-        createToast('Conference experience shared!', 'success');
+        showToast('Conference experience shared!', 'success');
       })
-      .catch(() => createToast('Failed to share story.', 'error'))
+      .catch(() => showToast('Failed to share story.', 'error'))
       .finally(() => setStorySubmitting(false));
   }
 
@@ -509,11 +509,6 @@ function SnapStoryViewer({ stories, initialIdx, onClose }) {
               <span style={{ fontSize: 20 }}>{liked.has(story.id) ? '❤️' : '🤍'}</span>
               {liked.has(story.id) ? 'Liked' : 'Like'}
             </button>
-            <button onClick={async e => { e.stopPropagation(); try { await navigator.clipboard.writeText(window.location.href); createToast('Link copied!', 'success'); } catch (_) { createToast('Failed to copy link.', 'error'); } }}
-              style={{ background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: 20, padding: '8px 16px', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer', backdropFilter: 'blur(4px)' }}>
-              Share ↗
-            </button>
-
             {/* Story count indicator */}
             <div style={{ marginLeft: 'auto', fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>
               {idx + 1} / {stories.length}
