@@ -367,7 +367,9 @@ function SnapStoryViewer({ stories, initialIdx, onClose }) {
   const [idx, setIdx] = React.useState(initialIdx);
   const [progress, setProgress] = React.useState(0);
   const [paused, setPaused] = React.useState(false);
-  const [liked, setLiked] = React.useState(new Set());
+  const [liked, setLiked] = React.useState(() => {
+    try { return new Set(JSON.parse(localStorage.getItem('li-story-likes') || '[]')); } catch { return new Set(); }
+  });
   const intervalRef = React.useRef(null);
   const wrapperRef = React.useRef(null);
 
@@ -507,7 +509,7 @@ function SnapStoryViewer({ stories, initialIdx, onClose }) {
 
           {/* Actions row */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <button onClick={e => { e.stopPropagation(); setLiked(prev => { const n = new Set(prev); n.has(story.id) ? n.delete(story.id) : n.add(story.id); return n; }); }}
+            <button onClick={e => { e.stopPropagation(); setLiked(prev => { const n = new Set(prev); n.has(story.id) ? n.delete(story.id) : n.add(story.id); try { localStorage.setItem('li-story-likes', JSON.stringify([...n])); } catch {} return n; }); }}
               style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, color: liked.has(story.id) ? '#ef4444' : 'rgba(255,255,255,0.75)', fontSize: 13, fontWeight: 600, padding: '8px 0' }}>
               <span style={{ fontSize: 20 }}>{liked.has(story.id) ? '❤️' : '🤍'}</span>
               {liked.has(story.id) ? 'Liked' : 'Like'}
