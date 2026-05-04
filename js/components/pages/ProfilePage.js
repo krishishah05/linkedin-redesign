@@ -399,15 +399,12 @@ function ProfilePage({ userId }) {
                             </div>
                           </div>
                           {/* Content */}
-                          <p onClick={() => navigate(`feed#post-${post.id}`)}
-                            style={{ margin: '0 0 8px', fontSize: 14, color: 'var(--text)', lineHeight: 1.5, cursor: 'pointer' }}
-                            onMouseEnter={e => e.currentTarget.style.textDecoration = 'underline'}
-                            onMouseLeave={e => e.currentTarget.style.textDecoration = 'none'}>
+                          <p style={{ margin: '0 0 8px', fontSize: 14, color: 'var(--text)', lineHeight: 1.5 }}>
                             {(post.content || '').slice(0, 200)}{(post.content || '').length > 200 ? '…' : ''}
                           </p>
                           {/* Engagement */}
                           {(likes > 0 || comments > 0) && (
-                            <div onClick={() => navigate(`feed#post-${post.id}`)} style={{ display: 'flex', gap: 12, fontSize: 12, color: 'var(--text-3)', cursor: 'pointer' }}>
+                            <div style={{ display: 'flex', gap: 12, fontSize: 12, color: 'var(--text-3)' }}>
                               {likes > 0 && <span>👍 {likes}</span>}
                               {comments > 0 && <span>💬 {comments} comments</span>}
                             </div>
