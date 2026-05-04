@@ -91,7 +91,7 @@ python3 backend/app.py
 | Story | Description | Endpoint |
 |-------|-------------|----------|
 | #1 — Outreach Message Guidance | Generate a personalized outreach message draft for a recipient | `POST /api/outreach/generate` |
-| #2 — Outreach Readiness Check | Score your profile completeness before messaging someone | `GET /api/outreach/readiness` |
+| #7 — Outreach Readiness Check | Score your profile completeness before messaging someone | `GET /api/outreach/readiness` |
 
 To use Story #1: go to **Messaging**, select a conversation, click **Outreach Guide**.
 To use Story #2: go to **Messaging** and click **Readiness Score**, or view your **Profile**.
