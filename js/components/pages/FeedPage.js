@@ -480,7 +480,7 @@ function PostCreator({ user, onPost, openModal, showToast }) {
               <svg width="16" height="16" viewBox="0 0 24 24" fill="#5F9B41"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/></svg>
               <span>{t('video')}</span>
             </button>
-            <button title={t('writeArticle')} onClick={activateArticle}
+            <button title="Article" onClick={activateArticle}
               style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '6px 8px', borderRadius: 6, display: 'flex', alignItems: 'center', gap: 4, fontSize: 13, fontWeight: 600, color: 'var(--text-2)' }}
               onMouseEnter={e => e.currentTarget.style.background = 'var(--bg)'}
               onMouseLeave={e => e.currentTarget.style.background = 'none'}>
@@ -673,23 +673,23 @@ function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, followi
               + Follow
             </button>
           )}
-          <div style={{ position: 'relative' }}>
-            <button className="li-post__options" onClick={() => setMenuOpen(v => !v)}>
-              <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-                <circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/>
-              </svg>
-            </button>
-            {menuOpen && (
-              <div className="li-dropdown" style={{ display: 'block', position: 'absolute', top: '100%', right: 0, minWidth: 200, zIndex: 100 }}>
-                {currentUser && (post.authorId === currentUser.id || post.authorId === String(currentUser.id)) && (
+          {currentUser && (post.authorId === currentUser.id || post.authorId === String(currentUser.id)) && (
+            <div style={{ position: 'relative' }}>
+              <button className="li-post__options" onClick={() => setMenuOpen(v => !v)}>
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                  <circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/>
+                </svg>
+              </button>
+              {menuOpen && (
+                <div className="li-dropdown" style={{ display: 'block', position: 'absolute', top: '100%', right: 0, minWidth: 200, zIndex: 100 }}>
                   <div className="li-dropdown__item" style={{ color: 'var(--red)' }}
                     onClick={() => { setMenuOpen(false); onDelete && onDelete(post.id); showToast('Post deleted'); }}>
                     Delete post
                   </div>
-                )}
-              </div>
-            )}
-          </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 

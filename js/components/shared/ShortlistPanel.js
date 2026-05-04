@@ -13,7 +13,7 @@ function ShortlistPanel() {
 
   const profiles = [...shortlisted.values()];
 
-  if (!currentUser?.isRecruiter || !recruiterMode || !recruiterPanelOpen) return null;
+  if (!recruiterMode || !recruiterPanelOpen) return null;
 
   function downloadCSV() {
     const headers = ['Name','Current Role','Company','Headline','Location','Skills','Education','Degree','Connections','Open to Work','Profile URL'];

@@ -1377,13 +1377,9 @@ describe('FeedPost — Options Menu', () => {
       })
     );
 
-    // Open the options menu
+    // 3-dot button is not rendered for non-authors
     const menuBtn = document.querySelector('.li-post__options');
-    await act(async () => {
-      fireEvent.click(menuBtn);
-    });
-
-    // Delete post should NOT be in the menu
+    expect(menuBtn).toBeNull();
     expect(screen.queryByText('Delete post')).not.toBeInTheDocument();
   });
 
@@ -1684,7 +1680,7 @@ describe('PostCreator — action buttons', () => {
     });
 
     await act(async () => {
-      fireEvent.click(screen.getByTitle('Write article'));
+      fireEvent.click(screen.getByTitle('Article'));
     });
 
     expect(screen.getByText('Choose a template')).toBeInTheDocument();

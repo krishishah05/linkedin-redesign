@@ -256,7 +256,7 @@ function NavBar() {
     </nav>
 
     {/* Recruiter: slide-in candidate pipeline panel */}
-    {currentUser?.isRecruiter && recruiterMode && <ShortlistPanel />}
+    {recruiterMode && <ShortlistPanel />}
     </>
   );
 }
