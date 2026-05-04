@@ -227,25 +227,40 @@ function JobDetailPanel({ job, descLoading, savedJobs, toggleSaveJob, openModal,
   const applyUrl = getJobApplicationUrl(job);
   const applied = isApplied(job.id);
 
-  function openApplicationSite() {
-    if (!applyUrl) return false;
-    const opened = window.open(applyUrl, '_blank', 'noopener,noreferrer');
-    if (!opened) {
-      showToast('Allow pop-ups to open the application site.', 'error');
-      return false;
+  React.useEffect(() => {
+    let pending = null;
+    try {
+      pending = JSON.parse(sessionStorage.getItem('nx-pending-job-application') || 'null');
+    } catch (_) {}
+    if (!pending || String(pending.jobId) !== String(job.id) || applied) return;
+
+    applyJob(job.id)
+      .then(() => {
+        try { sessionStorage.removeItem('nx-pending-job-application'); } catch (_) {}
+        showToast('Application submitted!', 'success');
+      })
+      .catch(() => showToast('Failed to submit application', 'error'));
+  }, [job.id, applied]);
+
+  function rememberPendingApplication() {
+    try {
+      sessionStorage.setItem('nx-pending-job-application', JSON.stringify({
+        jobId: job.id,
+        savedAt: Date.now(),
+      }));
+    } catch (_) {
+      /* Session storage can be blocked. Navigation should still work. */
     }
-    return true;
   }
 
   function handleApply() {
-    const opened = openApplicationSite();
-    if (applied) {
-      if (opened) showToast('Application site opened.', 'success');
+    if (applied) return;
+    if (!applyUrl) {
+      showToast('No external application link is available for this job.', 'error');
       return;
     }
-    applyJob(job.id)
-      .then(() => showToast(opened ? 'Application site opened.' : 'Application submitted!', 'success'))
-      .catch(() => showToast('Failed to submit application', 'error'));
+    rememberPendingApplication();
+    window.location.assign(applyUrl);
   }
 
   return (
@@ -284,10 +299,10 @@ function JobDetailPanel({ job, descLoading, savedJobs, toggleSaveJob, openModal,
         <button
           className="li-btn li-btn--primary"
           onClick={handleApply}
-          style={{ flex: 1, opacity: applied && !applyUrl ? 0.7 : 1 }}
-          disabled={applied && !applyUrl}
+          style={{ flex: 1, opacity: applied ? 0.7 : 1 }}
+          disabled={applied}
         >
-          {applied ? (applyUrl ? 'View application' : 'Applied') : 'Apply now'}
+          {applied ? 'Applied' : 'Apply now'}
         </button>
         <button
           className="li-btn li-btn--ghost"
