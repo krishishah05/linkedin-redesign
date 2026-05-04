@@ -822,8 +822,8 @@ function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, followi
         <div className="li-post__comments">
           {/* Comment input */}
           <div className="li-post__comment-input-row">
-            <div className="li-comment__photo" style={{ padding: 0, overflow: 'hidden' }}>
-              <Avatar name={(currentUser || {}).name || 'Me'} size={36} photo={(currentUser || {}).photo} colorOverride={(currentUser || {}).avatarColor} />
+            <div className="li-comment__photo" style={{ background: (currentUser || {}).avatarColor || 'var(--blue)' }}>
+              {getInitials((currentUser || {}).name || 'Me')}
             </div>
             <input
               className="li-post__comment-input"

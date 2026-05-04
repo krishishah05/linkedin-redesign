@@ -1596,11 +1596,11 @@ describe('PostCreator — action buttons', () => {
     );
 
     await act(async () => {
-      fireEvent.click(screen.getByText('Write article'));
+      fireEvent.click(screen.getByText('Article'));
     });
 
     // Template picker should appear with the heading
-    expect(screen.getByText('Choose an article template')).toBeInTheDocument();
+    expect(screen.getByText('Choose a template')).toBeInTheDocument();
     // At least one template title should be visible
     expect(screen.getByText('Industry Insight')).toBeInTheDocument();
   });
@@ -1622,7 +1622,7 @@ describe('PostCreator — action buttons', () => {
 
     // Open the template picker
     await act(async () => {
-      fireEvent.click(screen.getByText('Write article'));
+      fireEvent.click(screen.getByText('Article'));
     });
 
     // Click the 'How-To Guide' template
@@ -1631,7 +1631,7 @@ describe('PostCreator — action buttons', () => {
     });
 
     // Expanded composer should now show with template content in the textarea
-    const textarea = screen.getByPlaceholderText('Edit the template, then publish your article…');
+    const textarea = screen.getByPlaceholderText('Edit your article template…');
     expect(textarea.value).toContain('How to');
   });
 
@@ -1687,7 +1687,7 @@ describe('PostCreator — action buttons', () => {
       fireEvent.click(screen.getByTitle('Write article'));
     });
 
-    expect(screen.getByText('Choose an article template')).toBeInTheDocument();
+    expect(screen.getByText('Choose a template')).toBeInTheDocument();
   });
 
   // 46
@@ -1824,7 +1824,8 @@ describe('FeedPost — render variants and action buttons', () => {
   // Spec: #51
   // Exact line: onClick={() => openModal('share', { post })}
   // Tests that clicking Repost calls openModal with the share modal id and post object
-  test('Clicking Repost calls openModal with share', async () => {
+  // Repost button intentionally removed from UI
+  test.skip('Clicking Repost calls openModal with share', async () => {
     const mockOpenModal = jest.fn();
 
     render(
@@ -1901,7 +1902,8 @@ describe('FeedPost — render variants and action buttons', () => {
   // Type: WB
   // Spec: #55
   // Tests that clicking Save post calls onSave and shows 'Post saved' toast
-  test('Clicking Save post in menu calls onSave and shows toast', async () => {
+  // Save post removed from menu
+  test.skip('Clicking Save post in menu calls onSave and shows toast', async () => {
     const mockOnSave = jest.fn();
     render(
       React.createElement(sandbox.FeedPost, {
