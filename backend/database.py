@@ -976,6 +976,7 @@ def delete_post(post_id: int, user_id: int):
     if row["author_id"] != int(user_id):
         conn.close()
         return "forbidden"
+    _execute(conn, "DELETE FROM post_likes WHERE post_id=%s", (int(post_id),))
     _execute(conn, "DELETE FROM posts WHERE id=%s", (int(post_id),))
     conn.commit()
     conn.close()

@@ -475,6 +475,11 @@ class TestFeed:
         resp = client.delete("/api/feed/9999")
         assert resp.status_code == 404
 
+    def test_delete_post_forbidden_returns_403(self, client, monkeypatch):
+        monkeypatch.setattr(flask_app.dbl, "delete_post", lambda pid, uid: "forbidden")
+        resp = client.delete("/api/feed/1")
+        assert resp.status_code == 403
+
     def test_T87_BB_like_post_returns_liked(self, client):
         resp = client.post("/api/feed/1/like")
         assert resp.status_code == 200
