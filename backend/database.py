@@ -428,8 +428,8 @@ def init_db():  # pragma: no cover
     _execute(conn, """
         DELETE FROM users
         WHERE id > 21
-          AND (name LIKE 'Test User%' OR name LIKE 'Temp User%')
-    """)
+          AND (name LIKE %s OR name LIKE %s)
+    """, ('Test User%', 'Temp User%'))
 
     conn.commit()
     conn.close()
