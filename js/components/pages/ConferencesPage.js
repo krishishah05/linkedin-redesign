@@ -466,14 +466,17 @@ function SnapStoryViewer({ stories, initialIdx, onClose }) {
 
         {/* Top: author + close */}
         <div style={{ position: 'absolute', top: 26, left: 14, right: 14, display: 'flex', alignItems: 'center', gap: 10, zIndex: 10 }}>
-          <div style={{ padding: 2, borderRadius: '50%', background: 'linear-gradient(135deg,#f59e0b,#ef4444,#a855f7)', flexShrink: 0 }}>
-            <div style={{ background: '#111', borderRadius: '50%', padding: 2 }}>
-              <Avatar name={story.author?.name || 'Attendee'} size={34} colorOverride={story.author?.avatarColor} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, cursor: 'pointer' }}
+            onClick={e => { e.stopPropagation(); if (story.author?.id) { onClose(); navigate(`profile?id=${story.author.id}`); } }}>
+            <div style={{ padding: 2, borderRadius: '50%', background: 'linear-gradient(135deg,#f59e0b,#ef4444,#a855f7)', flexShrink: 0 }}>
+              <div style={{ background: '#111', borderRadius: '50%', padding: 2 }}>
+                <Avatar name={story.author?.name || 'Attendee'} size={34} colorOverride={story.author?.avatarColor} />
+              </div>
             </div>
-          </div>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: '#fff', lineHeight: 1.2 }}>{story.author?.name || 'Attendee'}</div>
-            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.65)' }}>{story.conferenceName}</div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: '#fff', lineHeight: 1.2 }}>{story.author?.name || 'Attendee'}</div>
+              <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.65)' }}>{story.conferenceName}</div>
+            </div>
           </div>
           {story.companyLogoUrl && (
             <img src={story.companyLogoUrl} alt="" style={{ width: 30, height: 30, objectFit: 'contain', borderRadius: 6, background: 'rgba(255,255,255,0.1)', padding: 3 }}
