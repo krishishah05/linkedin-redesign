@@ -683,7 +683,11 @@ function FeedPost({ post, liked, onLike, commentsOpen, onToggleComments, followi
               {menuOpen && (
                 <div className="li-dropdown" style={{ display: 'block', position: 'absolute', top: '100%', right: 0, minWidth: 200, zIndex: 100 }}>
                   <div className="li-dropdown__item" style={{ color: 'var(--red)' }}
-                    onClick={() => { setMenuOpen(false); onDelete && onDelete(post.id); showToast('Post deleted'); }}>
+                    onClick={() => {
+                      API.deletePost(post.id)
+                        .then(() => { setMenuOpen(false); onDelete && onDelete(post.id); showToast('Post deleted'); })
+                        .catch(() => showToast('Failed to delete post', 'error'));
+                    }}>
                     Delete post
                   </div>
                 </div>
