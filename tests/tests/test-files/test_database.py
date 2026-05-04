@@ -1052,6 +1052,19 @@ class TestDeletePost:
         conn.close()
         assert row is None
 
+    def test_delete_post_removes_post_likes(self, isolated_db):
+        seed_user(isolated_db, uid=1, email="a@a.com")
+        seed_user(isolated_db, uid=2, email="b@b.com")
+        pid = seed_post(isolated_db, uid=1)
+        conn = sqlite3.connect(isolated_db)
+        conn.execute("INSERT INTO post_likes (post_id, user_id) VALUES (?,?)", (pid, 2))
+        conn.commit()
+        conn.close()
+
+        assert database.delete_post(pid, 1) == "deleted"
+        rows = _raw_all(isolated_db, "SELECT * FROM post_likes WHERE post_id=?", (pid,))
+        assert rows == []
+
     def test_T105_BB_non_owner_cannot_delete(self, isolated_db):
         """BB: Non-owner user_id returns 'forbidden' and post is kept."""
         seed_user(isolated_db, uid=1, email="a@a.com")

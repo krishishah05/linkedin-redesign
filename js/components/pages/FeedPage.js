@@ -183,7 +183,7 @@ function FeedPage() {
               onSave={id => setSavedPostIds(prev => { const next = new Set(prev); next.has(String(id)) ? next.delete(String(id)) : next.add(String(id)); return next; })}
               onHide={id => { setLocalPosts(prev => (prev || []).filter(p => p.id !== id)); showToast('Post removed from your feed'); }}
               onDelete={id => {
-                setLocalPosts(prev => prev.filter(p => p.id !== id));
+                setLocalPosts(prev => (prev || []).filter(p => p.id !== id));
               }}
             />
           </React.Fragment>
